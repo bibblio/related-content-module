@@ -32,19 +32,24 @@ function bib_getRelatedContentItems(accessToken, contentItemId, successCallback)
     var xmlhttp = new XMLHttpRequest();
 
     xmlhttp.onreadystatechange = function() {
+      // alert("onreadystatechange");
         if (xmlhttp.readyState == 4 && xmlhttp.status == 200) {
+            alert("success hook");
             var contentItems = JSON.parse(xmlhttp.responseText);
             successCallback(contentItems);
         }
-        // url arguments should be injected but the plugin only supports these settings now anyway.
-        var url = bib_recommendationUrl(contentItemId, 5, 1, ["name", "url", "squareImage"]);
-        xmlhttp.open("GET", url, true);
-        xmlhttp.setRequestHeader("Authorization", "Bearer " . accessToken);
-        xmlhttp.send();
     };
+
+    // url arguments should be injected but the plugin only supports these settings now anyway.
+    var url = bib_recommendationUrl(contentItemId, 5, 1, ["name", "url", "squareImage"]);
+    xmlhttp.open("GET", url, true);
+    xmlhttp.setRequestHeader("Authorization", "Bearer " + accessToken);
+    alert("making call to: " + url);
+    xmlhttp.send();
 }
 
 function bib_displayRelatedContent(relatedContentItems, contentItemTemplate) {
+    alert("display content");
     var relatedContentItemCountainer = document.getElementById('bib_relatedContentList');
     var relatedContentItemPanels = _.map(relatedContentItems, function(contentItem) { return bib_renderContentItemTemplate(contentItem, contentItemTemplate); });
     relatedContentList.innerHTML = relatedContentItemPanels;
@@ -52,16 +57,17 @@ function bib_displayRelatedContent(relatedContentItems, contentItemTemplate) {
 
 function bib_renderContentItemTemplate(contentItem, contentItemTemplate) {
     var compiled = _.template(contentItemTemplate);
+    var relatedBy = _.map(contentItem.relationships.inCommon.slice(0,2), function(rel) { return rel.text; });
     var varBindings = {
-        name: '',
-        url: '',
-        imageUrl: '',
-        relatedBy: []
+        name: contentItem.fields.name,
+        url: contentItem.fields.url,
+        imageUrl: contentItem.fields.squareImage.urlContent,
+        relatedBy: relatedBy
     };
     return compiled(varBindings);
 }
 
 function bib_recommendationUrl(contentItemId, limit, page, fields) {
-    var fields = _.map(fields, function(field) { return "fields=" . field; });
-    return "api.bibblio.org/content-items/" . contentItemId . "/recommendations?limit=" . limit . "&page=" . page . "&" . fields.join("&");
+    var fields = _.map(fields, function(field) { return "fields=" + field; }).join("&");
+    return "https://api.bibblio.org/content-items/" + contentItemId + "/recommendations?limit=" + limit + "&page=" + page + "&" + fields;
 }
