@@ -1,0 +1,316 @@
+html, body {
+    margin: 0;
+}
+
+.demo-container {
+    box-sizing: border-box;
+    margin:20px auto;
+    padding: 5px;
+    width: 290px;
+}
+
+.bib-module {
+    font-family: Arial, sans-serif;
+    width: 290px; /*width: 100%;*/
+}
+
+.bib-accordion {
+    box-sizing: border-box;
+    height: 370px;
+    width: 100%;
+    display: table;
+    table-layout: fixed;
+    border-collapse: separate;
+    padding: 0;
+    margin: 0;
+    list-style-type: none;
+    overflow: hidden;
+}
+
+.bib-accordion-row {
+    display: table-row;
+    position: relative;
+    height: 11%;
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    overflow: hidden;
+    background-position: center center;
+    background-repeat: no-repeat;
+    background-size: 130% auto; /*Make it "100% auto" with square images (600px)*/
+    -webkit-transition: all 0.2s ease-in-out;
+    -moz-transition: all 0.2s ease-in-out;
+    -ms-transition: all 0.2s ease-in-out;
+    -o-transition: all 0.2s ease-in-out;
+    transition: all 0.2s ease-in-out;
+}
+
+.bib-module.bib-retina .bib-accordion-row {
+    background-size: 50% auto;
+}
+
+.bib-accordion .bib-accordion-row .bib-accordion-cell,
+.bib-accordion:hover .bib-accordion-row:first-of-type .bib-accordion-cell {
+    display: table-cell;
+    position: relative;
+    overflow: hidden;
+    width: 100%;
+    color: rgba(255,255,255,1);
+    background-color: rgba(0,0,0,0.6);
+    border-bottom: 1px solid rgba(255,255,255,1);
+    text-decoration: none;
+    -webkit-transition: all 0.2s ease-in-out;
+    -moz-transition: all 0.2s ease-in-out;
+    -ms-transition: all 0.2s ease-in-out;
+    -o-transition: all 0.2s ease-in-out;
+    transition: all 0.2s ease-in-out;
+}
+
+.bib-accordion:hover .bib-accordion-row:first-of-type {
+    height: 11%;
+}
+
+.bib-accordion:hover .bib-accordion-row .bib-accordion-info {
+    padding: 10px;
+}
+
+.bib-accordion .bib-accordion-row:first-of-type,
+.bib-accordion:hover .bib-accordion-row:hover {
+    height: 56%;
+}
+
+.bib-accordion:hover .bib-accordion-row:hover .bib-accordion-cell,
+.bib-accordion .bib-accordion-row:first-of-type .bib-accordion-cell {
+    background-color: rgba(0,0,0,0);
+}
+
+.bib-accordion-title,
+.bib-accordion:hover .bib-accordion-row:first-of-type .bib-accordion-title {
+    display: block;
+    font-size: 16px;
+    font-weight: bold;
+    text-align: center;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    -webkit-transition: all 0.2s ease-in-out;
+    -moz-transition: all 0.2s ease-in-out;
+    -ms-transition: all 0.2s ease-in-out;
+    -o-transition: all 0.2s ease-in-out;
+    transition: all 0.2s ease-in-out;
+}
+
+.bib-accordion:hover .bib-accordion-row:hover .bib-accordion-title,
+.bib-accordion .bib-accordion-row:first-of-type .bib-accordion-title {
+    font-size: 18px;
+    white-space: normal;
+    overflow: auto;
+    text-overflow: inherit;
+}
+
+.bib-accordion-info,
+.bib-accordion:hover .bib-accordion-row:first-of-type .bib-accordion-info {
+    display: block;
+    padding: 10px;
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background-color: rgba(0,0,0,0);
+    -webkit-transition: all 0.2s ease-in-out;
+    -moz-transition: all 0.2s ease-in-out;
+    -ms-transition: all 0.2s ease-in-out;
+    -o-transition: all 0.2s ease-in-out;
+    transition: all 0.2s ease-in-out;
+}
+
+.bib-accordion:hover .bib-accordion-row:hover .bib-accordion-info,
+.bib-accordion .bib-accordion-row:first-of-type .bib-accordion-info {
+    background-color: rgba(0,0,0,0.5);
+    padding: 15px 10px;
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+}
+
+.bib-accordion-related-container,
+.bib-accordion:hover .bib-accordion-row:first-of-type .bib-accordion-related-container {
+    opacity: 0;
+    display: block;
+    position: relative;
+    font-size: 14px;
+    margin-top: 0;
+    text-align: center;
+    max-height: 0;
+    -webkit-transition: all 0.2s ease-in-out;
+    -moz-transition: all 0.2s ease-in-out;
+    -ms-transition: all 0.2s ease-in-out;
+    -o-transition: all 0.2s ease-in-out;
+    transition: all 0.2s ease-in-out;
+}
+
+.bib-accordion-related-label,
+.bib-accordion:hover .bib-accordion-row:first-of-type .bib-accordion-related-label {
+    display: inline-block;
+    /*width: 40%;*/
+    font-style: italic;
+    padding-right: 7px;
+    text-align: right;
+    vertical-align: top;
+    color: rgba(255,255,255,0.7);
+    max-height: 0;
+    -webkit-transition: all 0.2s ease-in-out;
+    -moz-transition: all 0.2s ease-in-out;
+    -ms-transition: all 0.2s ease-in-out;
+    -o-transition: all 0.2s ease-in-out;
+    transition: all 0.2s ease-in-out;
+}
+
+.bib-accordion-related-list,
+.bib-accordion:hover .bib-accordion-row:first-of-type .bib-accordion-related-list {
+    display: inline-block;
+    /*width: 50%;*/
+    border-left: 1px solid rgba(255,255,255,0.7);
+    padding-left: 10px;
+    text-align: left;
+    max-height: 0;
+    max-width: 65%;
+    -webkit-transition: all 0.2s ease-in-out;
+    -moz-transition: all 0.2s ease-in-out;
+    -ms-transition: all 0.2s ease-in-out;
+    -o-transition: all 0.2s ease-in-out;
+    transition: all 0.2s ease-in-out;
+}
+
+.bib-accordion-related-item,
+.bib-accordion:hover .bib-accordion-row:first-of-type .bib-accordion-related-item {
+    display: block;
+    max-height: 0;
+    -webkit-transition: all 0.2s ease-in-out;
+    -moz-transition: all 0.2s ease-in-out;
+    -ms-transition: all 0.2s ease-in-out;
+    -o-transition: all 0.2s ease-in-out;
+    transition: all 0.2s ease-in-out;
+}
+
+.bib-accordion:hover .bib-accordion-row:hover .bib-accordion-related-container, 
+.bib-accordion:hover .bib-accordion-row:hover .bib-accordion-related-container .bib-accordion-related-list, 
+.bib-accordion:hover .bib-accordion-row:hover .bib-accordion-related-container .bib-accordion-related-item, 
+.bib-accordion:hover .bib-accordion-row:hover .bib-accordion-related-container .bib-accordion-related-label,
+.bib-accordion .bib-accordion-row:first-of-type .bib-accordion-related-container, 
+.bib-accordion .bib-accordion-row:first-of-type .bib-accordion-related-container .bib-accordion-related-list, 
+.bib-accordion .bib-accordion-row:first-of-type .bib-accordion-related-container .bib-accordion-related-item, 
+.bib-accordion .bib-accordion-row:first-of-type .bib-accordion-related-container .bib-accordion-related-label
+ {
+    opacity: 1;
+    max-height: 150px;
+    -webkit-transition: all 0.2s ease-in-out;
+    -moz-transition: all 0.2s ease-in-out;
+    -ms-transition: all 0.2s ease-in-out;
+    -o-transition: all 0.2s ease-in-out;
+    transition: all 0.2s ease-in-out;
+}
+
+.bib-accordion:hover .bib-accordion-row:hover .bib-accordion-related-container, 
+.bib-accordion .bib-accordion-row:first-of-type .bib-accordion-related-container {
+    margin-top: 10px;
+}
+
+.bib-powered {
+    text-align: right;
+    padding: 10px 0;
+}
+
+.bib-powered-label {
+    font-size: 11px;
+    color: rgba(0,0,0,0.5);
+    padding-right: 7px;
+}
+
+
+
+
+
+
+@media (max-width: 1024px) {
+
+.demo-container {
+    margin:20px auto;
+    width: auto;
+}
+
+.bib-module {
+    width: 100%;
+} 
+
+.bib-accordion { 
+    height: auto;
+    display: block;
+    overflow: hidden;
+    text-align: center;
+}
+
+.bib-accordion-row,
+.bib-accordion .bib-accordion-row:first-of-type {
+    display: inline-block;
+    height: 217px;
+    width: 290px;
+    margin: 1px;
+    background-size: 100% auto;
+}
+
+.bib-accordion .bib-accordion-row .bib-accordion-cell,
+.bib-accordion .bib-accordion-row:first-of-type .bib-accordion-cell,
+.bib-accordion:hover .bib-accordion-row:first-of-type .bib-accordion-cell {
+    display: block;
+    border-bottom: 0;
+    height: 217px;
+    width: 290px;
+    background-color: rgba(0,0,0,0);
+}
+
+.bib-accordion .bib-accordion-row .bib-accordion-info,
+.bib-accordion:hover .bib-accordion-row .bib-accordion-info,
+.bib-accordion .bib-accordion-row:first-of-type .bib-accordion-info,
+.bib-accordion:hover .bib-accordion-row:first-of-type .bib-accordion-info {
+    background-color: rgba(0,0,0,0.5);
+    padding: 15px 10px;
+}
+
+.bib-accordion .bib-accordion-row .bib-accordion-info,
+.bib-accordion .bib-accordion-row .bib-accordion-info .bib-accordion-title,
+.bib-accordion .bib-accordion-row .bib-accordion-info .bib-accordion-related-container, 
+.bib-accordion .bib-accordion-row .bib-accordion-info .bib-accordion-related-container .bib-accordion-related-list, 
+.bib-accordion .bib-accordion-row .bib-accordion-info .bib-accordion-related-container .bib-accordion-related-item, 
+.bib-accordion .bib-accordion-row .bib-accordion-info .bib-accordion-related-container .bib-accordion-related-label {
+    opacity: 1 !important;
+    max-height: 150px !important;
+}
+
+.bib-accordion .bib-accordion-row .bib-accordion-info .bib-accordion-related-container,
+.bib-accordion .bib-accordion-row:first-of-type .bib-accordion-info .bib-accordion-related-container {
+    margin-top: 10px;
+}
+
+.bib-accordion:hover .bib-accordion-row,
+.bib-accordion:hover .bib-accordion-row:hover,
+.bib-accordion:hover .bib-accordion-row:first-of-type {
+    height: 217px;
+}
+
+.bib-accordion .bib-accordion-row .bib-accordion-title,
+.bib-accordion .bib-accordion-row:first-of-type .bib-accordion-title
+.bib-accordion:hover .bib-accordion-row .bib-accordion-title,
+.bib-accordion:hover .bib-accordion-row:first-of-type .bib-accordion-title {
+    font-size: 18px;
+    overflow: inherit;
+    white-space: normal;
+    text-overflow: initial;
+}
+
+.bib-powered {
+    text-align: center;
+}
+
+}
