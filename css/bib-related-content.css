@@ -2,13 +2,6 @@ html, body {
     margin: 0;
 }
 
-.demo-container {
-    box-sizing: border-box;
-    margin:20px auto;
-    padding: 5px;
-    width: 290px;
-}
-
 .bib-module {
     font-family: Arial, sans-serif;
     width: 290px; /*width: 100%;*/
@@ -253,11 +246,6 @@ html, body {
 
 
 @media (max-width: 1024px) {
-
-.demo-container {
-    margin:20px auto;
-    width: auto;
-}
 
 .bib-module {
     width: 100%;
