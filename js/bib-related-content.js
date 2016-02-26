@@ -15,31 +15,27 @@ var bib_relatedContentItemTemplate = "<li class=\"bib-accordion-row  bib-accordi
                                               </span>\
                                           </a>\
                                       </li>";
-// style=\"background-image: url(<%= imageUrl %>)
 
 function bib_initRelatedContent(accessToken, contentItemId) {
-    // this uses partial function application to bind the template variable as an argument to a
+    // This uses partial function application to bind the template variable as an argument to a
     // new (partially applied) version of the bib_displayRelatedContent function. That function can
     // then be passed around as a callback without worrying about the template argument.
     // i.e. the template is at this point bound to the rest of the function call chain.
-    // modify the global bib_relatedContentItemTemplate variable if you want to change the template.
+    // Modify the global bib_relatedContentItemTemplate variable if you want to change the template.
     var displayWithTemplate = _.partial(bib_displayRelatedContent, _, bib_relatedContentItemTemplate);
-
-    // gets the related content items and passes the partially-applied display function as a callback.
+    // Gets the related content items and passes the partially-applied display function as a callback.
     bib_getRelatedContentItems(accessToken, contentItemId, displayWithTemplate);
 }
 
 function bib_getRelatedContentItems(accessToken, contentItemId, successCallback) {
     var xmlhttp = new XMLHttpRequest();
-
     xmlhttp.onreadystatechange = function () {
         if (xmlhttp.readyState === 4 && xmlhttp.status === 200) {
             var response = JSON.parse(xmlhttp.responseText);
             successCallback(response.results);
         }
     };
-
-    // url arguments should be injected but the plugin only supports these settings now anyway.
+    // URL arguments should be injected but the module only supports these settings now anyway.
     var url = bib_recommendationUrl(contentItemId, 5, 1, ["name", "url", "squareImage"]);
     xmlhttp.open("GET", url, true);
     xmlhttp.setRequestHeader("Authorization", "Bearer " + accessToken);
