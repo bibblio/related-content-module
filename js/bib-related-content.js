@@ -34,9 +34,8 @@ function bib_getRelatedContentItems(accessToken, contentItemId, successCallback)
     xmlhttp.onreadystatechange = function() {
       // alert("onreadystatechange");
         if (xmlhttp.readyState == 4 && xmlhttp.status == 200) {
-            alert("success hook");
-            var contentItems = JSON.parse(xmlhttp.responseText);
-            successCallback(contentItems);
+            var response = JSON.parse(xmlhttp.responseText);
+            successCallback(response.results);
         }
     };
 
@@ -44,20 +43,18 @@ function bib_getRelatedContentItems(accessToken, contentItemId, successCallback)
     var url = bib_recommendationUrl(contentItemId, 5, 1, ["name", "url", "squareImage"]);
     xmlhttp.open("GET", url, true);
     xmlhttp.setRequestHeader("Authorization", "Bearer " + accessToken);
-    alert("making call to: " + url);
     xmlhttp.send();
 }
 
 function bib_displayRelatedContent(relatedContentItems, contentItemTemplate) {
-    alert("display content");
     var relatedContentItemCountainer = document.getElementById('bib_relatedContentList');
     var relatedContentItemPanels = _.map(relatedContentItems, function(contentItem) { return bib_renderContentItemTemplate(contentItem, contentItemTemplate); });
-    relatedContentList.innerHTML = relatedContentItemPanels;
+    relatedContentItemCountainer.innerHTML = relatedContentItemPanels.join('');
 }
 
 function bib_renderContentItemTemplate(contentItem, contentItemTemplate) {
     var compiled = _.template(contentItemTemplate);
-    var relatedBy = _.map(contentItem.relationships.inCommon.slice(0,2), function(rel) { return rel.text; });
+    var relatedBy = _.map(contentItem.relationships.inCommon.slice(0,3), function(rel) { return rel.text; });
     var varBindings = {
         name: contentItem.fields.name,
         url: contentItem.fields.url,
