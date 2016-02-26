@@ -1,7 +1,7 @@
 ### HTML
 ```
 <head>
-    <link rel="stylesheet" type="text/css" href="mystyle.css">
+    <link rel="stylesheet" type="text/css" href="css/bib-related-content.css">
 </head>
 
 <div class="bib-module">
@@ -17,7 +17,7 @@
 </div>
 
 <script src="js/underscore.js"></script>
-<script src="js/myscripts.js"></script>
+<script src="js/bib-related-content.js"></script>
 <script>
     bib_initRelatedContent(accessToken, contentItemId);
 </script>
