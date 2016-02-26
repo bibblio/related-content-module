@@ -1,5 +1,5 @@
 
-var bib_relatedContentItemTemplate = "<li class=\"bib-accordion-row\" style=\"background-image: url(<%= imageUrl %>)\">\
+var bib_relatedContentItemTemplate = "<li class=\"bib-accordion-row  bib-accordion-row-<%= rowNumber %>\" <%= (imageUrl ? 'style=\"background-image: url(' + imageUrl + ')' : '') %>\">\
                                           <a class=\"bib-accordion-cell\" href=\"<%= url %>\">\
                                               <span class=\"bib-accordion-info\">\
                                                   <span class=\"bib-accordion-title\"><%= name %></span>\
@@ -14,7 +14,7 @@ var bib_relatedContentItemTemplate = "<li class=\"bib-accordion-row\" style=\"ba
                                               </span>\
                                           </a>\
                                       </li>"
-
+// style=\"background-image: url(<%= imageUrl %>)
 
 function bib_initRelatedContent(accessToken, contentItemId) {
     // this uses partial function application to bind the template variable as an argument to a
@@ -32,7 +32,6 @@ function bib_getRelatedContentItems(accessToken, contentItemId, successCallback)
     var xmlhttp = new XMLHttpRequest();
 
     xmlhttp.onreadystatechange = function() {
-      // alert("onreadystatechange");
         if (xmlhttp.readyState == 4 && xmlhttp.status == 200) {
             var response = JSON.parse(xmlhttp.responseText);
             successCallback(response.results);
@@ -48,18 +47,19 @@ function bib_getRelatedContentItems(accessToken, contentItemId, successCallback)
 
 function bib_displayRelatedContent(relatedContentItems, contentItemTemplate) {
     var relatedContentItemCountainer = document.getElementById('bib_relatedContentList');
-    var relatedContentItemPanels = _.map(relatedContentItems, function(contentItem) { return bib_renderContentItemTemplate(contentItem, contentItemTemplate); });
+    var relatedContentItemPanels = _.map(relatedContentItems, function(contentItem, index) { return bib_renderContentItemTemplate(contentItem, index, contentItemTemplate); });
     relatedContentItemCountainer.innerHTML = relatedContentItemPanels.join('');
 }
 
-function bib_renderContentItemTemplate(contentItem, contentItemTemplate) {
+function bib_renderContentItemTemplate(contentItem, contentItemIndex, contentItemTemplate) {
     var compiled = _.template(contentItemTemplate);
-    var relatedBy = _.map(contentItem.relationships.inCommon.slice(0,3), function(rel) { return rel.text; });
+    var relatedBy = _.map(contentItem.relationships.inCommon.slice(0,3), function(rel) { return bib_toTitleCase(rel.text); });
     var varBindings = {
-        name: contentItem.fields.name,
+        name: bib_toTitleCase(contentItem.fields.name),
         url: contentItem.fields.url,
         imageUrl: contentItem.fields.squareImage.urlContent,
-        relatedBy: relatedBy
+        relatedBy: relatedBy,
+        rowNumber: (contentItemIndex + 1)
     };
     return compiled(varBindings);
 }
@@ -67,4 +67,8 @@ function bib_renderContentItemTemplate(contentItem, contentItemTemplate) {
 function bib_recommendationUrl(contentItemId, limit, page, fields) {
     var fields = _.map(fields, function(field) { return "fields=" + field; }).join("&");
     return "https://api.bibblio.org/content-items/" + contentItemId + "/recommendations?limit=" + limit + "&page=" + page + "&" + fields;
+}
+
+function bib_toTitleCase(str) {
+  return str.replace(/\b\w+/g,function(s){return s.charAt(0).toUpperCase() + s.substr(1).toLowerCase();});
 }

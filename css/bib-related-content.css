@@ -35,9 +35,10 @@ html, body {
     padding: 0;
     width: 100%;
     overflow: hidden;
+    background-image: url('http://bibblio.org/images/plugins/node-bkgd.png');
     background-position: center center;
     background-repeat: no-repeat;
-    background-size: 130% auto; /*Make it "100% auto" with square images (600px)*/
+    background-size: 100% auto; /*Make it "100% auto" with square images (600px)*/
     -webkit-transition: all 0.2s ease-in-out;
     -moz-transition: all 0.2s ease-in-out;
     -ms-transition: all 0.2s ease-in-out;
@@ -228,7 +229,25 @@ html, body {
     padding-right: 7px;
 }
 
+.bib-accordion-row-1 {
+    background-color: #39B54A; /*green*/
+}
 
+.bib-accordion-row-2 {
+    background-color: #F7941E; /*orange*/
+}
+
+.bib-accordion-row-3 {
+    background-color: #27AAE1; /*blue*/
+}
+
+.bib-accordion-row-4 {
+    background-color: #BE1E2D; /*red*/
+}
+
+.bib-accordion-row-5 {
+    background-color: #644E96; /*purple*/
+}
 
 
 
@@ -314,3 +333,4 @@ html, body {
 }
 
 }
+
