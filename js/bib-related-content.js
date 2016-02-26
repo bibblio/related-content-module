@@ -47,7 +47,7 @@ function bib_getRelatedContentItems(accessToken, contentItemId, successCallback)
 }
 
 function bib_displayRelatedContent(relatedContentItems, contentItemTemplate) {
-    var relatedContentItemCountainer = document.getElementById('bib_relatedContentList');
+    var relatedContentItemCountainer = document.getElementById('bib-related-content-list');
     var relatedContentItemPanels = _.map(relatedContentItems, function (contentItem, index) {
         return bib_renderContentItemTemplate(contentItem, index, contentItemTemplate);
     });
