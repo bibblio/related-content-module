@@ -1,49 +1,49 @@
 <!doctype html>
 
 <html lang="en">
-<head>
-  <meta charset="utf-8">
-
-  <title>Related Content Example</title>
-  <meta name="description" content="Related Content Example">
-  <meta name="Bibblio" content="SitePoint">
-
-  <!-- * Related Content Styles -->
-    <link rel="stylesheet" type="text/css" href="css/bib-related-content.css">
-
-  <!-- example code, do not copy if you don't need simple querystring parsing -->
-    <script>
-        function getParameterByName(name, url) {
-            if (!url) url = window.location.href;
-            name = name.replace(/[\[\]]/g, "\\$&");
-            var regex = new RegExp("[?&]" + name + "(=([^&#]*)|&|#|$)"),
-                results = regex.exec(url);
-            if (!results) return null;
-            if (!results[2]) return '';
-            return decodeURIComponent(results[2].replace(/\+/g, " "));
-        }
-    </script>
-</head>
-
-<body>
-<!-- * Related Content HTML -->
-    <div class="bib-module">
-        <ul class="bib-accordion" id="bib-related-content-list">
-            <!-- content items will be rendered here -->
-        </ul>
-
-        <div class="bib-powered"><span class="bib-powered-label">Powered by</span><a href="http://bibblio.org" target="_blank"><img src="http://bibblio.org/images/logos/bibblio_logo_w400.png" alt="Bibblio" title="Bibblio" width="50" valign="bottom" /></a></div>
-    </div>
-
-
-  <!-- * Related Content Javascript -->
-    <script src="js/underscore-min.js"></script>
-    <script src="js/bib-related-content.js"></script>
-    <script>
-        // Initialise the related content plugin.
-        // NB: Replace the parameter arguments with your own access token and contentitem id.
-        bib_initRelatedContent(getParameterByName('accessToken'), getParameterByName('contentItemId'));
-    </script>
-
-</body>
+    <head>
+        <meta charset="utf-8">
+        <title>Related Content Example</title>
+        <meta name="description" content="Related Content Example">
+        <meta name="Bibblio" content="SitePoint">
+        
+        <!-- * Related Content Styles -->
+        <link rel="stylesheet" type="text/css" href="css/bib-related-content.css">
+        
+        <!-- Example code, do not copy if you don't need simple querystring parsing -->
+        <script>
+            function getParameterByName(name, url) {
+                if (!url) url = window.location.href;
+                name = name.replace(/[\[\]]/g, "\\$&");
+                var regex = new RegExp("[?&]" + name + "(=([^&#]*)|&|#|$)"),
+                    results = regex.exec(url);
+                if (!results) return null;
+                if (!results[2]) return '';
+                return decodeURIComponent(results[2].replace(/\+/g, " "));
+            }
+        </script>
+    </head>
+    <body>
+        <!-- * Related Content HTML -->
+        <div class="bib-module">
+            <ul class="bib-accordion" id="bib-related-content-list">
+                <!-- Content items will be rendered here -->
+            </ul>
+            <div class="bib-powered">
+                <span class="bib-powered-label">Powered by</span>
+                <a href="http://bibblio.org" target="_blank">
+                    <img src="http://bibblio.org/images/logos/bibblio_logo_w400.png" alt="Bibblio" title="Bibblio" width="50" valign="bottom" />
+                </a>
+            </div>
+        </div>
+        
+        <!-- * Related Content Javascript -->
+        <script src="js/underscore-min.js"></script>
+        <script src="js/bib-related-content.js"></script>
+        <script>
+            // Initialise the related content plugin.
+            // NB: Replace the parameter arguments with your own access token and contentitem id.
+            bib_initRelatedContent(getParameterByName('accessToken'), getParameterByName('contentItemId'));
+        </script>
+    </body>
 </html>
