@@ -1,3 +1,4 @@
+"use strict";
 
 var bib_relatedContentItemTemplate = "<li class=\"bib-accordion-row  bib-accordion-row-<%= rowNumber %>\" <%= (imageUrl ? 'style=\"background-image: url(' + imageUrl + ')' : '') %>\">\
                                           <a class=\"bib-accordion-cell\" href=\"<%= url %>\">\
@@ -13,7 +14,7 @@ var bib_relatedContentItemTemplate = "<li class=\"bib-accordion-row  bib-accordi
                                                   </span>\
                                               </span>\
                                           </a>\
-                                      </li>"
+                                      </li>";
 // style=\"background-image: url(<%= imageUrl %>)
 
 function bib_initRelatedContent(accessToken, contentItemId) {
@@ -25,14 +26,14 @@ function bib_initRelatedContent(accessToken, contentItemId) {
     var displayWithTemplate = _.partial(bib_displayRelatedContent, _, bib_relatedContentItemTemplate);
 
     // gets the related content items and passes the partially-applied display function as a callback.
-    var relatedContentItems = bib_getRelatedContentItems(accessToken, contentItemId, displayWithTemplate);
+    bib_getRelatedContentItems(accessToken, contentItemId, displayWithTemplate);
 }
 
 function bib_getRelatedContentItems(accessToken, contentItemId, successCallback) {
     var xmlhttp = new XMLHttpRequest();
 
-    xmlhttp.onreadystatechange = function() {
-        if (xmlhttp.readyState == 4 && xmlhttp.status == 200) {
+    xmlhttp.onreadystatechange = function () {
+        if (xmlhttp.readyState === 4 && xmlhttp.status === 200) {
             var response = JSON.parse(xmlhttp.responseText);
             successCallback(response.results);
         }
@@ -47,13 +48,17 @@ function bib_getRelatedContentItems(accessToken, contentItemId, successCallback)
 
 function bib_displayRelatedContent(relatedContentItems, contentItemTemplate) {
     var relatedContentItemCountainer = document.getElementById('bib_relatedContentList');
-    var relatedContentItemPanels = _.map(relatedContentItems, function(contentItem, index) { return bib_renderContentItemTemplate(contentItem, index, contentItemTemplate); });
+    var relatedContentItemPanels = _.map(relatedContentItems, function (contentItem, index) {
+        return bib_renderContentItemTemplate(contentItem, index, contentItemTemplate);
+    });
     relatedContentItemCountainer.innerHTML = relatedContentItemPanels.join('');
 }
 
 function bib_renderContentItemTemplate(contentItem, contentItemIndex, contentItemTemplate) {
     var compiled = _.template(contentItemTemplate);
-    var relatedBy = _.map(contentItem.relationships.inCommon.slice(0,3), function(rel) { return bib_toTitleCase(rel.text); });
+    var relatedBy = _.map(contentItem.relationships.inCommon.slice(0, 3), function (rel) {
+        return bib_toTitleCase(rel.text);
+    });
     var varBindings = {
         name: bib_toTitleCase(contentItem.fields.name),
         url: contentItem.fields.url,
@@ -65,10 +70,14 @@ function bib_renderContentItemTemplate(contentItem, contentItemIndex, contentIte
 }
 
 function bib_recommendationUrl(contentItemId, limit, page, fields) {
-    var fields = _.map(fields, function(field) { return "fields=" + field; }).join("&");
-    return "https://api.bibblio.org/content-items/" + contentItemId + "/recommendations?limit=" + limit + "&page=" + page + "&" + fields;
+    var querystringFields = _.map(fields, function (field) {
+        return "fields=" + field;
+    }).join("&");
+    return "https://api.bibblio.org/content-items/" + contentItemId + "/recommendations?limit=" + limit + "&page=" + page + "&" + querystringFields;
 }
 
 function bib_toTitleCase(str) {
-  return str.replace(/\b\w+/g,function(s){return s.charAt(0).toUpperCase() + s.substr(1).toLowerCase();});
+    return str.replace(/\b\w+/g, function (s) {
+        return s.charAt(0).toUpperCase() + s.substr(1).toLowerCase();
+    });
 }
