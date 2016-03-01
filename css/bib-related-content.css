@@ -5,6 +5,7 @@ html, body {
 .bib-module {
     font-family: Arial, sans-serif;
     width: 290px; /*width: 100%;*/
+    line-height: normal;
 }
 
 .bib-accordion {
