@@ -5,7 +5,7 @@
 </head>
 
 <div class="bib-module">
-    <ul class="bib-accordion" id="bib_relatedContentList">
+    <ul class="bib-accordion" id="bib-related-content-list">
         <!-- content items rendered here -->
     </ul>
     <div class="bib-powered">
