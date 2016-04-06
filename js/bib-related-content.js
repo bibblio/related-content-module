@@ -56,7 +56,7 @@ function bib_renderContentItemTemplate(contentItem, contentItemIndex, contentIte
     var varBindings = {
         name: bib_toTitleCase(contentItem.fields.name),
         url: contentItem.fields.url,
-        imageUrl: contentItem.fields.squareImage.urlContent,
+        imageUrl: (contentItem.fields.squareImage ? contentItem.fields.squareImage.urlContent : null),
         relatedBy: relatedBy,
         rowNumber: (contentItemIndex + 1)
     };
