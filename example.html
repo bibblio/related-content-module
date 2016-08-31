@@ -3,8 +3,8 @@
 <html lang="en">
     <head>
         <meta charset="utf-8">
-        <title>Related Content Example</title>
-        <meta name="description" content="Related Content Example">
+        <title>Bibblio Related Content Example</title>
+        <meta name="description" content="Bibblio Related Content Example">
         <meta name="Bibblio" content="SitePoint">
         
         <!-- * Related Content Styles -->
@@ -25,25 +25,22 @@
     </head>
     <body>
         <!-- * Related Content HTML -->
-        <div class="bib-module">
-            <ul class="bib-accordion" id="bib-related-content-list">
-                <!-- Content items will be rendered here -->
-            </ul>
-            <div class="bib-powered">
-                <span class="bib-powered-label">Powered by</span>
-                <a href="http://bibblio.org" target="_blank">
-                    <img src="http://bibblio.org/images/logos/bibblio_logo_w400.png" alt="Bibblio" title="Bibblio" width="50" valign="bottom" />
-                </a>
-            </div>
-        </div>
+        <!-- Provide an enclosing element with an id. Position and size it as you wish. -->
+        <div id="bib_related-content"></div>
         
         <!-- * Related Content Javascript -->
         <script src="js/underscore-min.js"></script>
         <script src="js/bib-related-content.js"></script>
         <script>
             // Initialise the related content plugin.
-            // NB: Replace the parameter arguments with your own access token and contentitem id.
-            bib_initRelatedContent(getParameterByName('accessToken'), getParameterByName('contentItemId'));
+            // NB: Replace the getParameterByName arguments with your own access token and contentitem id.
+            bib_initRelatedContent("bib_related-content", // the id of the containing element
+                getParameterByName('accessToken'), // an access token obtained from the bibblio api
+                getParameterByName('contentItemId'), // the id of the content item to recommend from
+                { // optional argument.
+                    stylePreset: "box-6", // Options: grid-4, box-5, box-6. Default: box-6
+                    // catalogueIds: ["123", "456"] // Ctalogue Ids to recommend from. Default: same as content item
+                 });  
         </script>
     </body>
 </html>
