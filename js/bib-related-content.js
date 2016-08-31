@@ -85,24 +85,15 @@ function bib_renderOuterModuleTemplate(stylePreset, contentItemsHTML, outerModul
 
 function bib_renderContentItemTemplate(contentItem, contentItemIndex, contentItemTemplate) {
     var compiled = _.template(contentItemTemplate);
-    var relatedBy = bib_getRelatedBy(contentItem);
     var varBindings = {
         name: bib_toTitleCase(contentItem.fields.name),
         url: contentItem.fields.url,
         headline: contentItem.fields.headline,
         imageUrl: (contentItem.fields.squareImage ? contentItem.fields.squareImage.urlContent : null),
-        relatedBy: relatedBy,
+        relatedBy: contentItem.relationships.inCommon,
         tileNumber: (contentItemIndex + 1)
     };
     return compiled(varBindings);
-}
-
-function bib_getRelatedBy(contentItem) {
-  var relatedByTerms = _.map(contentItem.relationships.inCommon, function (rel) {
-        return rel.text;
-    });
-
-  return _.uniq(relatedByTerms).slice(0, 3);
 }
 
 function bib_recommendationUrl(contentItemId, catalogueIds, limit, page, fields) {
