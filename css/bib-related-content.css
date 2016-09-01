@@ -276,7 +276,7 @@
 
 
 /* Larger Titles in Bigger Tiles */
-    .bib--box-4 .bib__tile--1 .bib__title span, .bib--box-5 .bib__tile--1 .bib__title span, .bib--box-5 .bib__tile--2 .bib__title span { font-size: larger; line-height: 1.1em; }
+    .bib--box-4 .bib__tile--1 .bib__title span, .bib--box-5 .bib__tile--1 .bib__title span, .bib--box-5 .bib__tile--2 .bib__title span, .bib--box-6 .bib__tile--1 .bib__title span { font-size: larger; line-height: 1.1em; }
 
 
 
@@ -318,11 +318,14 @@
     .bib--box-5.bib--split.bib--wide .bib__tile--2 .bib__info { min-height: 17%; }
 
 
-    /* Row-4 Widescreen Ratio  */
+    /* Row-4 Standard Ratio  */
     .bib--row-4.bib--split .bib__tile { padding: 0 0 22% 0; }
 
     /* Row-4 Widescreen Ratio  */
-    .bib--row-4.bib--split .bib__tile { padding: 0 0 29% 0; }
+    .bib--row-4.bib--split.bib--wide .bib__tile { padding: 0 0 16% 0; }
+
+    /* Row-4 Square Ratio  */
+    .bib--row-4.bib--split.bib--square .bib__tile { padding: 0 0 29% 0; }
 
 
 /* Responsiveness */
