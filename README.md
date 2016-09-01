@@ -4,6 +4,7 @@ The following snippet shows related content module initialisation. See `example.
 
 ```html
 <head>
+    <!-- * Related Content Styles -->
     <link rel="stylesheet" type="text/css" href="css/bib-related-content.css">
 </head>
 
