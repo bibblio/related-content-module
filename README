@@ -1,29 +1,34 @@
-### HTML
-```
+# Example
+
+The following snippet shows related content module initialisation. See `example.html` for a full, working demo that uses querystring arguments for access token and ids.
+
+```html
 <head>
     <link rel="stylesheet" type="text/css" href="css/bib-related-content.css">
 </head>
 
-<div class="bib-module">
-    <ul class="bib-accordion" id="bib-related-content-list">
-        <!-- content items rendered here -->
-    </ul>
-    <div class="bib-powered">
-        <span class="bib-powered-label">Powered by</span>
-        <a href="http://bibblio.org" target="_blank">
-            <img src="http://bibblio.org/images/logos/bibblio_logo_w400.png" alt="Bibblio" title="Bibblio" width="50" valign="bottom" />
-        </a>
-    </div>
-</div>
-
-<script src="js/underscore.js"></script>
+<!-- * Related Content HTML -->
+<!-- Provide an enclosing element with an id. Position and size it as you wish. -->
+<div id="bib_related-content"></div>
+        
+<!-- * Related Content Javascript -->
+<script src="js/underscore-min.js"></script>
 <script src="js/bib-related-content.js"></script>
 <script>
-    bib_initRelatedContent(accessToken, contentItemId);
+    // Initialise the related content plugin.
+    bib_initRelatedContent("bib_related-content", // the id of the containing element
+        'superSecret', // an access token obtained from the bibblio api
+        '123-456-789', // the id of the content item to recommend from
+        {
+            stylePreset: "box-6", // Options: grid-4, box-5, box-6. Default: box-6,
+            catalogueIds: ["123", "456"] // Catalogue Ids to recommend from. Default: same catalogue as source content item
+         }); 
 </script>
 ```
 
-*Config options*
+## CSS
+
+The style and layout is extremely customisable. We've currently implemented 3 presets, which simply provide a css class string on the generated `<ul>` tag as per the full config options below.
 
 _Row layout:_ bib--row-2, bib--row-3, bib--row-4
 _Grid layout:_ bib--grd-4, bib--grd-6
