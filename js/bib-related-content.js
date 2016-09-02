@@ -97,16 +97,18 @@ function bib_renderContentItemTemplate(contentItem, contentItemIndex, contentIte
 }
 
 function bib_recommendationUrl(contentItemId, catalogueIds, limit, page, fields) {
-    var querystringFields = _.map(fields, function (field) {
-        return "fields=" + field;
-    }).join("&");
+    var querystringArgs = [
+      "limit=" + limit,
+      "page=" + page,
+      "fields=" + fields.join(",")
+    ];
 
-    var querystringCatalogueIds = _.map(catalogueIds, function (catalogueId) {
-        return "catalogueIds=" + catalogueId;
-    }).join("&");
+    if (catalogueIds.length > 0) {
+      querystringArgs.push("catalogueIds=" + catalogueIds.join(","));
+    }
 
     // TODO: make this much nicer
-    return "https://api.bibblio.org/content-items/" + contentItemId + "/recommendations?limit=" + limit + "&page=" + page + "&" + querystringFields + (querystringCatalogueIds ? "&" + querystringCatalogueIds : "");
+    return "https://api.bibblio.org/content-items/" + contentItemId + "/recommendations?" + querystringArgs.join("&");
 }
 
 function bib_toTitleCase(str) {
