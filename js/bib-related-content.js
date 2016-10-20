@@ -89,7 +89,7 @@ function bib_renderContentItemTemplate(contentItem, contentItemIndex, contentIte
         name: bib_toTitleCase(contentItem.fields.name),
         url: contentItem.fields.url,
         headline: contentItem.fields.headline,
-        imageUrl: (contentItem.fields.squareImage ? contentItem.fields.squareImage.urlContent : null),
+        imageUrl: (contentItem.fields.squareImage ? contentItem.fields.squareImage.contentUrl : null),
         relatedBy: contentItem.relationships.inCommon,
         tileNumber: (contentItemIndex + 1)
     };
