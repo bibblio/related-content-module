@@ -137,6 +137,7 @@
 }
 
 .bib--wide .bib__link,
+.bib--box-6 .bib__link,
 .bib--box-4 .bib__link {
     background-size: 100% auto;
 }
@@ -318,11 +319,11 @@
     .bib--box-5.bib--split.bib--wide .bib__tile--2 .bib__info { min-height: 17%; }
 
 
-    /* Row-4 Standard Ratio  */
+    /* Row-4 Default Ratio  */
     .bib--row-4.bib--split .bib__tile { padding: 0 0 22% 0; }
 
     /* Row-4 Widescreen Ratio  */
-    .bib--row-4.bib--split.bib--wide .bib__tile { padding: 0 0 16% 0; }
+    .bib--row-4.bib--split.bib--wide .bib__tile { padding: 0 0 18.75% 0; }
 
     /* Row-4 Square Ratio  */
     .bib--row-4.bib--split.bib--square .bib__tile { padding: 0 0 29% 0; }
@@ -354,7 +355,7 @@
     [class*="bib--col"].bib--wide .bib__tile, .bib--row-3.bib--wide .bib__tile.bib__tile--1, .bib--box-5.bib--wide .bib__tile.bib__tile--1 { padding: 0 0 58% 0 !important; }
     [class*="bib--col"].bib--square .bib__tile, .bib--row-3.bib--square .bib__tile.bib__tile--1, .bib--box-5.bib--square .bib__tile.bib__tile--1 { padding: 0 0 90% 0 !important; }
 
-    .bib--box-4 .bib__link, .bib--square.bib--row-3 .bib__tile.bib__tile--1 .bib__link, .bib--square.bib--box-5 .bib__tile.bib__tile--1 .bib__link { background-size: auto 100%; }
+    .bib--box-4 .bib__link, .bib--box-6 .bib__link, .bib--square.bib--row-3 .bib__tile.bib__tile--1 .bib__link, .bib--square.bib--box-5 .bib__tile.bib__tile--1 .bib__link { background-size: auto 100%; }
     .bib--retina.bib--box-4 .bib__link, .bib--retina.bib--square.bib--row-3 .bib__tile.bib__tile--1 .bib__link, .bib--retina.bib--square.bib--box-5 .bib__tile.bib__tile--1 .bib__link { background-size: auto 50%; }
     .bib--box-6 .bib__tile--4 { clear: none; }
 }

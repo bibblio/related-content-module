@@ -117,9 +117,9 @@ function bib_toTitleCase(str) {
 
 function bib_getPresetModuleClasses(stylePreset) {
   var presets = {
-    "grid-4": "bib__module bib--grd-4 bib-wide",
-    "box-5": "bib__module bib--box-5 bib-wide",
-    "box-6": "bib__module bib--box-6 bib—wide"
+    "grid-4": "bib__module bib--grd-4 bib--wide",
+    "box-5": "bib__module bib--box-5 bib--wide",
+    "box-6": "bib__module bib--box-6 bib—-wide"
   };
   return presets[stylePreset] || presets["box-6"];
 }
