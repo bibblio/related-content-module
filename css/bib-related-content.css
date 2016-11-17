@@ -17,6 +17,7 @@
     float: left;
     overflow: hidden;
     position: relative;
+    display: inline-block;
 }
 
 .bib--col-1 .bib__tile--2, .bib--col-1 .bib__tile--3, .bib--col-1 .bib__tile--4, .bib--col-1 .bib__tile--5, .bib--col-1 .bib__tile--6,
@@ -26,6 +27,7 @@
 .bib--col-5 .bib__tile--6,
 .bib--row-2 .bib__tile--3, .bib--row-2 .bib__tile--4, .bib--row-2 .bib__tile--5, .bib--row-2 .bib__tile--6,
 .bib--row-3 .bib__tile--4, .bib--row-3 .bib__tile--5, .bib--row-3 .bib__tile--6,
+.bib--box-3 .bib__tile--4, .bib--box-3 .bib__tile--5, .bib--box-3 .bib__tile--6,
 .bib--row-4 .bib__tile--5, .bib--row-4 .bib__tile--6,
 .bib--box-4 .bib__tile--5, .bib--box-4 .bib__tile--6,
 .bib--grd-4 .bib__tile--5, .bib--grd-4 .bib__tile--6,
@@ -44,9 +46,14 @@
 [class*="bib--col"].bib--square .bib__tile { padding: 0 0 100% 0; }
 
 
+/* Box-3 in Widescreen ratio 16:9 only */
+.bib--box-3 .bib__tile { width: 40%; padding: 0 0 16.7% 0; }
+.bib--box-3 .bib__tile--1 { width: 60%; padding: 0 0 33.4% 0; }
+
+
 /* Box-4 in Widescreen ratio 16:9 only */
-.bib--box-4 .bib__tile { width: 40%; padding: 0 0 11.5% 0; }
-.bib--box-4 .bib__tile--1 { width: 60%; padding: 0 0 34.5% 0; }
+.bib--box-4 .bib__tile { width: 40%; padding: 0 0 11.1% 0; }  /* DEBUG: Was  0 0 11.5% 0 */
+.bib--box-4 .bib__tile--1 { width: 60%; padding: 0 0 33.3% 0; }  /* DEBUG: Was  0 0 34.5% 0 */
 
 
 /* Box-5 Standard ratio 4:3 */
@@ -55,7 +62,7 @@
 .bib--box-5 .bib__tile--2 { width: 50%; padding: 0 0 37.5% 0; }
 
 /* Box-5 Widescreen ratio 16:9 */
-.bib--box-5.bib--wide .bib__tile { padding: 0 0 18% 0; }
+.bib--box-5.bib--wide .bib__tile { padding: 0 0 18.5% 0; } /* DEBUG: Was  0 0 18% 0 */
 .bib--box-5.bib--wide .bib__tile--1,
 .bib--box-5.bib--wide .bib__tile--2 { padding: 0 0 28% 0; }
 
@@ -66,8 +73,8 @@
 
 
 /* Box-6 in Widescreen ratio 16:9 only */
-.bib--box-6 .bib__tile { width: 33.33%; padding: 0 0 19.5% 0; }
-.bib--box-6 .bib__tile--1 { width: 66.66%; padding: 0 0 39% 0; }
+.bib--box-6 .bib__tile { width: 33.33%; padding: 0 0 18.5% 0; } /* DEBUG: Was  0 0 19.5% 0 */
+.bib--box-6 .bib__tile--1 { width: 66.66%; padding: 0 0 37% 0; } /* DEBUG: Was  0 0 39% 0 */
 .bib--box-6 .bib__tile--4 { clear: left; }
 
 
@@ -95,7 +102,7 @@
 .bib--row-3 .bib__tile { width: 33.3%; padding: 0 0 25% 0; }
 
 /* Row-3 Widescreen ratio 16:9 */
-.bib--row-3.bib--wide .bib__tile { padding: 0 0 19.5% 0; }
+.bib--row-3.bib--wide .bib__tile { padding: 0 0 18.5% 0; }
 
 /* Row-3 Square ratio 1:1 */
 .bib--row-3.bib--square .bib__tile { padding: 0 0 33.3% 0; }
@@ -115,7 +122,7 @@
 .bib--grd-6 .bib__tile { width: 33.3%; padding: 0 0 25% 0; }
 
 /* Grd-6 Widescreen ratio 16:9 */
-.bib--grd-6.bib--wide .bib__tile { padding: 0 0 19.5% 0; }
+.bib--grd-6.bib--wide .bib__tile { padding: 0 0 18.5% 0; } /* DEBUG: Was 0 0 19.5% 0 */
 
 /* Grd-6 Square ratio 1:1 */
 .bib--grd-6.bib--square .bib__tile { padding: 0 0 33.3% 0; }
@@ -125,9 +132,9 @@
     overflow: hidden;
     position: absolute;
     text-decoration: none;
-    background-size: auto 100%;
+    background-size: 100% auto;
     background-repeat: no-repeat;
-    background-position: top center;
+    background-position: center center;
     background-image: url('http://bibblio.org/images/plugins/node-bkgd.png');
     -webkit-transition: all 0.5s ease-in-out;
     -moz-transition: all 0.5s ease-in-out;
@@ -136,15 +143,23 @@
     transition: all 1s ease-in-out;
 }
 
-.bib--wide .bib__link,
+/*.bib--wide .bib__link,
 .bib--box-6 .bib__link,
-.bib--box-4 .bib__link {
+.bib--box-5 .bib__link,
+.bib--box-4 .bib__link,
+.bib--box-3 .bib__link {
+    background-size: 100% auto;
+}*/
+
+.bib--square .bib__link {
+    background-size: auto 100%;
+}
+.bib--box-6.bib--square .bib__link,
+.bib--box-4.bib--square .bib__link,
+.bib--box-3.bib--square .bib__link {
     background-size: 100% auto;
 }
 
-.bib--box-4 .bib__tile--1 .bib__link {
-    background-size: auto 100%;
-}
 
 /* Retina Quality Images */
 .bib--retina .bib__link,
@@ -295,7 +310,7 @@
         border-top: 1px solid rgba(0,0,0,0.2);
     }
 
-    /* Box-4 Widescreen Ratio Only */
+    /* Box-4 Widescreen Ratio */
     .bib--box-4.bib--split .bib__tile { padding: 0 0 13% 0; }
     .bib--box-4.bib--split .bib__tile--1 { padding: 0 0 39% 0; }
 
@@ -318,6 +333,14 @@
     .bib--box-5.bib--split.bib--wide .bib__tile--1 .bib__info,
     .bib--box-5.bib--split.bib--wide .bib__tile--2 .bib__info { min-height: 17%; }
 
+    .bib--row-4.bib--split .bib__link,
+    .bib--box-5.bib--split .bib__link {
+        background-size: auto 100%;
+    }
+
+    .bib--box-5.bib--split.bib--wide .bib__link {
+        background-size: 100% auto;
+    }
 
     /* Row-4 Default Ratio  */
     .bib--row-4.bib--split .bib__tile { padding: 0 0 22% 0; }
@@ -346,18 +369,31 @@
     .bib__link:hover .bib__terms { display: none !important; }
     .bib__title span { font-size: medium !important; line-height: 1.1em !important; } 
     .bib__tile { padding: 0 0 37.5% 0 !important; }
-    .bib--wide .bib__tile { padding: 0 0 30% 0 !important; }
+    .bib--wide .bib__tile { padding: 0 0 28% 0 !important; } /* DEBUG: Was 0 0 30% 0 */
     .bib--wide.bib--split .bib__tile { padding: 0 0 34% 0 !important; }
     .bib--square .bib__tile, .bib--square.bib--split .bib__tile { padding: 0 0 50% 0 !important; }
 
     /* Edge Cases */
-    [class*="bib--col"] .bib__tile, .bib--row-3 .bib__tile.bib__tile--1, .bib--box-5 .bib__tile.bib__tile--1 { width: 100% !important; padding: 0 0 75% 0 !important; }
-    [class*="bib--col"].bib--wide .bib__tile, .bib--row-3.bib--wide .bib__tile.bib__tile--1, .bib--box-5.bib--wide .bib__tile.bib__tile--1 { padding: 0 0 58% 0 !important; }
+    [class*="bib--col"] .bib__tile, .bib--row-3 .bib__tile.bib__tile--1, .bib--box-3 .bib__tile.bib__tile--1, .bib--box-5 .bib__tile.bib__tile--1 { width: 100% !important; padding: 0 0 75% 0 !important; }
+    [class*="bib--col"].bib--wide .bib__tile, .bib--row-3.bib--wide .bib__tile.bib__tile--1, .bib--box-3.bib--wide .bib__tile.bib__tile--1, .bib--box-5.bib--wide .bib__tile.bib__tile--1 { padding: 0 0 56% 0 !important; } /* DEBUG: Was 0 0 58% 0 !important */
     [class*="bib--col"].bib--square .bib__tile, .bib--row-3.bib--square .bib__tile.bib__tile--1, .bib--box-5.bib--square .bib__tile.bib__tile--1 { padding: 0 0 90% 0 !important; }
 
-    .bib--box-4 .bib__link, .bib--box-6.bib--square .bib__link, .bib--square.bib--row-3 .bib__tile.bib__tile--1 .bib__link, .bib--square.bib--box-5 .bib__tile.bib__tile--1 .bib__link { background-size: auto 100%; }
+    .bib--box-4.bib--square .bib__link, .bib--box-5.bib--square .bib__link, .bib--box-6.bib--square .bib__link, .bib--row-3.bib--square .bib__tile.bib__tile--1 .bib__link { background-size: auto 100%; }
     .bib--retina.bib--box-4 .bib__link, .bib--retina.bib--square.bib--row-3 .bib__tile.bib__tile--1 .bib__link, .bib--retina.bib--square.bib--box-5 .bib__tile.bib__tile--1 .bib__link { background-size: auto 50%; }
     .bib--box-6 .bib__tile--4 { clear: none; }
+
+    .bib--row-4.bib--split .bib__link,
+    .bib--box-5.bib--split .bib__link {
+        background-size: 100% auto;
+    }
+
+    .bib--box-3.bib--square .bib__link,
+    .bib--box-3.bib--split.bib--square .bib__link,
+    .bib--box-4.bib--split.bib--square .bib__link,
+    .bib--box-5.bib--split.bib--square .bib__link,
+    .bib--box-6.bib--split.bib--square .bib__link {
+        background-size: auto 100%;
+    }
 }
 @media (max-width: 568px) {
     .bib__info { padding: 30px 15px 10px; }
@@ -368,10 +404,9 @@
     .bib__tile { width: 100% !important; padding: 0 0 75% 0 !important; }
     .bib--split .bib__tile { padding: 0 0 67% 0 !important; }
     .bib--square .bib__tile, .bib--square.bib--split .bib__tile { padding: 0 0 90% 0 !important; }
-    .bib--wide .bib__tile { padding: 0 0 53% 0 !important; }
+    .bib--wide .bib__tile { padding: 0 0 56% 0 !important; }
     .bib--wide.bib--split .bib__tile { padding: 0 0 62% 0 !important; }
 
-    .bib__link { background-size: auto 100%; }
     .bib--retina .bib__link { background-size: auto 50%; }
     
 }
