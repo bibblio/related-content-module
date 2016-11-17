@@ -17,14 +17,16 @@ var bib_relatedContentItemTemplate = "<li class=\"bib__tile bib__tile--<%= tileN
                                                         </span>\
                                                       <% } %>\
                                                       <span class=\"bib__preview\"><%= headline %></span>\
-                                                      <span class=\"bib__terms\">\
-                                                          <span class=\"bib__term-label\">Related by</span>\
-                                                          <span class=\"bib__term-list\">\
-                                                              <span class=\"bib__term-item\"><%= relatedBy[0] %></span>\
-                                                              <span class=\"bib__term-item\"><%= relatedBy[1] %></span>\
-                                                              <span class=\"bib__term-item\"><%= relatedBy[2] %></span>\
-                                                          </span>\
-                                                      </span>\
+                                                      <% if (showRelatedBy && relatedBy.length > 0) { %>\
+                                                        <span class=\"bib__terms\">\
+                                                            <span class=\"bib__term-label\">Related by</span>\
+                                                            <span class=\"bib__term-list\">\
+                                                                <span class=\"bib__term-item\"><%= relatedBy[0] %></span>\
+                                                                <span class=\"bib__term-item\"><%= relatedBy[1] %></span>\
+                                                                <span class=\"bib__term-item\"><%= relatedBy[2] %></span>\
+                                                            </span>\
+                                                        </span>\
+                                                      <% } %>\
                                                   </span>\
                                               </span>\
                                           </a>\
@@ -38,11 +40,13 @@ function bib_initRelatedContent(containerId, accessToken, contentItemId, options
     // Modify the global bib_relatedContentItemTemplate and bib_outerModuleTemplate variables
     // if you want to change the templates.
     var stylePreset = options.stylePreset || "default";
+    var showRelatedBy = options.showRelatedBy || false;
     var displayWithTemplates = _.partial(bib_displayRelatedContent, 
                                         containerId,
                                         bib_outerModuleTemplate,
                                         bib_relatedContentItemTemplate,
                                         stylePreset,
+                                        showRelatedBy,
                                         _);
     // Gets the related content items and passes the partially-applied display function as a callback.
     var catalogueIds = options.catalogueIds || [];
@@ -64,10 +68,10 @@ function bib_getRelatedContentItems(accessToken, contentItemId, catalogueIds, su
     xmlhttp.send();
 }
 
-function bib_displayRelatedContent(containerId, outerModuleTemplate, contentItemTemplate, stylePreset, relatedContentItems) {
+function bib_displayRelatedContent(containerId, outerModuleTemplate, contentItemTemplate, stylePreset, showRelatedBy, relatedContentItems) {
     var relatedContentItemCountainer = document.getElementById(containerId);
     var relatedContentItemPanels = _.map(relatedContentItems, function (contentItem, index) {
-        return bib_renderContentItemTemplate(contentItem, index, contentItemTemplate);
+        return bib_renderContentItemTemplate(contentItem, index, contentItemTemplate, showRelatedBy);
     }).join('\n');
     var module = bib_renderOuterModuleTemplate(stylePreset, relatedContentItemPanels, outerModuleTemplate);
 
@@ -83,7 +87,7 @@ function bib_renderOuterModuleTemplate(stylePreset, contentItemsHTML, outerModul
     return compiled(varBindings);
 }
 
-function bib_renderContentItemTemplate(contentItem, contentItemIndex, contentItemTemplate) {
+function bib_renderContentItemTemplate(contentItem, contentItemIndex, contentItemTemplate, showRelatedBy) {
     var compiled = _.template(contentItemTemplate);
     var varBindings = {
         name: bib_toTitleCase(contentItem.fields.name),
@@ -91,7 +95,8 @@ function bib_renderContentItemTemplate(contentItem, contentItemIndex, contentIte
         headline: contentItem.fields.headline,
         imageUrl: (contentItem.fields.squareImage ? contentItem.fields.squareImage.contentUrl : null),
         relatedBy: contentItem.relationships.inCommon,
-        tileNumber: (contentItemIndex + 1)
+        tileNumber: (contentItemIndex + 1),
+        showRelatedBy: showRelatedBy
     };
     return compiled(varBindings);
 }

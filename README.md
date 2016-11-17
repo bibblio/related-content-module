@@ -22,7 +22,8 @@ The following snippet shows related content module initialisation. See `example.
         '123-456-789', // the id of the content item to recommend from
         {
             stylePreset: "box-6", // Options: grid-4, box-5, box-6. Default: box-6,
-            catalogueIds: ["123", "456"] // Catalogue Ids to recommend from. Default: same catalogue as source content item
+            catalogueIds: ["123", "456"],  // Catalogue Ids to recommend from. Default: same catalogue as source content item
+            showRelatedBy: true, // default false. Will also hide if empty, even if true
          }); 
 </script>
 ```
