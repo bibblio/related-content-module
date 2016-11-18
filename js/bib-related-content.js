@@ -16,7 +16,7 @@ var bib_relatedContentItemTemplate = "<li class=\"bib__tile bib__tile--<%= tileN
                                                             <% if (attrtibutes['recency']) { %> <span class=\"bib__recency\"><%= attributes['recency'] %></span> <% } %>\
                                                         </span>\
                                                       <% } %>\
-                                                      <span class=\"bib__preview\"><%= headline %></span>\
+                                                      <% if (subtitle) { %><span class=\"bib__preview\"><%= subtitle %></span><% } %>\
                                                       <% if (showRelatedBy && relatedBy.length > 0) { %>\
                                                         <span class=\"bib__terms\">\
                                                             <span class=\"bib__term-label\">Related by</span>\
@@ -41,19 +41,21 @@ function bib_initRelatedContent(containerId, accessToken, contentItemId, options
     // if you want to change the templates.
     var stylePreset = options.stylePreset || "default";
     var showRelatedBy = options.showRelatedBy || false;
+    var subtitleField = (options.subtitleField == undefined ? "headline" : options.subtitleField);
     var displayWithTemplates = _.partial(bib_displayRelatedContent, 
                                         containerId,
                                         bib_outerModuleTemplate,
                                         bib_relatedContentItemTemplate,
                                         stylePreset,
                                         showRelatedBy,
+                                        subtitleField,
                                         _);
     // Gets the related content items and passes the partially-applied display function as a callback.
     var catalogueIds = options.catalogueIds || [];
-    bib_getRelatedContentItems(accessToken, contentItemId, catalogueIds, displayWithTemplates);
+    bib_getRelatedContentItems(accessToken, contentItemId, catalogueIds, subtitleField, displayWithTemplates);
 }
 
-function bib_getRelatedContentItems(accessToken, contentItemId, catalogueIds, successCallback) {
+function bib_getRelatedContentItems(accessToken, contentItemId, catalogueIds, subtitleField, successCallback) {
     var xmlhttp = new XMLHttpRequest();
     xmlhttp.onreadystatechange = function () {
         if (xmlhttp.readyState === 4 && xmlhttp.status === 200) {
@@ -62,16 +64,23 @@ function bib_getRelatedContentItems(accessToken, contentItemId, catalogueIds, su
         }
     };
     // URL arguments should be injected but the module only supports these settings now anyway.
-    var url = bib_recommendationUrl(contentItemId, catalogueIds, 6, 1, ["name", "url", "headline", "squareImage"]);
+    var fields = ["name", "url", "squareImage"].concat(subtitleField).filter(Boolean); // filter out falsey values
+    var url = bib_recommendationUrl(contentItemId, catalogueIds, 6, 1, fields);
     xmlhttp.open("GET", url, true);
     xmlhttp.setRequestHeader("Authorization", "Bearer " + accessToken);
     xmlhttp.send();
 }
 
-function bib_displayRelatedContent(containerId, outerModuleTemplate, contentItemTemplate, stylePreset, showRelatedBy, relatedContentItems) {
+function bib_displayRelatedContent(containerId, 
+                                   outerModuleTemplate, 
+                                   contentItemTemplate, 
+                                   stylePreset, 
+                                   showRelatedBy, 
+                                   subtitleField, 
+                                   relatedContentItems) {
     var relatedContentItemCountainer = document.getElementById(containerId);
     var relatedContentItemPanels = _.map(relatedContentItems, function (contentItem, index) {
-        return bib_renderContentItemTemplate(contentItem, index, contentItemTemplate, showRelatedBy);
+        return bib_renderContentItemTemplate(contentItem, index, contentItemTemplate, showRelatedBy, subtitleField);
     }).join('\n');
     var module = bib_renderOuterModuleTemplate(stylePreset, relatedContentItemPanels, outerModuleTemplate);
 
@@ -87,12 +96,12 @@ function bib_renderOuterModuleTemplate(stylePreset, contentItemsHTML, outerModul
     return compiled(varBindings);
 }
 
-function bib_renderContentItemTemplate(contentItem, contentItemIndex, contentItemTemplate, showRelatedBy) {
+function bib_renderContentItemTemplate(contentItem, contentItemIndex, contentItemTemplate, showRelatedBy, subtitleField) {
     var compiled = _.template(contentItemTemplate);
     var varBindings = {
         name: bib_toTitleCase(contentItem.fields.name),
         url: contentItem.fields.url,
-        headline: contentItem.fields.headline,
+        subtitle: contentItem.fields[subtitleField],
         imageUrl: (contentItem.fields.squareImage ? contentItem.fields.squareImage.contentUrl : null),
         relatedBy: contentItem.relationships.inCommon,
         tileNumber: (contentItemIndex + 1),
