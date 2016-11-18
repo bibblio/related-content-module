@@ -2,18 +2,18 @@
 
 var bib_outerModuleTemplate = "<ul class=\"<%= classes %>\">\
                                   <%= recommendedContentItems %>\
-                               </ul>"
+                               </ul>";
 
 var bib_relatedContentItemTemplate = "<li class=\"bib__tile bib__tile--<%= tileNumber %>\">\
-                                          <a href=\"<%= url %>\" target=\"<%= bib_linkTargetFor(url) %>\" class=\"bib__link <%= (imageUrl ? 'bib__link--image' : '') %>\" <%= (imageUrl ? 'style=\"background-image: url(' + imageUrl + ')' : '') %>\">\
+                                          <a href=\"<%= url %>\" target=\"<%= bib_linkTargetFor(url) %>\" data=\"<%= contentItemId %>\" class=\"bib__link <%= (imageUrl ? 'bib__link--image' : '') %>\" <%= (imageUrl ? 'style=\"background-image: url(' + imageUrl + ')' : '') %>\">\
                                               <span class=\"bib__container\">\
                                                   <span class=\"bib__info\">\
                                                       <span class=\"bib__title\"><span><%= name %></span></span>\
                                                       <% if (typeof(attributes) != \"undefined\") { %>\
                                                         <span class=\"bib__attributes\">\
-                                                            <% if (attrtibutes['duration']) { %> <span class=\"bib__duration\"><%= attributes['duration'] %></span> <% } %>\
-                                                            <% if (attrtibutes['author']) { %> <span class=\"bib__author\"><%= attributes['author'] %></span> <% } %>\
-                                                            <% if (attrtibutes['recency']) { %> <span class=\"bib__recency\"><%= attributes['recency'] %></span> <% } %>\
+                                                            <% if (attributes['duration']) { %> <span class=\"bib__duration\"><%= attributes['duration'] %></span> <% } %>\
+                                                            <% if (attributes['author']) { %> <span class=\"bib__author\"><%= attributes['author'] %></span> <% } %>\
+                                                            <% if (attributes['recency']) { %> <span class=\"bib__recency\"><%= attributes['recency'] %></span> <% } %>\
                                                         </span>\
                                                       <% } %>\
                                                       <% if (subtitle) { %><span class=\"bib__preview\"><%= subtitle %></span><% } %>\
@@ -32,16 +32,19 @@ var bib_relatedContentItemTemplate = "<li class=\"bib__tile bib__tile--<%= tileN
                                           </a>\
                                       </li>";
 
-function bib_initRelatedContent(containerId, accessToken, contentItemId, options={}) {
+function bib_initRelatedContent(containerId, accessToken, contentItemId, options) {
     // This uses partial function application to bind the template and render arguments to a
     // new (partially applied) version of the bib_displayRelatedContent function. That function can
     // then be passed around as a callback without worrying about the template arguments.
     // i.e. the templates are at this point bound to the rest of the function call chain.
     // Modify the global bib_relatedContentItemTemplate and bib_outerModuleTemplate variables
     // if you want to change the templates.
+    var catalogueIds = options.catalogueIds || [];
     var stylePreset = options.stylePreset || "default";
     var showRelatedBy = options.showRelatedBy || false;
     var subtitleField = (bib_validateField(options.subtitleField) ? options.subtitleField : "headline");
+    var catalogueIds = options.catalogueIds || [];
+
     var displayWithTemplates = _.partial(bib_displayRelatedContent, 
                                         containerId,
                                         bib_outerModuleTemplate,
@@ -49,10 +52,24 @@ function bib_initRelatedContent(containerId, accessToken, contentItemId, options
                                         stylePreset,
                                         showRelatedBy,
                                         subtitleField,
-                                        _);
+                                        _);    
+
+    var submitActivityData = _.partial(bib_onRecommendationClick,
+                                       containerId,
+                                       contentItemId,
+                                       catalogueIds,
+                                       stylePreset,
+                                       options,
+                                       _,
+                                       _);
+
+    var renderModule = _.partial(bib_renderModule,
+                                 displayWithTemplates,
+                                 submitActivityData,
+                                 _);
+
     // Gets the related content items and passes the partially-applied display function as a callback.
-    var catalogueIds = options.catalogueIds || [];
-    bib_getRelatedContentItems(accessToken, contentItemId, catalogueIds, subtitleField, displayWithTemplates);
+    bib_getRelatedContentItems(accessToken, contentItemId, catalogueIds, subtitleField, renderModule);
 }
 
 function bib_getRelatedContentItems(accessToken, contentItemId, catalogueIds, subtitleField, successCallback) {
@@ -71,6 +88,12 @@ function bib_getRelatedContentItems(accessToken, contentItemId, catalogueIds, su
     xmlhttp.send();
 }
 
+function bib_renderModule(displayWithTemplates, submitActivityData, relatedContentItems) {
+    var submitActivityData = _.partial(submitActivityData, relatedContentItems, _);
+    displayWithTemplates(relatedContentItems);
+    bib_bindRelatedContentItemLinks(submitActivityData);
+}
+
 function bib_displayRelatedContent(containerId, 
                                    outerModuleTemplate, 
                                    contentItemTemplate, 
@@ -83,7 +106,6 @@ function bib_displayRelatedContent(containerId,
         return bib_renderContentItemTemplate(contentItem, index, contentItemTemplate, showRelatedBy, subtitleField);
     }).join('\n');
     var module = bib_renderOuterModuleTemplate(stylePreset, relatedContentItemPanels, outerModuleTemplate);
-
     relatedContentItemCountainer.innerHTML = module;
 }
 
@@ -99,6 +121,7 @@ function bib_renderOuterModuleTemplate(stylePreset, contentItemsHTML, outerModul
 function bib_renderContentItemTemplate(contentItem, contentItemIndex, contentItemTemplate, showRelatedBy, subtitleField) {
     var compiled = _.template(contentItemTemplate);
     var varBindings = {
+        contentItemId: contentItem.contentItemId,
         name: bib_toTitleCase(contentItem.fields.name),
         url: contentItem.fields.url,
         subtitle: bib_getProperty(contentItem.fields, subtitleField),
@@ -189,4 +212,35 @@ function bib_validateField(accessor) {
     "provider",
     "publisher"]
   return _.contains(validFields, bib_getRootProperty(accessor));
+}
+
+function bib_onRecommendationClick(containerId, sourceContentItemId, catalogueIds, stylePreset, options, relatedContentItems, clickedContentItemId) {
+    if (_.isFunction(options.activityTracking.onRecommendationClick) && _.isFunction(bib_constructActivityData)) {
+        var activityType = "Clicked";
+        var instrument = {
+            name: "bibblio-related-content",
+            version: "0.8",
+            stylePreset: stylePreset
+        }
+        var activityData = bib_constructActivityData(
+            activityType,
+            sourceContentItemId,
+            clickedContentItemId,
+            catalogueIds,
+            relatedContentItems,
+            instrument
+        );
+        options.activityTracking.onRecommendationClick(activityData);
+    }
+}
+
+function bib_bindRelatedContentItemLinks(submitActivityData) {
+    var relatedContentItemlinks = document.getElementsByClassName("bib__link");
+    var onClick = function() {
+        var contentItemId = this.getAttribute("data");
+        submitActivityData(contentItemId);
+    }
+    for (var i = 0; i < relatedContentItemlinks.length; i++) {
+        relatedContentItemlinks[i].addEventListener('click', onClick, false);
+    }
 }
