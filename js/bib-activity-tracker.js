@@ -27,13 +27,11 @@ function bib_constructActivityData(type, sourceContentItemId, clickedContentItem
     return activityData;
 }
 
-function bib_constructActivityInstrument(type, version, stylePreset) {
+function bib_constructActivityInstrument(type, version, config) {
     return {
         "type": type,
         "version": version,
-        "config": {
-            "stylePreset": stylePreset
-        }
+        "config": config
     };
 }
 
@@ -43,26 +41,13 @@ function bib_constructActivityObject(clickedContentItemId) {
 
 function bib_constructActivityContext(sourceContentItemId, catalogueIds, relatedContentItems) {
     var context = [];
-
-    //Construct context tuples
-    var sourceHref = ["sourceHref", window.location.href];
-    var sourceContentItem = ["sourceContentItemId", sourceContentItemId];
-    var recommendationContentItems = _.map(relatedContentItems, function (contentItem, index) {
-        return ["recommendations.contentItemId", contentItem.contentItemId];
+    context.push(["sourceHref", window.location.href]);
+    context.push(["sourceContentItemId", sourceContentItemId]);
+    _.map(relatedContentItems, function (contentItem, index) {
+        context.push(["recommendations.contentItemId", contentItem.contentItemId]);
     });
-    var recommendationCatalogues = _.map(catalogueIds, function (catalogueId, index) {
-        return ["recommendations.catalogueId", catalogueId];
-    });
-
-    //Append tuples to context
-    context.push(sourceHref);
-    context.push(sourceContentItem);
-    if (recommendationContentItems.length > 0) {
-        context.push(recommendationContentItems);
-    }
-    if (recommendationCatalogues.length > 0) {
-        context.push(recommendationCatalogues);
-    }
-
+    _.map(catalogueIds, function (catalogueId, index) {
+        context.push(["recommendations.catalogueId", catalogueId]);
+    }, context);
     return context;
 }

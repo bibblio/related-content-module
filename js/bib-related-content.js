@@ -214,33 +214,35 @@ function bib_validateField(accessor) {
   return _.contains(validFields, bib_getRootProperty(accessor));
 }
 
+function bib_bindRelatedContentItemLinks(submitActivityData) {
+    var relatedContentItemlinks = document.getElementsByClassName("bib__link");
+    for (var i = 0; i < relatedContentItemlinks.length; i++) {
+        relatedContentItemlinks[i].addEventListener('click', function() {
+            var contentItemId = this.getAttribute("data");
+            submitActivityData(contentItemId);
+        }, false);
+    }
+}
+
 function bib_onRecommendationClick(containerId, sourceContentItemId, catalogueIds, stylePreset, options, relatedContentItems, clickedContentItemId) {
-    if (_.isFunction(options.activityTracking.onRecommendationClick) && _.isFunction(bib_constructActivityData)) {
-        var activityType = "Clicked";
-        var instrument = {
-            name: "bibblio-related-content",
-            version: "0.8",
-            stylePreset: stylePreset
-        }
-        var activityData = bib_constructActivityData(
-            activityType,
+    if (bib_recommendationActivityTrackingIsEnabled(options)) {
+        options.activityTracking.onRecommendationClick(bib_constructActivityData(
+            "Clicked",
             sourceContentItemId,
             clickedContentItemId,
             catalogueIds,
             relatedContentItems,
-            instrument
-        );
-        options.activityTracking.onRecommendationClick(activityData);
+            {
+                name: "bibblio-related-content",
+                version: "0.8",
+                config: {
+                    stylePreset: stylePreset
+                }
+            }
+        ));
     }
 }
 
-function bib_bindRelatedContentItemLinks(submitActivityData) {
-    var relatedContentItemlinks = document.getElementsByClassName("bib__link");
-    var onClick = function() {
-        var contentItemId = this.getAttribute("data");
-        submitActivityData(contentItemId);
-    }
-    for (var i = 0; i < relatedContentItemlinks.length; i++) {
-        relatedContentItemlinks[i].addEventListener('click', onClick, false);
-    }
+function bib_recommendationActivityTrackingIsEnabled(options) {
+    return (_.isFunction(options.activityTracking.onRecommendationClick) && _.isFunction(bib_constructActivityData)) ? true : false;
 }
