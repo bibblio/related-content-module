@@ -43,11 +43,13 @@ function bib_constructActivityContext(sourceContentItemId, catalogueIds, related
     var context = [];
     context.push(["sourceHref", window.location.href]);
     context.push(["sourceContentItemId", sourceContentItemId]);
-    _.map(relatedContentItems, function (contentItem, index) {
-        context.push(["recommendations.contentItemId", contentItem.contentItemId]);
-    });
-    _.map(catalogueIds, function (catalogueId, index) {
+    context = _.reduce(relatedContentItems, function (context, contentItem) {
+        context.push(["recommendations.contentItemId", contentItem.contentItemId])
+        return context;
+    }, context);
+    context = _.reduce(catalogueIds, function (context, catalogueId) {
         context.push(["recommendations.catalogueId", catalogueId]);
+        return context;
     }, context);
     return context;
 }
