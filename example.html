@@ -6,10 +6,10 @@
         <title>Bibblio Related Content Example</title>
         <meta name="description" content="Bibblio Related Content Example">
         <meta name="Bibblio" content="SitePoint">
-        
+
         <!-- * Related Content Styles -->
         <link rel="stylesheet" type="text/css" href="css/bib-related-content.css">
-        
+
         <!-- Example code, do not copy if you don't need simple querystring parsing -->
         <script>
             function getParameterByName(name, url) {
@@ -27,9 +27,10 @@
         <!-- * Related Content HTML -->
         <!-- Provide an enclosing element with an id. Position and size it as you wish. -->
         <div id="bib_related-content"></div>
-        
+
         <!-- * Related Content Javascript -->
         <script src="js/underscore-min.js"></script>
+        <script src="js/bib-activity-tracker.js"></script>
         <script src="js/bib-related-content.js"></script>
         <script>
             // Initialise the related content plugin.
@@ -42,7 +43,11 @@
                     // catalogueIds: ["123", "456"] // Ctalogue Ids to recommend from. Default: same as content item
                     showRelatedBy: true,
                     subtitleField: 'provider.name',  // default: headline. passing a value of false will disable the subtitle completely
-                 });  
+                    activityTracking: { //Activity tracking callback functions
+                        onRecommendationClick: bib_trackActivity
+                    }
+                 }
+            );  
         </script>
     </body>
 </html>
