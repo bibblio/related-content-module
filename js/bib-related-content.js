@@ -42,12 +42,12 @@ function bib_initRelatedContent(containerId, accessToken, contentItemId, options
     var catalogueIds = options.catalogueIds || [];
     var moduleSettings = bib_initModuleSettings(options);
 
-    var displayWithTemplates = _.partial(bib_displayRelatedContent, 
+    var displayWithTemplates = _.partial(bib_displayRelatedContent,
                                          containerId,
                                          bib_outerModuleTemplate,
                                          bib_relatedContentItemTemplate,
                                          moduleSettings,
-                                         _);    
+                                         _);
 
     var submitActivityData = _.partial(bib_onRecommendationClick,
                                        containerId,
