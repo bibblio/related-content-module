@@ -32,7 +32,7 @@ var bib_relatedContentItemTemplate = "<li class=\"bib__tile bib__tile--<%= tileN
                                           </a>\
                                       </li>";
 
-function bib_initRelatedContent(containerId, accessToken, contentItemId, options) {
+function bib_initRelatedContent(containerId, accessToken, contentItemId, options, callbacks) {
     // This uses partial function application to bind the template and render arguments to a
     // new (partially applied) version of the bib_displayRelatedContent function. That function can
     // then be passed around as a callback without worrying about the template arguments.
@@ -54,7 +54,7 @@ function bib_initRelatedContent(containerId, accessToken, contentItemId, options
                                        contentItemId,
                                        catalogueIds,
                                        moduleSettings,
-                                       options,
+                                       callbacks,
                                        _,
                                        _);
 
@@ -220,9 +220,9 @@ function bib_bindRelatedContentItemLinks(submitActivityData) {
     }
 }
 
-function bib_onRecommendationClick(containerId, sourceContentItemId, catalogueIds, moduleSettings, options, relatedContentItems, clickedContentItemId) {
-    if (bib_recommendationActivityTrackingIsEnabled(options)) {
-        options.activityTracking.onRecommendationClick(bib_constructActivityData(
+function bib_onRecommendationClick(containerId, sourceContentItemId, catalogueIds, moduleSettings, callbacks, relatedContentItems, clickedContentItemId) {
+    if (bib_recommendationActivityTrackingIsEnabled(callbacks)) {
+        callbacks.onRecommendationClick(bib_constructActivityData(
             "Clicked",
             sourceContentItemId,
             clickedContentItemId,
@@ -237,8 +237,8 @@ function bib_onRecommendationClick(containerId, sourceContentItemId, catalogueId
     }
 }
 
-function bib_recommendationActivityTrackingIsEnabled(options) {
-    return (_.isFunction(options.activityTracking.onRecommendationClick) && _.isFunction(bib_constructActivityData)) ? true : false;
+function bib_recommendationActivityTrackingIsEnabled(callbacks) {
+    return (_.isFunction(callbacks.onRecommendationClick) && _.isFunction(bib_constructActivityData)) ? true : false;
 }
 
 function bib_initModuleSettings(options) {

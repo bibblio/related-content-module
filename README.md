@@ -26,9 +26,9 @@ The following snippet shows related content module initialisation. See `example.
             catalogueIds: ["123", "456"],  // Catalogue Ids to recommend from. Default: same catalogue as source content item
             showRelatedBy: true, // default false. Will also hide if empty, even if true
             subtitleField: 'provider.name',  // default: headline. passing a value of false will disable the subtitle 
-            activityTracking: { //Activity tracking callback functions
-                onRecommendationClick: bib_trackActivity
-            }
+        },
+        {
+            onRecommendationClick: bib_trackActivity
         }
     ); 
 </script>
