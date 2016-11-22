@@ -40,25 +40,20 @@ function bib_initRelatedContent(containerId, accessToken, contentItemId, options
     // Modify the global bib_relatedContentItemTemplate and bib_outerModuleTemplate variables
     // if you want to change the templates.
     var catalogueIds = options.catalogueIds || [];
-    var stylePreset = options.stylePreset || "default";
-    var showRelatedBy = options.showRelatedBy || false;
-    var subtitleField = (bib_validateField(options.subtitleField) ? options.subtitleField : "headline");
-    var catalogueIds = options.catalogueIds || [];
+    var moduleSettings = bib_initModuleSettings(options);
 
     var displayWithTemplates = _.partial(bib_displayRelatedContent, 
-                                        containerId,
-                                        bib_outerModuleTemplate,
-                                        bib_relatedContentItemTemplate,
-                                        stylePreset,
-                                        showRelatedBy,
-                                        subtitleField,
-                                        _);    
+                                         containerId,
+                                         bib_outerModuleTemplate,
+                                         bib_relatedContentItemTemplate,
+                                         moduleSettings,
+                                         _);    
 
     var submitActivityData = _.partial(bib_onRecommendationClick,
                                        containerId,
                                        contentItemId,
                                        catalogueIds,
-                                       stylePreset,
+                                       moduleSettings,
                                        options,
                                        _,
                                        _);
@@ -69,7 +64,7 @@ function bib_initRelatedContent(containerId, accessToken, contentItemId, options
                                  _);
 
     // Gets the related content items and passes the partially-applied display function as a callback.
-    bib_getRelatedContentItems(accessToken, contentItemId, catalogueIds, subtitleField, renderModule);
+    bib_getRelatedContentItems(accessToken, contentItemId, catalogueIds, moduleSettings.subtitleField, renderModule);
 }
 
 function bib_getRelatedContentItems(accessToken, contentItemId, catalogueIds, subtitleField, successCallback) {
@@ -97,15 +92,16 @@ function bib_renderModule(displayWithTemplates, submitActivityData, relatedConte
 function bib_displayRelatedContent(containerId, 
                                    outerModuleTemplate, 
                                    contentItemTemplate, 
-                                   stylePreset, 
-                                   showRelatedBy, 
-                                   subtitleField, 
+                                   moduleSettings, 
                                    relatedContentItems) {
     var relatedContentItemCountainer = document.getElementById(containerId);
     var relatedContentItemPanels = _.map(relatedContentItems, function (contentItem, index) {
-        return bib_renderContentItemTemplate(contentItem, index, contentItemTemplate, showRelatedBy, subtitleField);
+        return bib_renderContentItemTemplate(contentItem, 
+                                             index, 
+                                             contentItemTemplate, 
+                                             moduleSettings);
     }).join('\n');
-    var module = bib_renderOuterModuleTemplate(stylePreset, relatedContentItemPanels, outerModuleTemplate);
+    var module = bib_renderOuterModuleTemplate(moduleSettings.stylePreset, relatedContentItemPanels, outerModuleTemplate);
     relatedContentItemCountainer.innerHTML = module;
 }
 
@@ -118,30 +114,30 @@ function bib_renderOuterModuleTemplate(stylePreset, contentItemsHTML, outerModul
     return compiled(varBindings);
 }
 
-function bib_renderContentItemTemplate(contentItem, contentItemIndex, contentItemTemplate, showRelatedBy, subtitleField) {
+function bib_renderContentItemTemplate(contentItem, contentItemIndex, contentItemTemplate, moduleSettings) {
     var compiled = _.template(contentItemTemplate);
     var varBindings = {
         contentItemId: contentItem.contentItemId,
         name: bib_toTitleCase(contentItem.fields.name),
         url: contentItem.fields.url,
-        subtitle: bib_getProperty(contentItem.fields, subtitleField),
+        subtitle: bib_getProperty(contentItem.fields, moduleSettings.subtitleField),
         imageUrl: (contentItem.fields.squareImage ? contentItem.fields.squareImage.contentUrl : null),
         relatedBy: contentItem.relationships.inCommon,
         tileNumber: (contentItemIndex + 1),
-        showRelatedBy: showRelatedBy
+        showRelatedBy: moduleSettings.showRelatedBy
     };
     return compiled(varBindings);
 }
 
 function bib_recommendationUrl(contentItemId, catalogueIds, limit, page, fields) {
     var querystringArgs = [
-      "limit=" + limit,
-      "page=" + page,
-      "fields=" + fields.join(",")
+        "limit=" + limit,
+        "page=" + page,
+        "fields=" + fields.join(",")
     ];
 
     if (catalogueIds.length > 0) {
-      querystringArgs.push("catalogueIds=" + catalogueIds.join(","));
+        querystringArgs.push("catalogueIds=" + catalogueIds.join(","));
     }
 
     // TODO: make this much nicer
@@ -155,63 +151,63 @@ function bib_toTitleCase(str) {
 }
 
 function bib_getPresetModuleClasses(stylePreset) {
-  var presets = {
-    "grid-4": "bib__module bib--grd-4 bib--wide",
-    "box-5": "bib__module bib--box-5 bib--wide",
-    "box-6": "bib__module bib--box-6 bib--wide"
-  };
-  return presets[stylePreset] || presets["box-6"];
+    var presets = {
+        "grid-4": "bib__module bib--grd-4 bib--wide",
+        "box-5": "bib__module bib--box-5 bib--wide",
+        "box-6": "bib__module bib--box-6 bib--wide"
+    };
+    return presets[stylePreset] || presets["box-6"];
 }
 
 function bib_linkTargetFor(url) {
-  var currentdomain = window.location.hostname;
-  var matches = (bib_getDomainName(currentdomain) == bib_getDomainName(url));
-  return (matches ? '_self' : '_blank');
+    var currentdomain = window.location.hostname;
+    var matches = (bib_getDomainName(currentdomain) == bib_getDomainName(url));
+    return (matches ? '_self' : '_blank');
 }
 
 function bib_getDomainName(url) {
-  var r = /^(?:https?:\/\/)?(?:www\.)?(.[^/]+)/;
-  var matchResult = url.match(r);
-  return (url.match(r) ? matchResult[1].replace('www.', '') : "");
+    var r = /^(?:https?:\/\/)?(?:www\.)?(.[^/]+)/;
+    var matchResult = url.match(r);
+    return (url.match(r) ? matchResult[1].replace('www.', '') : "");
 }
 
 function bib_getProperty(properties, accessor) {
-  if (accessor == false || accessor == undefined) {
-    return accessor;
-  } else {
-    var reduceProps = function(props, field) { return (props == undefined ? undefined : props[field] ); }
-    return _.reduce(accessor.split("."), reduceProps, properties);
-  }
+    if (accessor == false || accessor == undefined) {
+        return accessor;
+    } else {
+        var reduceProps = function(props, field) { return (props == undefined ? undefined : props[field] ); }
+        return _.reduce(accessor.split("."), reduceProps, properties);
+    }
 }
 
 function bib_getRootProperty(accessor) {
-  if (accessor == false || accessor == undefined) {
-    return accessor;
-  } else {
-    return accessor.split(".")[0];
-  }
+    if (accessor == false || accessor == undefined) {
+        return accessor;
+    } else {
+       return accessor.split(".")[0];
+    }
 }
 
 function bib_validateField(accessor) {
-  // TODO: this is not ideal. Can we get the valid fields programmatically?
-  //       Else change the feature spec and be willing to fail with 422 if field is wrong?
-  var validFields = [
-    "name",
-    "url",
-    "text",
-    "description",
-    "keywords",
-    "learningResourceType",
-    "thumbnail",
-    "image",
-    "moduleImage",
-    "video",
-    "dateCreated",
-    "dateModified",
-    "datePublished",
-    "provider",
-    "publisher"]
-  return _.contains(validFields, bib_getRootProperty(accessor));
+    // TODO: this is not ideal. Can we get the valid fields programmatically?
+    //       Else change the feature spec and be willing to fail with 422 if field is wrong?
+    var validFields = [
+        "name",
+        "url",
+        "text",
+        "description",
+        "keywords",
+        "learningResourceType",
+        "thumbnail",
+        "image",
+        "moduleImage",
+        "video",
+        "dateCreated",
+        "dateModified",
+        "datePublished",
+        "provider",
+        "publisher"]
+    return _.contains(validFields, bib_getRootProperty(accessor));
 }
 
 function bib_bindRelatedContentItemLinks(submitActivityData) {
@@ -224,7 +220,7 @@ function bib_bindRelatedContentItemLinks(submitActivityData) {
     }
 }
 
-function bib_onRecommendationClick(containerId, sourceContentItemId, catalogueIds, stylePreset, options, relatedContentItems, clickedContentItemId) {
+function bib_onRecommendationClick(containerId, sourceContentItemId, catalogueIds, moduleSettings, options, relatedContentItems, clickedContentItemId) {
     if (bib_recommendationActivityTrackingIsEnabled(options)) {
         options.activityTracking.onRecommendationClick(bib_constructActivityData(
             "Clicked",
@@ -235,9 +231,7 @@ function bib_onRecommendationClick(containerId, sourceContentItemId, catalogueId
             {
                 name: "bibblio-related-content",
                 version: "0.8",
-                config: {
-                    stylePreset: stylePreset
-                }
+                config: moduleSettings
             }
         ));
     }
@@ -245,4 +239,12 @@ function bib_onRecommendationClick(containerId, sourceContentItemId, catalogueId
 
 function bib_recommendationActivityTrackingIsEnabled(options) {
     return (_.isFunction(options.activityTracking.onRecommendationClick) && _.isFunction(bib_constructActivityData)) ? true : false;
+}
+
+function bib_initModuleSettings(options) {
+    var moduleSettings = {};
+    moduleSettings.stylePreset = options.stylePreset || "default";
+    moduleSettings.showRelatedBy = options.showRelatedBy || false;
+    moduleSettings.subtitleField = (bib_validateField(options.subtitleField) ? options.subtitleField : "headline");
+    return moduleSettings;
 }
