@@ -1,55 +1,80 @@
-function bib_trackActivity(activityData) {
-    var requestBody = bib_constructRequestBody(activityData);
-    var httpClient = bib_constructHttpClient();
-    return httpClient.send(requestBody);
-}
+"use strict";
 
-function bib_constructRequestBody(activityData) {
-    return JSON.stringify(activityData)
-}
+(function() {
+  var isNodeJS = false;
+  var XMLHttpRequestNodeJS = false;
 
-function bib_constructHttpClient() {
-    var url = "https://4665tudai1.execute-api.eu-west-1.amazonaws.com/dev/activities";
-    var httpClient = new XMLHttpRequest();
-    httpClient.open("POST", url, false);
-    httpClient.setRequestHeader('Content-Type', 'application/json');
-    return httpClient;
-}
+  // support for NodeJS, which doesn't support XMLHttpRequest natively
+  if (typeof module !== 'undefined' && typeof module.exports !== 'undefined') {
+    isNodeJS = true;
+    XMLHttpRequestNodeJS = require('xmlhttprequest').XMLHttpRequest;
+  }
 
-function bib_constructActivityData(type, sourceContentItemId, clickedContentItemId, catalogueIds, relatedContentItems, instrument) {
-    var activityData = {
-        "type": type,
-        "actor": {},
-        "object": bib_constructActivityObject(clickedContentItemId),
-        "context": bib_constructActivityContext(sourceContentItemId, catalogueIds, relatedContentItems),
-        "instrument": bib_constructActivityInstrument(instrument)
-    }
-    return activityData;
-}
+  var BibblioActivity = {
+    track: function(activityData) {
+      var requestBody = BibblioActivity.constructRequestBody(activityData);
+      var httpClient = BibblioActivity.constructHttpClient();
+      return httpClient.send(requestBody);
+    },
 
-function bib_constructActivityInstrument(type, version, config) {
-    return {
-        "type": type,
-        "version": version,
-        "config": config
-    };
-}
+    constructRequestBody: function(activityData) {
+      return JSON.stringify(activityData);
+    },
 
-function bib_constructActivityObject(clickedContentItemId) {
-    return [["contentItemId", clickedContentItemId]];
-}
+    constructHttpClient: function() {
+      var url = "https://4665tudai1.execute-api.eu-west-1.amazonaws.com/dev/activities";
+      var httpClient = (XMLHttpRequestNodeJS) ? new XMLHttpRequestNodeJS() : new XMLHttpRequest();
+      httpClient.open("POST", url, false);
+      httpClient.setRequestHeader('Content-Type', 'application/json');
+      return httpClient;
+    },
 
-function bib_constructActivityContext(sourceContentItemId, catalogueIds, relatedContentItems) {
-    var context = [];
-    context.push(["sourceHref", window.location.href]);
-    context.push(["sourceContentItemId", sourceContentItemId]);
-    context = _.reduce(relatedContentItems, function (context, contentItem) {
-        context.push(["recommendations.contentItemId", contentItem.contentItemId])
-        return context;
-    }, context);
-    context = _.reduce(catalogueIds, function (context, catalogueId) {
-        context.push(["recommendations.catalogueId", catalogueId]);
-        return context;
-    }, context);
-    return context;
-}
+    constructActivityData: function(type, sourceContentItemId, clickedContentItemId, catalogueIds, relatedContentItems, instrument) {
+      var activityData = {
+          "type": type,
+          "actor": {},
+          "object": BibblioActivity.constructActivityObject(clickedContentItemId),
+          "context": BibblioActivity.constructActivityContext(sourceContentItemId, catalogueIds, relatedContentItems),
+          "instrument": BibblioActivity.constructActivityInstrument(instrument)
+      };
+      return activityData;
+    },
+
+    constructActivityInstrument: function(type, version, config) {
+      return {
+          "type": type,
+          "version": version,
+          "config": config
+      };
+    },
+
+    constructActivityObject: function(clickedContentItemId) {
+      return [["contentItemId", clickedContentItemId]];
+    },
+
+    constructActivityContext: function(sourceContentItemId, catalogueIds, relatedContentItems) {
+      var context = [];
+      var href = ((typeof window !== 'undefined') && window.location && window.location.href) ? window.location.href : '';
+
+      context.push(["sourceHref", href]);
+      context.push(["sourceContentItemId", sourceContentItemId]);
+      context = _.reduce(relatedContentItems, function (context, contentItem) {
+          context.push(["recommendations.contentItemId", contentItem.contentItemId]);
+          return context;
+      }, context);
+      context = _.reduce(catalogueIds, function (context, catalogueId) {
+          context.push(["recommendations.catalogueId", catalogueId]);
+          return context;
+      }, context);
+      return context;
+    },
+  };
+
+  if (isNodeJS) {
+    module.exports = BibblioActivity;
+
+  } else {
+    window.BibblioActivity = BibblioActivity;
+    window.bib_trackActivity = window.BibblioActivity.track; // backward compatibility
+  }
+})();

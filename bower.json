@@ -1,0 +1,20 @@
+{
+  "name": "bibblio-related-content-module",
+  "description": "Bibblio HTML modules (CSS+JS) for displaying related content.",
+  "main": "js/bib-related-content.js",
+  "authors": "Bibblio.org",
+  "homepage": "https://github.com/bibblio/related-content-module",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "coverage",
+    "reports",
+    "test",
+    "example.html",
+    "example.js"
+  ],
+  "dependencies": {
+    "underscore": "1.8.3"
+  }
+}
