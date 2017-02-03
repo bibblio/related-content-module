@@ -271,6 +271,5 @@
 
   } else {
     window.Bibblio = Bibblio;
-    window.bib_initRelatedContent = window.Bibblio.initRelatedContent; // backward compatibility
   }
 })();
