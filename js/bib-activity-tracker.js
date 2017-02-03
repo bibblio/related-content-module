@@ -22,7 +22,7 @@
     },
 
     constructHttpClient: function() {
-      var url = "https://4665tudai1.execute-api.eu-west-1.amazonaws.com/dev/activities";
+      var url = "https://api.bibblio.org/v1/activities";
       var httpClient = (XMLHttpRequestNodeJS) ? new XMLHttpRequestNodeJS() : new XMLHttpRequest();
       httpClient.open("POST", url, false);
       httpClient.setRequestHeader('Content-Type', 'application/json');
