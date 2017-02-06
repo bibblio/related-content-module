@@ -1,6 +1,6 @@
 # Installation
 
-The Bibblio "related content module" (JS and CSS) can be installed with bower by running:
+The Bibblio "related content module" (JS and CSS) can be installed with [Bower](https://bower.io/#install-bower) by running:
 
 ```
 bower install bibblio-related-content-module
