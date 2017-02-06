@@ -29,13 +29,13 @@
         <div id="bib_related-content"></div>
 
         <!-- * Related Content Javascript -->
-        <script src="js/underscore-min.js"></script>
+        <script src="bower_components/underscore/underscore-min.js"></script>
         <script src="js/bib-activity-tracker.js"></script>
         <script src="js/bib-related-content.js"></script>
         <script>
             // Initialise the related content plugin.
             // NB: Replace the getParameterByName arguments with your own access token and contentitem id.
-            bib_initRelatedContent("bib_related-content", // the id of the containing element
+            Bibblio.initRelatedContent("bib_related-content", // the id of the containing element
                 getParameterByName('accessToken'), // an access token obtained from the bibblio api
                 getParameterByName('contentItemId'), // the id of the content item to recommend from
                 { // optional argument.
@@ -43,11 +43,7 @@
                     // catalogueIds: ["123", "456"], // Catalogue Ids to recommend from. Default: same as content item
                     showRelatedBy: true,
                     subtitleField: 'provider.name'  // default: headline. passing a value of false will disable the subtitle completely
-                },
-                {
-                    onRecommendationClick: bib_trackActivity
-                }
-            );  
+                });
         </script>
     </body>
 </html>

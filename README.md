@@ -1,3 +1,11 @@
+# Installation
+
+The Bibblio "related content module" (JS and CSS) can be installed with [Bower](https://bower.io/#install-bower) by running:
+
+```
+bower install bibblio-related-content-module
+```
+
 # Example
 
 The following snippet shows related content module initialisation. See `example.html` for a full, working demo that uses querystring arguments for access token and ids.
@@ -5,7 +13,7 @@ The following snippet shows related content module initialisation. See `example.
 ```html
 <head>
     <!-- * Related Content Styles -->
-    <link rel="stylesheet" type="text/css" href="css/bib-related-content.css">
+    <link rel="stylesheet" type="text/css" href="bower_components/bibblio-related-content-module/css/bib-related-content.css">
 </head>
 
 <!-- * Related Content HTML -->
@@ -13,24 +21,20 @@ The following snippet shows related content module initialisation. See `example.
 <div id="bib_related-content"></div>
 
 <!-- * Related Content Javascript -->
-<script src="js/underscore-min.js"></script>
-<script src="js/bib-activity-tracker.js"></script>
-<script src="js/bib-related-content.js"></script>
+<script src="bower_components/underscore/underscore-min.js"></script>
+<script src="bower_components/bibblio-related-content-module/bib-related-content.js"></script>
 <script>
     // Initialise the related content plugin.
-    bib_initRelatedContent("bib_related-content", // the id of the containing element
+    Bibblio.initRelatedContent("bib_related-content", // the id of the containing element
         'superSecret', // an access token obtained from the bibblio api
         '123-456-789', // the id of the content item to recommend from
         {
             stylePreset: "box-6", // Options: grid-4, box-5, box-6. Default: box-6,
             catalogueIds: ["123", "456"],  // Catalogue Ids to recommend from. Default: same catalogue as source content item
             showRelatedBy: true, // default false. Will also hide if empty, even if true
-            subtitleField: 'provider.name',  // default: headline. passing a value of false will disable the subtitle 
-        },
-        {
-            onRecommendationClick: bib_trackActivity
+            subtitleField: 'provider.name',  // default: headline. passing a value of false will disable the subtitle
         }
-    ); 
+    );
 </script>
 ```
 
