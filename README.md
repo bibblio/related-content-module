@@ -22,7 +22,7 @@ The following snippet shows related content module initialisation. See `example.
 
 <!-- * Related Content Javascript -->
 <script src="bower_components/underscore/underscore-min.js"></script>
-<script src="bower_components/bibblio-related-content-module/bib-related-content.js"></script>
+<script src="bower_components/bibblio-related-content-module/js/bib-related-content.js"></script>
 <script>
     // Initialise the related content plugin.
     Bibblio.initRelatedContent("bib_related-content", // the id of the containing element
@@ -30,7 +30,6 @@ The following snippet shows related content module initialisation. See `example.
         '123-456-789', // the id of the content item to recommend from
         {
             stylePreset: "box-6", // Options: grid-4, box-5, box-6. Default: box-6,
-            catalogueIds: ["123", "456"],  // Catalogue Ids to recommend from. Default: same catalogue as source content item
             showRelatedBy: true, // default false. Will also hide if empty, even if true
             subtitleField: 'provider.name',  // default: headline. passing a value of false will disable the subtitle
         }
