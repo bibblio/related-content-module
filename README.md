@@ -8,7 +8,7 @@ bower install bibblio-related-content-module
 
 # Example
 
-The following snippet shows related content module initialisation. See `example.html` for a full, working demo that uses querystring arguments for access token and ids.
+The following snippet shows the initialisation of the related content module - needing "YOUR_ACCESS_TOKEN" and "YOUR_CONTENT_ITEM_ID" values to replaced with [an access token for your account](http://docs.bibblio.apiary.io/#reference/authorization/token/obtain-an-access-token) and the "contentItemId" returned when creating an item or from [listing your content items](http://docs.bibblio.apiary.io/#reference/enrichment/content-items/list-content-items).
 
 ```html
 <head>
@@ -26,8 +26,8 @@ The following snippet shows related content module initialisation. See `example.
 <script>
     // Initialise the related content plugin.
     Bibblio.initRelatedContent("bib_related-content", // the id of the containing element
-        'superSecret', // an access token obtained from the bibblio api
-        '123-456-789', // the id of the content item to recommend from
+        'YOUR_ACCESS_TOKEN', // an access token obtained from the bibblio api
+        'YOUR_CONTENT_ITEM_ID', // the id of the content item to recommend from
         {
             stylePreset: "box-6", // Options: grid-4, box-5, box-6. Default: box-6,
             showRelatedBy: true, // default false. Will also hide if empty, even if true
@@ -35,6 +35,12 @@ The following snippet shows related content module initialisation. See `example.
         }
     );
 </script>
+```
+
+The `example.html` file shows a working demo that gets these values from querystrings, which you can open in your browser in the following format:
+
+```
+example.html?accessToken=YOUR_ACCESS_TOKEN&contentItemId=YOUR_CONTENT_ITEM_ID
 ```
 
 ## CSS
