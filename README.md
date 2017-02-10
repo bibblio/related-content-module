@@ -61,14 +61,14 @@ A JavaScript object can be provided to set customisation options on the module. 
 
 `'stylePreset'`: allows you to specify the layout of the module. Options are '_grid-4_', '_box-5_' and '_box-6_'. Default is '_box-6_'.
 
-`'showRelatedBy'`: allows you to specify whether the terms in common should be displayed along with recommendations. Default is '_false'.
+`'showRelatedBy'`: allows you to specify whether the terms in common should be displayed along with recommendations. Default is '_false_'.
 
-`'subtitleField'`: allows you to specify the content item field to use as subtitles on the recommended content panel. Any [valid content item fields](http://docs.bibblio.apiary.io/#reference/enrichment/content-items/retrieve-a-content-item) can be used. Providing a value of _false_ will disable the subtitle. Default is '_headline_'.
+`'subtitleField'`: allows you to specify the content item field to use as subtitles on the recommended content panel. Any [valid content item field](http://docs.bibblio.apiary.io/#reference/enrichment/content-items/retrieve-a-content-item) can be used. Providing a value of _false_ will disable the subtitle. Default is '_headline_'.
 
 
 ## An example
 
-The following snippet shows the initialisation of the related content module - needing `YOUR_ACCESS_TOKEN` and `YOUR_CONTENT_ITEM_ID` values to be replaced with [an access token for your account](http://docs.bibblio.apiary.io/#reference/authorization/token/obtain-an-access-token) and the "contentItemId" returned when creating an item or from [listing your content items](http://docs.bibblio.apiary.io/#reference/enrichment/content-items/list-content-items).
+The following snippet shows the initialisation of a related content module. You will need to replace `YOUR_ACCESS_TOKEN` and `YOUR_CONTENT_ITEM_ID` with [an access token for your account](http://docs.bibblio.apiary.io/#reference/authorization/token/obtain-an-access-token) and the `contentItemId` returned when [creating a content item](http://docs.bibblio.apiary.io/#reference/enrichment/content-items/create-a-content-item) or [listing your content items](http://docs.bibblio.apiary.io/#reference/enrichment/content-items/list-content-items).
 
 ```html
 <head>
