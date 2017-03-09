@@ -116,14 +116,16 @@
                                                contentItemTemplate,
                                                moduleSettings);
       }).join('\n');
-      var module = Bibblio.renderOuterModuleTemplate(moduleSettings.stylePreset, relatedContentItemPanels, outerModuleTemplate);
+      var module = Bibblio.renderOuterModuleTemplate(moduleSettings, relatedContentItemPanels, outerModuleTemplate);
       relatedContentItemCountainer.innerHTML = module;
     },
 
-    renderOuterModuleTemplate: function(stylePreset, contentItemsHTML, outerModuleTemplate) {
+    renderOuterModuleTemplate: function(moduleSettings, contentItemsHTML, outerModuleTemplate) {
+      // If style classes are specified then ommit styled preset
+      var classes = moduleSettings.styleClasses ? moduleSettings.styleClasses : Bibblio.getPresetModuleClasses(moduleSettings.stylePreset);
       var compiled = _.template(outerModuleTemplate);
       var varBindings = {
-          classes: Bibblio.getPresetModuleClasses(stylePreset),
+          classes: classes,
           recommendedContentItems: contentItemsHTML
       };
       return compiled(varBindings);
@@ -260,6 +262,7 @@
     initModuleSettings: function(options) {
       var moduleSettings = {};
       moduleSettings.stylePreset = options.stylePreset || "default";
+      moduleSettings.styleClasses = options.styleClasses || false;
       moduleSettings.showRelatedBy = options.showRelatedBy || false;
       moduleSettings.subtitleField = (Bibblio.validateField(options.subtitleField) ? options.subtitleField : "headline");
       return moduleSettings;

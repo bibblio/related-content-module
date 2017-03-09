@@ -36,7 +36,7 @@ Include the files by adding these tags to your page:
 The module can be added to a page by calling the JavaScript function provided:
 ```javascript
 Bibblio.initRelatedContent(...)
-``` 
+```
 
 Typically this would be done on the `pageReady` event, but could also be dropped in a script tag at the bottom of the page.
 
@@ -60,6 +60,8 @@ The Bibblio `contentItemId` of the article (or other piece of content) being dis
 A JavaScript object can be provided to set customisation options on the module. This object can contain the following properties:
 
 `'stylePreset'`: allows you to specify the layout of the module. Options are '_grid-4_', '_box-5_' and '_box-6_'. Default is '_box-6_'.
+
+`'styleClasses'`: allows you to override CSS class presets in the related content module. If provided, all stylePreset CSS classes will be omitted. Default is '_false_'.
 
 `'showRelatedBy'`: allows you to specify whether the terms in common should be displayed along with recommendations. Default is '_false_'.
 
