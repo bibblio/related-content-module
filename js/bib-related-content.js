@@ -91,7 +91,7 @@
         }
       };
       // URL arguments should be injected but the module only supports these settings now anyway.
-      var fields = ["name", "url", "squareImage"].concat(Bibblio.getRootProperty(subtitleField)).filter(Boolean); // filter out falsey values
+      var fields = ["name", "url", "moduleImage"].concat(Bibblio.getRootProperty(subtitleField)).filter(Boolean); // filter out falsey values
       var url = Bibblio.recommendationUrl(contentItemId, catalogueIds, 6, 1, fields);
       xmlhttp.open("GET", url, true);
       xmlhttp.setRequestHeader("Authorization", "Bearer " + accessToken);
@@ -139,7 +139,7 @@
           name: Bibblio.toTitleCase(contentItem.fields.name),
           url: contentItem.fields.url,
           subtitle: Bibblio.getProperty(contentItem.fields, moduleSettings.subtitleField),
-          imageUrl: (contentItem.fields.squareImage ? contentItem.fields.squareImage.contentUrl : null),
+          imageUrl: (contentItem.fields.moduleImage ? contentItem.fields.moduleImage.contentUrl : null),
           relatedBy: contentItem.relationships.inCommon,
           tileNumber: (contentItemIndex + 1),
           showRelatedBy: moduleSettings.showRelatedBy

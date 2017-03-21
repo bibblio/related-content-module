@@ -51,13 +51,15 @@ This should be the DOM id of an HTML element you'd like to initialise as a relat
 You will need to drop this (empty) element onto the page yourself so as to position it as you wish.
 
 ### 2) Access Token
-This allows you to safely connect to the BIbblio API from a page visitor's browser. The `access_token` [must be obtained from our API](http://docs.bibblio.apiary.io/#reference/authorization/token/obtain-an-access-token) before you present the page to visitors.
+This allows you to safely connect to the Bibblio API from a page visitor's browser. The `access_token` [must be obtained from our API](http://docs.bibblio.apiary.io/#reference/authorization/token/obtain-an-access-token) before you present the page to visitors.
 
 ### 3) contentItemId
-The Bibblio `contentItemId` of the article (or other piece of content) being displayed must be provided in order to retrieve content recommendations. The `contentItemId` is provided when [creating a content item](http://docs.bibblio.apiary.io/#reference/enrichment/content-items/create-a-content-item), and is also retrievable when [listing your content items](http://docs.bibblio.apiary.io/#reference/enrichment/content-items/list-content-items).
+The Bibblio `contentItemId` of the article (or other piece of content) being displayed must be provided in order to retrieve content recommendations. The `contentItemId` is provided when [creating a content item](http://docs.bibblio.apiary.io/#reference/storing-data/content-items/create-a-content-item), and is also retrievable when [listing your content items](http://docs.bibblio.apiary.io/#reference/storing-data/content-items/list-content-items).
 
 ### 4) configuration object (optional)
 A JavaScript object can be provided to set customisation options on the module. This object can contain the following properties:
+
+`'catalogueIds'`: allows you to specify the [catalogues](http://docs.bibblio.apiary.io/#reference/storing-data/catalogues) that recommendations should draw from. The `catalogueId` of [any catalogues you own](http://docs.bibblio.apiary.io/#reference/storing-data/catalogues/list-catalogues) would be valid. Default is the same catalogue as the source content item specified.
 
 `'stylePreset'`: allows you to specify the layout of the module. Options are '_grid-4_', '_box-5_' and '_box-6_'. Default is '_box-6_'.
 
@@ -65,12 +67,12 @@ A JavaScript object can be provided to set customisation options on the module. 
 
 `'showRelatedBy'`: allows you to specify whether the terms in common should be displayed along with recommendations. Default is '_false_'.
 
-`'subtitleField'`: allows you to specify the content item field to use as subtitles on the recommended content panel. Any [valid content item field](http://docs.bibblio.apiary.io/#reference/enrichment/content-items/retrieve-a-content-item) can be used. Providing a value of _false_ will disable the subtitle. Default is '_headline_'.
+`'subtitleField'`: allows you to specify the content item field to use as subtitles on the recommended content panel. Any [valid content item field](http://docs.bibblio.apiary.io/#reference/storing-data/content-items/retrieve-a-content-item) can be used. Providing a value of _false_ will disable the subtitle. Default is '_headline_'.
 
 
 ## An example
 
-The following snippet shows the initialisation of a related content module. You will need to replace `YOUR_ACCESS_TOKEN` and `YOUR_CONTENT_ITEM_ID` with [an access token for your account](http://docs.bibblio.apiary.io/#reference/authorization/token/obtain-an-access-token) and the `contentItemId` returned when [creating a content item](http://docs.bibblio.apiary.io/#reference/enrichment/content-items/create-a-content-item) or [listing your content items](http://docs.bibblio.apiary.io/#reference/enrichment/content-items/list-content-items).
+The following snippet shows the initialisation of a related content module. You will need to replace `YOUR_ACCESS_TOKEN` and `YOUR_CONTENT_ITEM_ID` with [an access token for your account](http://docs.bibblio.apiary.io/#reference/authorization/token/obtain-an-access-token) and the `contentItemId` returned when [creating a content item](http://docs.bibblio.apiary.io/#reference/storing-data/content-items/create-a-content-item) or [listing your content items](http://docs.bibblio.apiary.io/#reference/storing-data/content-items/list-content-items).
 
 ```html
 <head>
@@ -91,7 +93,9 @@ The following snippet shows the initialisation of a related content module. You 
         'YOUR_ACCESS_TOKEN', // an access token obtained from the bibblio api
         'YOUR_CONTENT_ITEM_ID', // the id of the content item to recommend from
         {
+            // catalogueIds: ["a8365ab1-00f9-38f8-af51-4d0ff527856f", "9e904824-5f98-4281-99be-931a8d68854e"], // Catalogue Ids to recommend from. Default: same as content item
             stylePreset: "box-6", // Options: grid-4, box-5, box-6. Default: box-6,
+            // styleClasses: "bib--grd-4 bib--wide", // Custom CSS classes
             showRelatedBy: true, // default false. Will also hide if empty, even if true
             subtitleField: 'provider.name',  // default: headline. passing a value of false will disable the subtitle
         }
