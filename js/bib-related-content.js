@@ -136,7 +136,7 @@
       // var compiled = 'test';
       var varBindings = {
           contentItemId: contentItem.contentItemId,
-          name: Bibblio.toTitleCase(contentItem.fields.name),
+          name: contentItem.fields.name,
           url: contentItem.fields.url,
           subtitle: Bibblio.getProperty(contentItem.fields, moduleSettings.subtitleField),
           imageUrl: (contentItem.fields.moduleImage ? contentItem.fields.moduleImage.contentUrl : null),
@@ -160,12 +160,6 @@
 
       // TODO: make this much nicer
       return "https://api.bibblio.org/content-items/" + contentItemId + "/recommendations?" + querystringArgs.join("&");
-    },
-
-    toTitleCase: function(str) {
-      return str.replace(/\b\w+/g, function (s) {
-          return s.charAt(0).toUpperCase() + s.substr(1).toLowerCase();
-      });
     },
 
     getPresetModuleClasses: function(stylePreset) {
