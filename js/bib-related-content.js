@@ -13,6 +13,7 @@
   var Bibblio = {
     outerModuleTemplate: "<ul class=\"<%= classes %>\">\
                                     <%= recommendedContentItems %>\
+                                    <a href=\"http://bibblio.org/about\" target=\"_blank\" class=\"bib__origin\">Refined by</a>\
                                  </ul>",
 
     relatedContentItemTemplate: "<li class=\"bib__tile bib__tile--<%= tileNumber %>\">\
