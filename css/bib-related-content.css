@@ -6,11 +6,46 @@
     margin: 0;
     padding: 0;
     width: 100%;
-    /*max-width: 830px;*/
     overflow: hidden;
     line-height: normal;
     list-style-type: none;
     font-family: Arial, sans-serif;
+}
+
+.bib__origin {
+    background-image: url("http://bibblio.org/images/logos/bibblio_logo_w400.png");
+    background-position: right top;
+    background-repeat: no-repeat;
+    background-size: 45px auto;
+    color: #888888;
+    display: inline-block;
+    float: right;
+    font-size: 12px;
+    height: 25px;
+    margin: 5px 5px 0 0;
+    padding: 0 50px 0 0;
+    text-align: right;
+    line-height: 1.25;
+    opacity: 0.5;
+    text-decoration: none;
+    -webkit-transition: opacity 0.5s ease-in-out;
+    -moz-transition: opacity 0.5s ease-in-out;
+    -ms-transition: opacity 0.5s ease-in-out;
+    -o-transition: opacity 0.5s ease-in-out;
+    transition: opacity 0.5s ease-in-out;
+}
+
+.bib__origin:hover {
+    opacity: 1;
+}
+
+.bib__origin:active,
+.bib__origin:focus {
+    outline: 0;
+}
+
+.bib--white-label .bib__origin {
+    display: none;
 }
 
 .bib__tile {
@@ -136,10 +171,10 @@
     background-repeat: no-repeat;
     background-position: center center;
     background-image: url('http://bibblio.org/images/plugins/node-bkgd.png');
-    -webkit-transition: all 0.5s ease-in-out;
-    -moz-transition: all 0.5s ease-in-out;
-    -ms-transition: all 0.5s ease-in-out;
-    -o-transition: all 0.5s ease-in-out;
+    -webkit-transition: all 1s ease-in-out;
+    -moz-transition: all 1s ease-in-out;
+    -ms-transition: all 1s ease-in-out;
+    -o-transition: all 1s ease-in-out;
     transition: all 1s ease-in-out;
 }
 
