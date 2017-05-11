@@ -33,9 +33,9 @@
         <script src="js/bib-related-content.js"></script>
         <script>
             // Initialise the related content plugin.
-            // NB: Replace the getParameterByName arguments with your own access token and contentitem id.
+            // NB: Replace the getParameterByName arguments with your own recommendation key and contentitem id.
             Bibblio.initRelatedContent("bib_related-content", // the id of the containing element
-                getParameterByName('accessToken'), // an access token obtained from the bibblio api
+                getParameterByName('recommendationKey'), // a recommendation key obtained from the bibblio api
                 getParameterByName('contentItemId'), // the id of the content item to recommend from
                 { // optional argument.
                     stylePreset: "box-6", // Options: grid-4, box-5, box-6. Default: box-6

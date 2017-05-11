@@ -50,8 +50,8 @@ This should be the DOM id of an HTML element you'd like to initialise as a relat
 ```
 You will need to drop this (empty) element onto the page yourself so as to position it as you wish.
 
-### 2) Access Token
-This allows you to safely connect to the Bibblio API from a page visitor's browser. The `access_token` [must be obtained from our API](http://docs.bibblio.apiary.io/#reference/authorization/token/obtain-an-access-token) before you present the page to visitors.
+### 2) Recommendation Key
+This allows you to safely connect to the Bibblio API from a page visitor's browser. The recommendation key must be obtained from [our API](http://docs.bibblio.apiary.io/#reference/authorization/recommendation-keys/list-recommendation-keys) or [your management console](https://developer.bibblio.org/admin/account) before you present the page to visitors.
 
 ### 3) contentItemId
 The Bibblio `contentItemId` of the article (or other piece of content) being displayed must be provided in order to retrieve content recommendations. The `contentItemId` is provided when [creating a content item](http://docs.bibblio.apiary.io/#reference/storing-data/content-items/create-a-content-item), and is also retrievable when [listing your content items](http://docs.bibblio.apiary.io/#reference/storing-data/content-items/list-content-items).
@@ -72,7 +72,7 @@ A JavaScript object can be provided to set customisation options on the module. 
 
 ## An example
 
-The following snippet shows the initialisation of a related content module. You will need to replace `YOUR_ACCESS_TOKEN` and `YOUR_CONTENT_ITEM_ID` with [an access token for your account](http://docs.bibblio.apiary.io/#reference/authorization/token/obtain-an-access-token) and the `contentItemId` returned when [creating a content item](http://docs.bibblio.apiary.io/#reference/storing-data/content-items/create-a-content-item) or [listing your content items](http://docs.bibblio.apiary.io/#reference/storing-data/content-items/list-content-items).
+The following snippet shows the initialisation of a related content module. You will need to replace `YOUR_RECOMMENDATION_KEY` and `YOUR_CONTENT_ITEM_ID` with [a recommendation key](http://docs.bibblio.apiary.io/#reference/authorization/recommendation-keys/list-recommendation-keys) and the `contentItemId` returned when [creating a content item](http://docs.bibblio.apiary.io/#reference/storing-data/content-items/create-a-content-item) or [listing your content items](http://docs.bibblio.apiary.io/#reference/storing-data/content-items/list-content-items).
 
 ```html
 <head>
@@ -90,8 +90,8 @@ The following snippet shows the initialisation of a related content module. You 
 <script>
     // Initialise the related content plugin.
     Bibblio.initRelatedContent("bib_related-content", // the id of the containing element
-        'YOUR_ACCESS_TOKEN', // an access token obtained from the bibblio api
-        'YOUR_CONTENT_ITEM_ID', // the id of the content item to recommend from
+        'YOUR_RECOMMENDATION_KEY', // a recommendation key obtained from the bibblio api or your mangement console
+        'YOUR_CONTENT_ITEM_ID',    // the id of the content item to recommend from
         {
             // catalogueIds: ["a8365ab1-00f9-38f8-af51-4d0ff527856f", "9e904824-5f98-4281-99be-931a8d68854e"], // Catalogue Ids to recommend from. Default: same as content item
             stylePreset: "box-6", // Options: grid-4, box-5, box-6. Default: box-6,
@@ -108,5 +108,5 @@ The following snippet shows the initialisation of a related content module. You 
 The [example.html](example.html) file provided shows a working demo that gets these values from querystrings. You can save this file and open it in your browser in the following format:
 
 ```
-example.html?accessToken=YOUR_ACCESS_TOKEN&contentItemId=YOUR_CONTENT_ITEM_ID
+example.html?recommendationKey=YOUR_RECOMMENDATION_KEY&contentItemId=YOUR_CONTENT_ITEM_ID
 ```
