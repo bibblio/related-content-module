@@ -51,7 +51,7 @@ This should be the DOM id of an HTML element you'd like to initialise as a relat
 You will need to drop this (empty) element onto the page yourself so as to position it as you wish.
 
 ### 2) Recommendation Key
-This allows you to safely connect to the Bibblio API from a page visitor's browser. The recommendation key must be obtained from [our API](http://docs.bibblio.apiary.io/#reference/authorization/recommendation-keys/list-recommendation-keys) or [your management console](https://developer.bibblio.org/admin/account) before you present the page to visitors.
+This allows you to safely connect to the Bibblio API from a page visitor's browser. The recommendation key can be obtained from [our API](http://docs.bibblio.apiary.io/#reference/authorization/recommendation-keys/list-recommendation-keys) or [your management console](https://developer.bibblio.org/admin/account).
 
 ### 3) contentItemId
 The Bibblio `contentItemId` of the article (or other piece of content) being displayed must be provided in order to retrieve content recommendations. The `contentItemId` is provided when [creating a content item](http://docs.bibblio.apiary.io/#reference/storing-data/content-items/create-a-content-item), and is also retrievable when [listing your content items](http://docs.bibblio.apiary.io/#reference/storing-data/content-items/list-content-items).
@@ -90,7 +90,7 @@ The following snippet shows the initialisation of a related content module. You 
 <script>
     // Initialise the related content plugin.
     Bibblio.initRelatedContent("bib_related-content", // the id of the containing element
-        'YOUR_RECOMMENDATION_KEY', // a recommendation key obtained from the bibblio api or your mangement console
+        'YOUR_RECOMMENDATION_KEY', // a recommendation key obtained from the bibblio api or your management console
         'YOUR_CONTENT_ITEM_ID',    // the id of the content item to recommend from
         {
             // catalogueIds: ["a8365ab1-00f9-38f8-af51-4d0ff527856f", "9e904824-5f98-4281-99be-931a8d68854e"], // Catalogue Ids to recommend from. Default: same as content item
