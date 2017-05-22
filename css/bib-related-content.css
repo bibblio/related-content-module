@@ -37,6 +37,7 @@
 
 .bib__origin:hover {
     opacity: 1;
+    text-decoration: none;
 }
 
 .bib__origin:active,
