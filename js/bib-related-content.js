@@ -12,10 +12,9 @@
 
   // Bibblio module
   var Bibblio = {
-
     trackedRecommendations: [],
 
-    outerModuleTemplate: "<ul class=\"<%= classes %>\">\
+    outerModuleTemplate: "<ul class=\"bib__module <%= classes %>\">\
                                     <%= recommendedContentItems %>\
                                     <a href=\"http://bibblio.org/about\" target=\"_blank\" class=\"bib__origin\">Refined by</a>\
                                  </ul>",
@@ -183,9 +182,9 @@
 
     getPresetModuleClasses: function(stylePreset) {
       var presets = {
-          "grid-4": "bib__module bib--grd-4 bib--wide",
-          "box-5": "bib__module bib--box-5 bib--wide",
-          "box-6": "bib__module bib--box-6 bib--wide"
+          "grid-4": "bib--grd-4 bib--wide",
+          "box-5": "bib--box-5 bib--wide",
+          "box-6": "bib--box-6 bib--wide"
       };
       return presets[stylePreset] || presets["box-6"];
     },
