@@ -63,7 +63,7 @@ A JavaScript object can be provided to set customisation options on the module. 
 
 `'userId'`: your own, unique id for the current site visitor. This allows us to apply recommendation personalization. Please do not provide any personally identifiable information for this field. This field is optional.
 
-`'styleClasses'`: allows you to customise the CSS styles applied to the related content module. An interactive configuration wizard is available in the Demos section of your Bibblio management console, which allows you to generate parameters for this option. Default is a 'box 6' layout.
+`'styleClasses'`: allows you to customise the CSS styles applied to the related content module. An interactive configuration wizard is available in the Demos section of your Bibblio management console, which allows you to generate parameters for this option. Default is 'bib--box-6 bib--wide'.
 
 `'showRelatedBy'`: allows you to specify whether the terms in common should be displayed along with recommendations. Default is '_false_'.
 
@@ -113,14 +113,15 @@ The following snippet shows the initialisation of a related content module. You 
 <script src="bower_components/bibblio-related-content-module/js/bib-related-content.js"></script>
 <script>
     // Initialise the related content plugin.
-    Bibblio.initRelatedContent("bib_related-content", // the id of the containing element
-        'YOUR_RECOMMENDATION_KEY', // a recommendation key obtained from the bibblio api or your management console
-        'YOUR_CONTENT_ITEM_ID',    // the id of the content item to recommend from
+    Bibblio.initRelatedContent("bib_related-content-div", 
+        'YOUR_RECOMMENDATION_KEY', 
+        'YOUR_CONTENT_ITEM_ID', 
         {
-            // catalogueIds: ["a8365ab1-00f9-38f8-af51-4d0ff527856f", "9e904824-5f98-4281-99be-931a8d68854e"], // Catalogue Ids to recommend from. Default: same as content item
-            styleClasses: "bib--grd-4 bib--wide", // Custom CSS classes
-            showRelatedBy: true, // default false. Will also hide if empty, even if true
-            subtitleField: 'provider.name',  // default: headline. passing a value of false will disable the subtitle
+            // catalogueIds: ["a8365ab1-00f9-38f8-af51-4d0ff527856f"], // Default: same as content item. 
+            styleClasses: "bib--grd-4 bib--wide", // Default: 'bib--box-6 bib--wide'
+            showRelatedBy: true, // Default: false. Will also hide if empty, even if set to true
+            subtitleField: 'provider.name',  // Default: 'headline'. A value of false will disable subtitles
+            userId: "42" // Default: nil.
         }
     );
 </script>
