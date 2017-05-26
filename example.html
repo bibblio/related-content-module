@@ -38,12 +38,19 @@
                 getParameterByName('recommendationKey'), // a recommendation key obtained from the bibblio api
                 getParameterByName('contentItemId'), // the id of the content item to recommend from
                 { // optional argument.
-                    stylePreset: "box-6", // Options: grid-4, box-5, box-6. Default: box-6
-                    // styleClasses: "bib--grd-4 bib--wide", // Custom CSS classes
+                    styleClasses: "bib--grd-4 bib--wide", // Custom CSS classes
                     // catalogueIds: ["123", "456"], // Catalogue Ids to recommend from. Default: same as content item
                     showRelatedBy: true,
-                    subtitleField: 'provider.name'  // default: headline. passing a value of false will disable the subtitle completely
+                    subtitleField: 'provider.name',  // default: headline. passing a value of false will disable the subtitle completely
+                    // userId: "anonymous-anton"
+
+                },
+                {
+                  onRecommendationClick: function(activityData, event) {
+                    // Do callback implementation
+                  }
                 });
+
         </script>
     </body>
 </html>
