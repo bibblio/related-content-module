@@ -61,13 +61,37 @@ A JavaScript object can be provided to set customisation options on the module. 
 
 `'catalogueIds'`: allows you to specify the [catalogues](http://docs.bibblio.apiary.io/#reference/storing-data/catalogues) that recommendations should draw from. The `catalogueId` of [any catalogues you own](http://docs.bibblio.apiary.io/#reference/storing-data/catalogues/list-catalogues) would be valid. Default is the same catalogue as the source content item specified.
 
-`'stylePreset'`: allows you to specify the layout of the module. Options are '_grid-4_', '_box-5_' and '_box-6_'. Default is '_box-6_'.
+`'userId'`: your own, unique id for the current site visitor. This allows us to apply recommendation personalization. Please do not provide any personally identifiable information for this field. This field is optional.
 
-`'styleClasses'`: allows you to override CSS class presets in the related content module. If provided, all stylePreset CSS classes will be omitted. Default is '_false_'.
+`'styleClasses'`: allows you to customise the CSS styles applied to the related content module. An interactive configuration wizard is available in the Demos section of your Bibblio management console, which allows you to generate parameters for this option. Default is a 'box 6' layout.
 
 `'showRelatedBy'`: allows you to specify whether the terms in common should be displayed along with recommendations. Default is '_false_'.
 
 `'subtitleField'`: allows you to specify the content item field to use as subtitles on the recommended content panel. Any [valid content item field](http://docs.bibblio.apiary.io/#reference/storing-data/content-items/retrieve-a-content-item) can be used. Providing a value of _false_ will disable the subtitle. Default is '_headline_'.
+
+
+## Tracking data
+
+The module will automatically submit user interaction data. By default all interaction data is completely anonymous. You are, however, able to provide an optional userId when the module is initialised, which will allow us to personalize recommendations for the requested user.
+
+Here is a sample of the tracking data submitted from within the Related Content Module:
+```javascript
+{ "type": "Clicked",
+  "object": [["contentItemId", "123"]],
+  "context": [
+    ["sourceContentItemId", "012"],
+    ["sourceHref", "https://example.com/the/page/url"],
+    ["recommendations.contentItemId", "456"],
+    ["recommendations.contentItemId", "789"],
+    ["recommendations.contentItemId", "101"],
+    ["recommendations.contentItemId", "123"]],
+  "instrument": {
+    "type": "BibblioRelatedContent",
+    "version": "1.1.0",
+    "config": {'styleClasses': 'bib--grd-4 bib--wide'}}
+  "actor": {
+    "userId": "anonymous-annie"}} // optional
+```
 
 
 ## An example
@@ -94,8 +118,7 @@ The following snippet shows the initialisation of a related content module. You 
         'YOUR_CONTENT_ITEM_ID',    // the id of the content item to recommend from
         {
             // catalogueIds: ["a8365ab1-00f9-38f8-af51-4d0ff527856f", "9e904824-5f98-4281-99be-931a8d68854e"], // Catalogue Ids to recommend from. Default: same as content item
-            stylePreset: "box-6", // Options: grid-4, box-5, box-6. Default: box-6,
-            // styleClasses: "bib--grd-4 bib--wide", // Custom CSS classes
+            styleClasses: "bib--grd-4 bib--wide", // Custom CSS classes
             showRelatedBy: true, // default false. Will also hide if empty, even if true
             subtitleField: 'provider.name',  // default: headline. passing a value of false will disable the subtitle
         }
