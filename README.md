@@ -90,7 +90,7 @@ Here is a sample of the tracking data submitted from within the Related Content 
     "version": "1.1.0",
     "config": {'styleClasses': 'bib--grd-4 bib--wide'}}
   "actor": {
-    "userId": "anonymous-annie"}} // optional
+    "userId": "42"}} // optional
 ```
 
 
