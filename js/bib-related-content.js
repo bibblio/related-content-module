@@ -56,6 +56,7 @@
       // if you want to change the templates.
       var catalogueIds = options.catalogueIds || [];
       var moduleSettings = Bibblio.initModuleSettings(options);
+      var callbacks = callbacks || {};
 
       var displayWithTemplates = _.partial(Bibblio.displayRelatedContent,
                                            containerId,
@@ -250,23 +251,31 @@
       var relatedContentItemlinks = document.getElementsByClassName("bib__link");
       for (var i = 0; i < relatedContentItemlinks.length; i++) {
         relatedContentItemlinks[i].addEventListener('mousedown', function(event) {
-          if(event.which == 3)
+          if (event.which == 3)
             Bibblio.triggerRecommendationClickedEvent(submitActivityData, event);
         }, false);
         relatedContentItemlinks[i].addEventListener('mouseup', function(event) {
           var callback = null;
-          if(event.which == 1)  // Left click
+
+          if ((event.which == 1) && (callbacks.onRecommendationClick)) { // Left click
             callback = callbacks.onRecommendationClick;
-          if(event.which < 4)
+          }
+
+          if (event.which < 4) {
             Bibblio.triggerRecommendationClickedEvent(submitActivityData, event, callback);
+          }
         }, false);
+
         relatedContentItemlinks[i].addEventListener('auxclick', function(event) {
-          if(event.which < 4)
+          if (event.which < 4) {
             Bibblio.triggerRecommendationClickedEvent(submitActivityData, event);
+          }
         }, false);
+
         relatedContentItemlinks[i].addEventListener('keydown', function(event) {
-          if(event.which == 13)
+          if (event.which == 13) {
             Bibblio.triggerRecommendationClickedEvent(submitActivityData, event);
+          }
         }, false);
       }
     },
