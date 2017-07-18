@@ -267,16 +267,11 @@
 
             Bibblio.triggerRecommendationClickedEvent(submitActivityData, event);
         }, false);
+
         relatedContentItemlinks[i].addEventListener('mouseup', function(event) {
-          var callback = null;
-
-          if ((event.which == 1) && (callbacks.onRecommendationClick)) { // Left click
-            callback = callbacks.onRecommendationClick;
-          }
-
-          if (event.which < 4) {
-            Bibblio.triggerRecommendationClickedEvent(submitActivityData, event, callback);
-          }
+        	if (event.which < 4) {
+        		Bibblio.triggerRecommendationClickedEvent(submitActivityData, event);
+        	}
         }, false);
 
         relatedContentItemlinks[i].addEventListener('auxclick', function(event) {
