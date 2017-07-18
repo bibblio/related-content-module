@@ -250,20 +250,28 @@
     bindRelatedContentItemLinks: function(submitActivityData, callbacks) {
       var relatedContentItemlinks = document.getElementsByClassName("bib__link");
       for (var i = 0; i < relatedContentItemlinks.length; i++) {
-        relatedContentItemlinks[i].addEventListener('mousedown', function(event) {
-          if (event.which == 3)
-            Bibblio.triggerRecommendationClickedEvent(submitActivityData, event);
-        }, false);
-        relatedContentItemlinks[i].addEventListener('mouseup', function(event) {
+
+        // This event is only here for the callback on left clicks
+        relatedContentItemlinks[i].addEventListener('click', function(event) {
           var callback = null;
 
-          if ((event.which == 1) && (callbacks.onRecommendationClick)) { // Left click
+          if (event.which == 1 && callbacks.onRecommendationClick) { // Left click
             callback = callbacks.onRecommendationClick;
           }
 
-          if (event.which < 4) {
-            Bibblio.triggerRecommendationClickedEvent(submitActivityData, event, callback);
-          }
+          Bibblio.triggerRecommendationClickedEvent(submitActivityData, event, callback);
+        }, false);
+
+        relatedContentItemlinks[i].addEventListener('mousedown', function(event) {
+          if (event.which == 3)
+
+            Bibblio.triggerRecommendationClickedEvent(submitActivityData, event);
+        }, false);
+
+        relatedContentItemlinks[i].addEventListener('mouseup', function(event) {
+        	if (event.which < 4) {
+        		Bibblio.triggerRecommendationClickedEvent(submitActivityData, event);
+        	}
         }, false);
 
         relatedContentItemlinks[i].addEventListener('auxclick', function(event) {
