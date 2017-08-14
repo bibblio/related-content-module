@@ -3,7 +3,7 @@
 }
 
 .bib__module {
-    margin: 0 !important;
+    margin: 0;
     padding: 0 !important;
     border: 0 !important;
     outline: 0 !important;
@@ -252,7 +252,6 @@
     transition: all 0.5s ease-in-out;
 }
 
-.bib__module:hover,
 .bib__tile:hover,
 .bib__link:hover {
     box-shadow: 0 0 0 !important;
