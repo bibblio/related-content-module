@@ -21,7 +21,7 @@
 }
 
 .bib__origin {
-    background-image: url("http://images.bibblio.org/logos/bibblio/positive-w90.png");
+    background-image: url("//images.bibblio.org/logos/bibblio/positive-w90.png");
     background-position: right top;
     background-repeat: no-repeat;
     background-size: 45px auto;
@@ -207,7 +207,7 @@
     background-size: auto 102%;
     background-repeat: no-repeat;
     background-position: center center;
-    background-image: url('http://images.bibblio.org/bkgds/holders/incas-positive.png');
+    background-image: url('//images.bibblio.org/bkgds/holders/incas-positive.png');
     -webkit-transition: all 1s ease-in-out;
     -moz-transition: all 1s ease-in-out;
     -ms-transition: all 1s ease-in-out;
