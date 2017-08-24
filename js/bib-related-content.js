@@ -146,6 +146,10 @@
       return compiled(varBindings);
     },
 
+    stripImgProtocol: function(contentUrl) {
+      return contentUrl.replace(/^https?\:/, "");
+    },
+
     renderContentItemTemplate: function(contentItem, contentItemIndex, contentItemTemplate, moduleSettings) {
       var compiled = _.template(contentItemTemplate);
       var varBindings = {
@@ -153,7 +157,7 @@
           name: contentItem.fields.name,
           url: contentItem.fields.url,
           subtitle: Bibblio.getProperty(contentItem.fields, moduleSettings.subtitleField),
-          imageUrl: (contentItem.fields.moduleImage ? contentItem.fields.moduleImage.contentUrl : null),
+          imageUrl: (contentItem.fields.moduleImage ? Bibblio.stripImgProtocol(contentItem.fields.moduleImage.contentUrl) : null),
           relatedBy: contentItem.relationships.inCommon,
           tileNumber: (contentItemIndex + 1),
           showRelatedBy: moduleSettings.showRelatedBy
