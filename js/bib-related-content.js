@@ -13,6 +13,8 @@
   // Bibblio module
   var Bibblio = {
     trackedRecommendations: [],
+    moduleHasBeenViewed: false,
+    moduleVersion: "1.1.0",
 
     outerModuleTemplate: "<ul class=\"bib__module <%= classes %>\">\
                                     <%= recommendedContentItems %>\
@@ -65,7 +67,7 @@
                                            moduleSettings,
                                            _);
 
-      var submitActivityData = _.partial(Bibblio.onRecommendationClick,
+      var submitClickedActivityData = _.partial(Bibblio.onRecommendationClick,
                                          containerId,
                                          contentItemId,
                                          catalogueIds,
@@ -75,9 +77,18 @@
                                          _,
                                          _);
 
+      var submitViewedActivityData = _.partial(Bibblio.onRecommendationViewed,
+                                        moduleSettings,
+                                        contentItemId,
+                                        catalogueIds,
+                                        _,
+                                        _);
+
       var renderModule = _.partial(Bibblio.renderModule,
+                                   containerId,
                                    displayWithTemplates,
-                                   submitActivityData,
+                                   submitClickedActivityData,
+                                   submitViewedActivityData,
                                    callbacks,
                                    _);
 
@@ -107,16 +118,18 @@
       xmlhttp.send();
     },
 
-    renderModule: function(displayWithTemplates, submitActivityData, callbacks, recommendationsResponse) {
+    renderModule: function(containerId, displayWithTemplates, submitClickedActivityData, submitViewedActivityData, callbacks, recommendationsResponse) {
       var relatedContentItems = [];
       var trackingLink = null;
       try {
         relatedContentItems = recommendationsResponse.results;
         trackingLink = recommendationsResponse._links.tracking.href;
       } catch(err) {}
-      var submitActivityData = _.partial(submitActivityData, relatedContentItems, trackingLink, _, _);
+      var submitClickedActivityData = _.partial(submitClickedActivityData, relatedContentItems, trackingLink, _, _);
+      var submitViewedActivityData = _.partial(submitViewedActivityData, relatedContentItems, trackingLink, _)
       displayWithTemplates(relatedContentItems);
-      Bibblio.bindRelatedContentItemLinks(submitActivityData, callbacks);
+      Bibblio.bindRelatedContentItemLinks(submitClickedActivityData, callbacks);
+      Bibblio.setOnViewedListeners(containerId, submitViewedActivityData, callbacks);
     },
 
     displayRelatedContent: function(containerId,
@@ -251,7 +264,7 @@
       return _.contains(validFields, Bibblio.getRootProperty(accessor));
     },
 
-    bindRelatedContentItemLinks: function(submitActivityData, callbacks) {
+    bindRelatedContentItemLinks: function(submitClickedActivityData, callbacks) {
       var relatedContentItemlinks = document.getElementsByClassName("bib__link");
       for (var i = 0; i < relatedContentItemlinks.length; i++) {
 
@@ -263,50 +276,181 @@
             callback = callbacks.onRecommendationClick;
           }
 
-          Bibblio.triggerRecommendationClickedEvent(submitActivityData, event, callback);
+          Bibblio.triggerRecommendationClickedEvent(submitClickedActivityData, event, callback);
         }, false);
 
         relatedContentItemlinks[i].addEventListener('mousedown', function(event) {
           if (event.which == 3)
 
-            Bibblio.triggerRecommendationClickedEvent(submitActivityData, event);
+            Bibblio.triggerRecommendationClickedEvent(submitClickedActivityData, event);
         }, false);
 
         relatedContentItemlinks[i].addEventListener('mouseup', function(event) {
         	if (event.which < 4) {
-        		Bibblio.triggerRecommendationClickedEvent(submitActivityData, event);
+        		Bibblio.triggerRecommendationClickedEvent(submitClickedActivityData, event);
         	}
         }, false);
 
         relatedContentItemlinks[i].addEventListener('auxclick', function(event) {
           if (event.which < 4) {
-            Bibblio.triggerRecommendationClickedEvent(submitActivityData, event);
+            Bibblio.triggerRecommendationClickedEvent(submitClickedActivityData, event);
           }
         }, false);
 
         relatedContentItemlinks[i].addEventListener('keydown', function(event) {
           if (event.which == 13) {
-            Bibblio.triggerRecommendationClickedEvent(submitActivityData, event);
+            Bibblio.triggerRecommendationClickedEvent(submitClickedActivityData, event);
           }
         }, false);
       }
     },
 
-    triggerRecommendationClickedEvent: function(submitActivityData, event, callback) {
+    setOnViewedListeners: function(containerId, submitViewedActivityData, callbacks) {
+      var callback = null;
+      if(callbacks.onRecommendationViewed) {
+        callback = callbacks.onRecommendationViewed;
+      }
+
+      // Check if the module is in view after rendered
+      if(Bibblio.isRecommendationTileInView(containerId)) {
+        Bibblio.triggerRecommendationViewedEvent(submitViewedActivityData, callback);
+      }
+      else {
+        var ticking = false;
+        var visiblityCheckDelay = 50;
+        // Scroll event
+        var eventListener = function(event) {
+          if(Bibblio.moduleHasBeenViewed){
+            window.removeEventListener("scroll", eventListener, true);
+            return;
+          }
+          if(!ticking) {
+            window.setTimeout(function() {
+              if(Bibblio.isRecommendationTileInView(containerId))
+                Bibblio.triggerRecommendationViewedEvent(submitViewedActivityData, callback);
+              ticking = false;
+            }, visiblityCheckDelay);
+          }
+          ticking = true;
+        }
+        window.addEventListener('scroll', eventListener, true);
+      }
+    },
+
+    isRecommendationTileInView: function(containerId) {
+      var tiles = document.getElementsByClassName("bib__tile");
+      var scrollableParents = Bibblio.getScrollableParents(containerId);
+      if(scrollableParents !== false) {
+        for(var i = 0; i < tiles.length; i++) {
+          if(Bibblio.isTileVisible(tiles[i], scrollableParents))
+            return true;
+        }
+      }
+      return false;
+    },
+
+    hasScrollableOverflow: function(overflowProp) {
+      return overflowProp === "scroll" || overflowProp === "auto" || overflowProp === "hidden";
+    },
+
+    getScrollableParents: function(containerId) {
+      var moduleElement = document.getElementById(containerId);
+      var moduleRect = moduleElement.getBoundingClientRect();
+
+      // is module displayed
+      if(moduleRect.top == 0 && moduleRect.bottom == 0)
+        return false;
+
+      // is module visible
+      var moduleStyle = window.getComputedStyle(moduleElement);
+      if(moduleStyle.getPropertyValue("visibility") === "hidden")
+        return false;
+
+      // get scrollable parents
+      var parent = moduleElement.parentNode;
+      var parentStyle, parentRect, isScrollable;
+      var scrollableParents = [];
+      while(parent !== document.body) {
+        // is parent visible
+        parentStyle = window.getComputedStyle(parent);
+        if(parentStyle.getPropertyValue("visibility") === "hidden")
+          return false;
+
+        // does container have scrollbar
+        isScrollable = Bibblio.hasScrollableOverflow(parentStyle.getPropertyValue("overflow-x")) ||
+                       Bibblio.hasScrollableOverflow(parentStyle.getPropertyValue("overflow-y"));
+        if(isScrollable) {
+          parentRect = parent.getBoundingClientRect();
+          scrollableParents.push({
+            rect: parentRect,
+            // replace with clientWidth and clientHeight for exact measurements
+            width: parentRect.right - parentRect.left,
+            height: parentRect.bottom - parentRect.top,
+            style: parentStyle
+          });
+        }
+
+        parent = parent.parentNode;
+      }
+
+      return scrollableParents;
+    },
+
+    isTileVisible: function(tile, scrollableParents) {
+      var tileRect = tile.getBoundingClientRect();
+      var tileWidth = tileRect.right - tileRect.left;
+      var tileHeight = tileRect.bottom - tileRect.top;
+
+      // is tile displayed
+      if(tileHeight == 0)
+        return false;
+
+      // is tile in window's current viewport
+      var isInVerticleView, isInHorizontalView;
+      isInVerticleView  = tileHeight <= window.innerHeight &&     // isn't higher than viewport
+                          tileRect.bottom <= window.innerHeight;  // whole tile height is within viewport
+      isInHorizontalView  = tileWidth <= window.innerWidth &&     // isn't wider than viewport
+                            tileRect.right <= window.innerWidth;  // whole tile width in within viewport
+      if(!isInVerticleView || !isInHorizontalView)
+        return false;
+
+      // is tile displayed in scrollable parents
+      var parent, parentRect;
+      for(var i = 0; i < scrollableParents.length; i++) {
+        parent = scrollableParents[i];
+        parentRect = parent.rect;
+        isInVerticleView  = tileHeight <= parent.height &&         // isn't higher than viewport
+                            tileRect.bottom <= parentRect.bottom;  // whole tile height is within viewport
+        isInHorizontalView  = tileWidth <= parent.width &&         // isn't wider than viewport
+                              tileRect.right <= parentRect.right;  // whole tile width in within viewport
+        if(!isInVerticleView || !isInHorizontalView)
+          return false;
+      }
+
+      return true;
+    },
+
+    triggerRecommendationClickedEvent: function(submitClickedActivityData, event, callback) {
       var clickedContentItemId = event.currentTarget.getAttribute("data");
-      submitActivityData(clickedContentItemId, event, callback);
+      submitClickedActivityData(clickedContentItemId, event, callback);
+    },
+
+    triggerRecommendationViewedEvent: function(submitViewedActivityData, callback) {
+      if(!Bibblio.moduleHasBeenViewed) {
+        submitViewedActivityData(callback);
+      }
+      Bibblio.moduleHasBeenViewed = true;
     },
 
     onRecommendationClick: function(containerId, sourceContentItemId, catalogueIds, moduleSettings, relatedContentItems, trackingLink, clickedContentItemId, event, callback) {
-      var activityData = BibblioActivity.constructActivityData(
-          "Clicked",
+      var activityData = BibblioActivity.constructOnClickedActivityData(
           sourceContentItemId,
           clickedContentItemId,
           catalogueIds,
           relatedContentItems,
           {
               type: "BibblioRelatedContent",
-              version: "1.1.0",
+              version: Bibblio.moduleVersion,
               config: moduleSettings
           },
           moduleSettings.userId
@@ -320,6 +464,27 @@
       // Call client callback if it exists
       if (callback != null && typeof callback === "function") {
           callback(activityData, event);
+      }
+    },
+
+    onRecommendationViewed: function(moduleSettings, sourceContentItemId, catalogueIds, relatedContentItems, trackingLink, callback) {
+      var activityData = BibblioActivity.constructOnViewedActivityData(
+          sourceContentItemId,
+          catalogueIds,
+          relatedContentItems,
+          {
+              type: "BibblioRelatedContent",
+              version: Bibblio.moduleVersion,
+              config: moduleSettings
+          },
+          moduleSettings.userId
+      );
+
+      var response = BibblioActivity.trackAsync(trackingLink, activityData);
+
+      // Call client callback if it exists
+      if (callback != null && typeof callback === "function") {
+          callback(activityData);
       }
     },
 
@@ -339,7 +504,15 @@
     track: function(trackingLink, activityData) {
       if(trackingLink != null) {
         var requestBody = BibblioActivity.constructRequestBody(activityData);
-        var httpClient = BibblioActivity.constructHttpClient(trackingLink);
+        var httpClient = BibblioActivity.constructHttpClient(trackingLink, false);
+        return httpClient.send(requestBody);
+      }
+    },
+
+    trackAsync: function(trackingLink, activityData){
+      if(trackingLink != null) {
+        var requestBody = BibblioActivity.constructRequestBody(activityData);
+        var httpClient = BibblioActivity.constructHttpClient(trackingLink, true);
         return httpClient.send(requestBody);
       }
     },
@@ -348,18 +521,30 @@
       return JSON.stringify(activityData);
     },
 
-    constructHttpClient: function(trackingLink) {
+    constructHttpClient: function(trackingLink, isAsyncClient) {
       var url = trackingLink;
       var httpClient = (XMLHttpRequestNodeJS) ? new XMLHttpRequestNodeJS() : new XMLHttpRequest();
-      httpClient.open("POST", url, false);
+      httpClient.open("POST", url, isAsyncClient);
       httpClient.setRequestHeader('Content-Type', 'application/json');
       return httpClient;
     },
 
-    constructActivityData: function(type, sourceContentItemId, clickedContentItemId, catalogueIds, relatedContentItems, instrument, userId) {
+    constructOnClickedActivityData: function(sourceContentItemId, clickedContentItemId, catalogueIds, relatedContentItems, instrument, userId) {
       var activityData = {
-        "type": type,
+        "type": "Clicked",
         "object": BibblioActivity.constructActivityObject(clickedContentItemId),
+        "context": BibblioActivity.constructActivityContext(sourceContentItemId, catalogueIds, relatedContentItems),
+        "instrument": BibblioActivity.constructActivityInstrument(instrument),
+      };
+      if(userId != null)
+        activityData["actor"] = {"userId": userId};
+
+      return activityData;
+    },
+
+    constructOnViewedActivityData: function(sourceContentItemId, catalogueIds, relatedContentItems, instrument, userId) {
+      var activityData = {
+        "type": "Viewed",
         "context": BibblioActivity.constructActivityContext(sourceContentItemId, catalogueIds, relatedContentItems),
         "instrument": BibblioActivity.constructActivityInstrument(instrument),
       };
