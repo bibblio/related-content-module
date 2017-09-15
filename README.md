@@ -63,7 +63,7 @@ A JavaScript object can be provided to set customisation options on the module. 
 
 `'userId'`: your own, unique id for the current site visitor. This allows us to apply recommendation personalization. Please do not provide any personally identifiable information for this field. This field is optional.
 
-`'styleClasses'`: allows you to customise the CSS styles applied to the related content module. An interactive configuration wizard is available in the Demos section of your Bibblio management console, which allows you to generate parameters for this option. Default is 'bib--box-6 bib--wide'.
+`'styleClasses'`: allows you to customise the CSS styles applied to the related content module. An interactive configuration wizard is available in the Demos section of your Bibblio management console, which allows you to generate parameters for this option. Default is 'bib--box-6 bib--wide'. If you plan to place the module on an area of your page that has a dark background color you can append 'bib--invert' to your parameters to be sure everything remains legible. If most of your content item images are portrait sized, consider appending 'bib--portrait' to your parameters so the images resize nicely in the tiles.
 
 `'showRelatedBy'`: allows you to specify whether the terms in common should be displayed along with recommendations. Default is '_false_'.
 

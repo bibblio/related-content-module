@@ -25,10 +25,11 @@
     background-position: right top;
     background-repeat: no-repeat;
     background-size: 45px auto;
-    color: #888888;
+    color: #888888 !important;
     display: inline-block;
     float: right;
-    font-size: 12px;
+    font-size: 12px !important;
+    font-weight: normal !important;
     border: 0 !important;
     outline: 0 !important;
     -moz-box-shadow: 0 0 0 !important;
@@ -40,7 +41,7 @@
     margin: 5px 5px 0 0;
     padding: 0 50px 0 0;
     text-align: right;
-    line-height: 1.25;
+    line-height: 1.25 !important;
     opacity: 0.5;
     text-decoration: none;
     -webkit-transition: opacity 0.5s ease-in-out;
@@ -58,6 +59,11 @@
 .bib__origin:active,
 .bib__origin:focus {
     outline: 0;
+}
+
+.bib--invert .bib__origin {
+    background-image: url("//images.bibblio.org/logos/bibblio/reverse-w90.png");
+    color: #FFFFFF !important;
 }
 
 .bib--white-label .bib__origin {

@@ -14,7 +14,7 @@
   var Bibblio = {
     trackedRecommendations: [],
     moduleHasBeenViewed: false,
-    moduleVersion: "1.1.0",
+    moduleVersion: "1.1.11",
 
     outerModuleTemplate: "<ul class=\"bib__module <%= classes %>\">\
                                     <%= recommendedContentItems %>\
