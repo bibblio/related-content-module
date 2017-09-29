@@ -149,7 +149,7 @@
     },
 
     renderOuterModuleTemplate: function(moduleSettings, contentItemsHTML, outerModuleTemplate) {
-      // If style classes are specified then ommit styled preset
+      // If style classes are specified then omit styled preset
       var classes = moduleSettings.styleClasses ? moduleSettings.styleClasses : Bibblio.getPresetModuleClasses(moduleSettings.stylePreset);
       var compiled = _.template(outerModuleTemplate);
       var varBindings = {
@@ -160,7 +160,9 @@
     },
 
     stripImgProtocol: function(contentUrl) {
-      return contentUrl.replace(/^https?\:/, "");
+      if (contentUrl) {
+        return contentUrl.replace(/^https?\:/, "");
+      }
     },
 
     renderContentItemTemplate: function(contentItem, contentItemIndex, contentItemTemplate, moduleSettings) {
