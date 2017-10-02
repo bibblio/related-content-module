@@ -12,9 +12,8 @@
 
   // Bibblio module
   var Bibblio = {
-    trackedRecommendations: [],
-    moduleHasBeenViewed: false,
-    moduleVersion: "1.1.11",
+    moduleVersion: "1.1.13",
+    moduleTracking: {},
 
     outerModuleTemplate: "<ul class=\"bib__module <%= classes %>\">\
                                     <%= recommendedContentItems %>\
@@ -75,6 +74,7 @@
                                          _,
                                          _,
                                          _,
+                                         _,
                                          _);
 
       var submitViewedActivityData = _.partial(Bibblio.onRecommendationViewed,
@@ -121,15 +121,19 @@
     renderModule: function(containerId, displayWithTemplates, submitClickedActivityData, submitViewedActivityData, callbacks, recommendationsResponse) {
       var relatedContentItems = [];
       var trackingLink = null;
+      var activityId = null;
       try {
         relatedContentItems = recommendationsResponse.results;
         trackingLink = recommendationsResponse._links.tracking.href;
+        activityId = Bibblio.getActivityId(trackingLink);
       } catch(err) {}
-      var submitClickedActivityData = _.partial(submitClickedActivityData, relatedContentItems, trackingLink, _, _);
-      var submitViewedActivityData = _.partial(submitViewedActivityData, relatedContentItems, trackingLink, _)
+      // Create tracking entry for this module instance
+      Bibblio.createModuleTrackingEntry(activityId);
+      var submitClickedActivityData = _.partial(submitClickedActivityData, activityId, relatedContentItems, trackingLink, _, _);
+      var submitViewedActivityData = _.partial(submitViewedActivityData, activityId, relatedContentItems, trackingLink, _);
       displayWithTemplates(relatedContentItems);
-      Bibblio.bindRelatedContentItemLinks(submitClickedActivityData, callbacks);
-      Bibblio.setOnViewedListeners(containerId, submitViewedActivityData, callbacks);
+      Bibblio.bindRelatedContentItemLinks(submitClickedActivityData, containerId, callbacks);
+      Bibblio.setOnViewedListeners(containerId, submitViewedActivityData, activityId, callbacks);
     },
 
     displayRelatedContent: function(containerId,
@@ -266,8 +270,8 @@
       return _.contains(validFields, Bibblio.getRootProperty(accessor));
     },
 
-    bindRelatedContentItemLinks: function(submitClickedActivityData, callbacks) {
-      var relatedContentItemlinks = document.getElementsByClassName("bib__link");
+    bindRelatedContentItemLinks: function(submitClickedActivityData, containerId, callbacks) {
+      var relatedContentItemlinks = document.getElementById(containerId).getElementsByClassName("bib__link");
       for (var i = 0; i < relatedContentItemlinks.length; i++) {
 
         // This event is only here for the callback on left clicks
@@ -307,7 +311,7 @@
       }
     },
 
-    setOnViewedListeners: function(containerId, submitViewedActivityData, callbacks) {
+    setOnViewedListeners: function(containerId, submitViewedActivityData, activityId, callbacks) {
       var callback = null;
       if(callbacks.onRecommendationViewed) {
         callback = callbacks.onRecommendationViewed;
@@ -315,21 +319,21 @@
 
       // Check if the module is in view after rendered
       if(Bibblio.isRecommendationTileInView(containerId)) {
-        Bibblio.triggerRecommendationViewedEvent(submitViewedActivityData, callback);
+        Bibblio.triggerRecommendationViewedEvent(submitViewedActivityData, activityId, callback);
       }
       else {
         var ticking = false;
         var visiblityCheckDelay = 50;
         // Scroll event
         var eventListener = function(event) {
-          if(Bibblio.moduleHasBeenViewed){
+          if(Bibblio.hasModuleBeenViewed(activityId)){
             window.removeEventListener("scroll", eventListener, true);
             return;
           }
           if(!ticking) {
             window.setTimeout(function() {
               if(Bibblio.isRecommendationTileInView(containerId))
-                Bibblio.triggerRecommendationViewedEvent(submitViewedActivityData, callback);
+                Bibblio.triggerRecommendationViewedEvent(submitViewedActivityData, activityId, callback);
               ticking = false;
             }, visiblityCheckDelay);
           }
@@ -340,7 +344,7 @@
     },
 
     isRecommendationTileInView: function(containerId) {
-      var tiles = document.getElementsByClassName("bib__tile");
+      var tiles = document.getElementById(containerId).getElementsByClassName("bib__tile");
       var scrollableParents = Bibblio.getScrollableParents(containerId);
       if(scrollableParents !== false) {
         for(var i = 0; i < tiles.length; i++) {
@@ -432,19 +436,49 @@
       return true;
     },
 
+    getActivityId: function(trackingLink) {
+      var activityId = trackingLink.replace("https://", "")
+                                   .replace("http://", "")
+                                   .replace(/v[0-9]\//g, "")
+                                   .replace("api.bibblio.org/activities/", "");
+      return activityId;
+    },
+
+    createModuleTrackingEntry: function(activityId) {
+      Bibblio.moduleTracking[activityId] = {
+        "trackedRecommendations": [],
+        "hasModuleBeenViewed": false
+      }
+    },
+
+    hasRecommendationBeenClicked: function(activityId, clickedContentItemId) {
+      var moduleTrackedRecommendations = Bibblio.moduleTracking[activityId]["trackedRecommendations"];
+      return moduleTrackedRecommendations.indexOf(clickedContentItemId) !== -1;
+    },
+
+    addTrackedRecommendation: function(activityId, clickedContentItemId) {
+      var moduleTrackedRecommendations = Bibblio.moduleTracking[activityId]["trackedRecommendations"];
+      moduleTrackedRecommendations.push(clickedContentItemId);
+    },
+
+    hasModuleBeenViewed: function(activityId) {
+      return Bibblio.moduleTracking[activityId]["hasModuleBeenViewed"];
+    },
+
+    setModuleViewed: function(activityId) {
+      Bibblio.moduleTracking[activityId]["hasModuleBeenViewed"] = true;
+    },
+
     triggerRecommendationClickedEvent: function(submitClickedActivityData, event, callback) {
       var clickedContentItemId = event.currentTarget.getAttribute("data");
       submitClickedActivityData(clickedContentItemId, event, callback);
     },
 
-    triggerRecommendationViewedEvent: function(submitViewedActivityData, callback) {
-      if(!Bibblio.moduleHasBeenViewed) {
-        submitViewedActivityData(callback);
-      }
-      Bibblio.moduleHasBeenViewed = true;
+    triggerRecommendationViewedEvent: function(submitViewedActivityData, activityId, callback) {
+      submitViewedActivityData(callback);
     },
 
-    onRecommendationClick: function(containerId, sourceContentItemId, catalogueIds, moduleSettings, relatedContentItems, trackingLink, clickedContentItemId, event, callback) {
+    onRecommendationClick: function(containerId, sourceContentItemId, catalogueIds, moduleSettings, activityId, relatedContentItems, trackingLink, clickedContentItemId, event, callback) {
       var activityData = BibblioActivity.constructOnClickedActivityData(
           sourceContentItemId,
           clickedContentItemId,
@@ -458,9 +492,9 @@
           moduleSettings.userId
       );
 
-      if (Bibblio.trackedRecommendations.indexOf(clickedContentItemId) === -1) {
+      if(!Bibblio.hasRecommendationBeenClicked(activityId, clickedContentItemId)) {
         var response = BibblioActivity.track(trackingLink, activityData);
-        Bibblio.trackedRecommendations.push(clickedContentItemId);
+        Bibblio.addTrackedRecommendation(activityId, clickedContentItemId);
       }
 
       // Call client callback if it exists
@@ -469,24 +503,27 @@
       }
     },
 
-    onRecommendationViewed: function(moduleSettings, sourceContentItemId, catalogueIds, relatedContentItems, trackingLink, callback) {
-      var activityData = BibblioActivity.constructOnViewedActivityData(
-          sourceContentItemId,
-          catalogueIds,
-          relatedContentItems,
-          {
-              type: "BibblioRelatedContent",
-              version: Bibblio.moduleVersion,
-              config: moduleSettings
-          },
-          moduleSettings.userId
-      );
+    onRecommendationViewed: function(moduleSettings, sourceContentItemId, catalogueIds, activityId, relatedContentItems, trackingLink, callback) {
+      if(!Bibblio.hasModuleBeenViewed(activityId)) {
+        Bibblio.setModuleViewed(activityId);
+        var activityData = BibblioActivity.constructOnViewedActivityData(
+            sourceContentItemId,
+            catalogueIds,
+            relatedContentItems,
+            {
+                type: "BibblioRelatedContent",
+                version: Bibblio.moduleVersion,
+                config: moduleSettings
+            },
+            moduleSettings.userId
+        );
 
-      var response = BibblioActivity.trackAsync(trackingLink, activityData);
+        var response = BibblioActivity.trackAsync(trackingLink, activityData);
 
-      // Call client callback if it exists
-      if (callback != null && typeof callback === "function") {
-          callback(activityData);
+        // Call client callback if it exists
+        if (callback != null && typeof callback === "function") {
+            callback(activityData);
+        }
       }
     },
 
