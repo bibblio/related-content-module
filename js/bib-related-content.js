@@ -164,22 +164,24 @@
     },
 
     stripImgProtocol: function(contentUrl) {
-      if (contentUrl) {
+      if (contentUrl && (typeof contentUrl === 'string')) {
         return contentUrl.replace(/^https?\:/, "");
+      } else {
+        return contentUrl;
       }
     },
 
     renderContentItemTemplate: function(contentItem, contentItemIndex, contentItemTemplate, moduleSettings) {
       var compiled = _.template(contentItemTemplate);
       var varBindings = {
-          contentItemId: contentItem.contentItemId,
-          name: contentItem.fields.name,
-          url: contentItem.fields.url,
-          subtitle: Bibblio.getProperty(contentItem.fields, moduleSettings.subtitleField),
-          imageUrl: (contentItem.fields.moduleImage ? Bibblio.stripImgProtocol(contentItem.fields.moduleImage.contentUrl) : null),
-          relatedBy: contentItem.relationships.inCommon,
-          tileNumber: (contentItemIndex + 1),
-          showRelatedBy: moduleSettings.showRelatedBy
+          contentItemId:  (Bibblio.getProperty(contentItem, 'contentItemId'))                           ? contentItem.contentItemId : null,
+          name:           (Bibblio.getProperty(contentItem, 'fields.name'))                             ? contentItem.fields.name   : null,
+          url:            (Bibblio.getProperty(contentItem, 'fields.url'))                              ? contentItem.fields.url    : null,
+          subtitle:       (Bibblio.getProperty(contentItem, 'fields.' + moduleSettings.subtitleField))  ? Bibblio.getProperty(contentItem.fields, moduleSettings.subtitleField) : null,
+          imageUrl:       (Bibblio.getProperty(contentItem, 'fields.moduleImage.contentUrl'))           ? Bibblio.stripImgProtocol(contentItem.fields.moduleImage.contentUrl) : null,
+          relatedBy:      (Bibblio.getProperty(contentItem, 'relationships.inCommon'))                  ? contentItem.relationships.inCommon : null,
+          tileNumber:     (contentItemIndex + 1),
+          showRelatedBy:  moduleSettings.showRelatedBy
       };
       return compiled(varBindings);
     },
