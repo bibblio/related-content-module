@@ -16,6 +16,12 @@ The module's JavaScript and CSS can be installed with [Bower](https://bower.io/#
 bower install bibblio-related-content-module
 ```
 
+Alternatively, the module's JavaScript and CSS can be installed with [npm](https://www.npmjs.com/get-npm) by running:
+
+```
+npm install bibblio-related-content-module
+```
+
 ## Loading the module files
 
 You will need to load the JavaScript and CSS files in order to use the Related Content Module on your page. If you've installed this as a project dependency and are using asset packaging pipelines then you can safely ignore this step and do it your way.
@@ -29,6 +35,22 @@ Include the files by adding these tags to your page:
 <!-- JavaScript -->
 <script src="bower_components/underscore/underscore-min.js"></script>
 <script src="bower_components/bibblio-related-content-module/js/bib-related-content.js"></script>
+```
+Or, if you're using the npm package:
+
+```html
+<!-- CSS -->
+<link rel="stylesheet" type="text/css" href="node_modules/bibblio-related-content-module/css/bib-related-content.css">
+
+<!-- JavaScript -->
+<script src="node_modules/underscore/underscore-min.js"></script>
+<script src="node_modules/bibblio-related-content-module/js/bib-related-content.js"></script>
+```
+
+The module may also be required using npm's require if installed with npm:
+
+```javascript
+var Bibblio = require("bibblio-related-content-module");
 ```
 
 ## Using the module
@@ -113,11 +135,11 @@ The following snippet shows the initialisation of a related content module. You 
 <script src="bower_components/bibblio-related-content-module/js/bib-related-content.js"></script>
 <script>
     // Initialise the related content plugin.
-    Bibblio.initRelatedContent("bib_related-content-div", 
-        'YOUR_RECOMMENDATION_KEY', 
-        'YOUR_CONTENT_ITEM_ID', 
+    Bibblio.initRelatedContent("bib_related-content-div",
+        'YOUR_RECOMMENDATION_KEY',
+        'YOUR_CONTENT_ITEM_ID',
         {
-            // catalogueIds: ["a8365ab1-00f9-38f8-af51-4d0ff527856f"], // Default: same as content item. 
+            // catalogueIds: ["a8365ab1-00f9-38f8-af51-4d0ff527856f"], // Default: same as content item.
             styleClasses: "bib--grd-4 bib--wide", // Default: 'bib--box-6 bib--wide'
             showRelatedBy: true, // Default: false. Will also hide if empty, even if set to true
             subtitleField: 'provider.name',  // Default: 'headline'. A value of false will disable subtitles
