@@ -12,7 +12,7 @@
 
   // Bibblio module
   var Bibblio = {
-    moduleVersion: "1.1.13",
+    moduleVersion: "2.0.0",
     moduleTracking: {},
 
     outerModuleTemplate: "<ul class=\"bib__module <%= classes %>\">\
@@ -48,7 +48,10 @@
                                             </a>\
                                         </li>",
 
-    initRelatedContent: function(containerId, accessToken, contentItemId, options, callbacks) {
+    initRelatedContent: function(contentItemId, options, callbacks) {
+      // Validate the values of the related content moduleSettings
+      if(!Bibblio.validateModuleSettings(contentItemId, options))
+        return;
       // This uses partial function application to bind the template and render arguments to a
       // new (partially applied) version of the Bibblio.displayRelatedContent function. That function can
       // then be passed around as a callback without worrying about the template arguments.
@@ -60,17 +63,16 @@
       var callbacks = callbacks || {};
 
       var displayWithTemplates = _.partial(Bibblio.displayRelatedContent,
-                                           containerId,
+                                           options.targetElementId,
                                            Bibblio.outerModuleTemplate,
                                            Bibblio.relatedContentItemTemplate,
                                            moduleSettings,
                                            _);
 
       var submitClickedActivityData = _.partial(Bibblio.onRecommendationClick,
-                                         containerId,
-                                         contentItemId,
-                                         catalogueIds,
+                                         options,
                                          moduleSettings,
+                                         _,
                                          _,
                                          _,
                                          _,
@@ -78,14 +80,14 @@
                                          _);
 
       var submitViewedActivityData = _.partial(Bibblio.onRecommendationViewed,
+                                        options,
                                         moduleSettings,
-                                        contentItemId,
-                                        catalogueIds,
+                                        _,
                                         _,
                                         _);
 
       var renderModule = _.partial(Bibblio.renderModule,
-                                   containerId,
+                                   options.targetElementId,
                                    displayWithTemplates,
                                    submitClickedActivityData,
                                    submitViewedActivityData,
@@ -93,12 +95,12 @@
                                    _);
 
       // Gets the related content items and passes the partially-applied display function as a callback.
-      Bibblio.getRelatedContentItems(accessToken, contentItemId, catalogueIds, moduleSettings, renderModule);
+      Bibblio.getRelatedContentItems(contentItemId, options, moduleSettings, renderModule);
     },
 
-    getRelatedContentItems: function(accessToken, contentItemId, catalogueIds, moduleSettings, successCallback) {
+    getRelatedContentItems: function(contentItemId, options, moduleSettings, successCallback) {
       var subtitleField = moduleSettings.subtitleField;
-      var userId = moduleSettings.userId;
+      var accessToken = options.recommendationKey;
       var xmlhttp = (XMLHttpRequestNodeJS) ? new XMLHttpRequestNodeJS() : new XMLHttpRequest();
       xmlhttp.onreadystatechange = function () {
         if (xmlhttp.readyState === 4) {
@@ -112,7 +114,7 @@
       };
       // URL arguments should be injected but the module only supports these settings now anyway.
       var fields = ["name", "url", "moduleImage"].concat(Bibblio.getRootProperty(subtitleField)).filter(Boolean); // filter out falsey values
-      var url = Bibblio.recommendationUrl(userId, contentItemId, catalogueIds, 6, 1, fields);
+      var url = Bibblio.recommendationUrl(contentItemId, options, 6, 1, fields);
       xmlhttp.open("GET", url, true);
       xmlhttp.setRequestHeader("Authorization", "Bearer " + accessToken);
       xmlhttp.send();
@@ -122,15 +124,17 @@
       var relatedContentItems = [];
       var trackingLink = null;
       var activityId = null;
+      var sourceContentItemId = null;
       try {
         relatedContentItems = recommendationsResponse.results;
         trackingLink = recommendationsResponse._links.tracking.href;
+        sourceContentItemId = recommendationsResponse._links.sourceContentItem.id;
         activityId = Bibblio.getActivityId(trackingLink);
       } catch(err) {}
       // Create tracking entry for this module instance
       Bibblio.createModuleTrackingEntry(activityId);
-      var submitClickedActivityData = _.partial(submitClickedActivityData, activityId, relatedContentItems, trackingLink, _, _);
-      var submitViewedActivityData = _.partial(submitViewedActivityData, activityId, relatedContentItems, trackingLink, _);
+      var submitClickedActivityData = _.partial(submitClickedActivityData, sourceContentItemId, activityId, relatedContentItems, trackingLink, _, _);
+      var submitViewedActivityData = _.partial(submitViewedActivityData, sourceContentItemId, activityId, relatedContentItems, trackingLink, _);
       displayWithTemplates(relatedContentItems);
       Bibblio.bindRelatedContentItemLinks(submitClickedActivityData, containerId, callbacks);
       Bibblio.setOnViewedListeners(containerId, submitViewedActivityData, activityId, callbacks);
@@ -186,24 +190,31 @@
       return compiled(varBindings);
     },
 
-    recommendationUrl: function(userId, contentItemId, catalogueIds, limit, page, fields) {
+    recommendationUrl: function(contentItemId, options, limit, page, fields) {
       var baseUrl = "https://api.bibblio.org/v1";
+      var catalogueIds = options.catalogueIds ? options.catalogueIds : [];
+      var userId = options.userId;
       var querystringArgs = [
           "limit=" + limit,
           "page=" + page,
           "fields=" + fields.join(",")
       ];
 
+      // Add identifier query param depending on if they supplied the uniqueCustomIdentifier or contentItemId
+      var identifierQueryArg = "contentItemId=" + contentItemId;
+      if(Bibblio.isUsingCustomUniqueIdentifier(options))
+        identifierQueryArg = "customUniqueIdentifier=" + options.customUniqueIdentifier;
+      querystringArgs.push(identifierQueryArg);
+
       if (catalogueIds.length > 0) {
           querystringArgs.push("catalogueIds=" + catalogueIds.join(","));
       }
 
-      if (userId !== null) {
+      if (userId) {
           querystringArgs.push("userId=" + userId);
       }
 
-      // TODO: make this much nicer
-      return baseUrl + "/content-items/" + contentItemId + "/recommendations?" + querystringArgs.join("&");
+      return baseUrl + "/recommendations?" + querystringArgs.join("&");
     },
 
     getPresetModuleClasses: function(stylePreset) {
@@ -480,18 +491,19 @@
       submitViewedActivityData(callback);
     },
 
-    onRecommendationClick: function(containerId, sourceContentItemId, catalogueIds, moduleSettings, activityId, relatedContentItems, trackingLink, clickedContentItemId, event, callback) {
+    onRecommendationClick: function(options, moduleSettings, sourceContentItemId, activityId, relatedContentItems, trackingLink, clickedContentItemId, event, callback) {
+      var userId = options.userId ? options.userId : null;
       var activityData = BibblioActivity.constructOnClickedActivityData(
           sourceContentItemId,
           clickedContentItemId,
-          catalogueIds,
+          options.catalogueIds,
           relatedContentItems,
           {
               type: "BibblioRelatedContent",
               version: Bibblio.moduleVersion,
               config: moduleSettings
           },
-          moduleSettings.userId
+          userId
       );
 
       if(!Bibblio.hasRecommendationBeenClicked(activityId, clickedContentItemId)) {
@@ -505,19 +517,20 @@
       }
     },
 
-    onRecommendationViewed: function(moduleSettings, sourceContentItemId, catalogueIds, activityId, relatedContentItems, trackingLink, callback) {
+    onRecommendationViewed: function(options, moduleSettings, sourceContentItemId, activityId, relatedContentItems, trackingLink, callback) {
       if(!Bibblio.hasModuleBeenViewed(activityId)) {
         Bibblio.setModuleViewed(activityId);
+        var userId = options.userId ? options.userId : null;
         var activityData = BibblioActivity.constructOnViewedActivityData(
             sourceContentItemId,
-            catalogueIds,
+            options.catalogueIds,
             relatedContentItems,
             {
                 type: "BibblioRelatedContent",
                 version: Bibblio.moduleVersion,
                 config: moduleSettings
             },
-            moduleSettings.userId
+            userId
         );
 
         var response = BibblioActivity.trackAsync(trackingLink, activityData);
@@ -535,8 +548,35 @@
       moduleSettings.styleClasses = options.styleClasses || false;
       moduleSettings.showRelatedBy = options.showRelatedBy || false;
       moduleSettings.subtitleField = (Bibblio.validateField(options.subtitleField) ? options.subtitleField : "headline");
-      moduleSettings.userId = options.userId || null;
       return moduleSettings;
+    },
+
+    isUsingCustomUniqueIdentifier: function(options) {
+      return options.customUniqueIdentifier && options.customUniqueIdentifier != "";
+    },
+
+    validateModuleSettings: function(contentItemId, options) {
+      if(contentItemId && contentItemId != "" && options.customUniqueIdentifier && options.customUniqueIdentifier != "") {
+        console.error("Bibblio related content module: Cannot supply both contentItemId and customUniqueIdentifier.");
+        return false;
+      }
+
+      if(!options.targetElementId || options.targetElementId == "") {
+        console.error("Bibblio related content module: Please provide a value for targetElementId in the options parameter.");
+        return false;
+      }
+
+      if(!options.recommendationKey || options.recommendationKey == "") {
+        console.error("Bibblio related content module: Please provide a recommendation key for the recommendationKey value in the options parameter.");
+        return false;
+      }
+
+      if((!contentItemId || contentItemId == "") && (!options.customUniqueIdentifier || options.customUniqueIdentifier == "")) {
+        console.error("Bibblio related content module: Please provide a contentItemId or a customUniqueIdentifier in the options parameter.");
+        return false;
+      }
+
+      return true;
     }
   };
 
