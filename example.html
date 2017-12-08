@@ -33,23 +33,24 @@
         <script src="js/bib-related-content.js"></script>
         <script>
             // Initialise the related content plugin.
-            // NB: Replace the getParameterByName arguments with your own recommendation key and contentitem id.
-            Bibblio.initRelatedContent("bib_related-content", // the id of the containing element
-                getParameterByName('recommendationKey'), // a recommendation key obtained from the bibblio api
-                getParameterByName('contentItemId'), // the id of the content item to recommend from
-                { // optional argument.
-                    styleClasses: "bib--box-6 bib--wide", // Custom CSS classes
-                    // catalogueIds: ["123", "456"], // Catalogue Ids to recommend from. Default: same as content item
-                    showRelatedBy: true,
-                    subtitleField: 'provider.name',  // default: headline. passing a value of false will disable the subtitle completely
-                    // userId: "42"
-
-                },
-                {
-                  onRecommendationClick: function(activityData, event) {
-                    // Do callback implementation
-                  }
-                });
+            // NB: Replace the getParameterByName arguments with your own recommendation key and contentitem id (or customUniqueIdentifier).
+                Bibblio.initRelatedContent(
+                  getParameterByName('contentItemId'),
+                  {
+                      styleClasses: "bib--box-6 bib--wide", // Custom CSS classes
+                      // catalogueIds: ["123", "456"], // Catalogue Ids to recommend from. Default: same as content item
+                      showRelatedBy: true,
+                      subtitleField: 'provider.name',  // default: headline. passing a value of false will disable the subtitle completely
+                      // userId: "42",
+              				customUniqueIdentifier: getParameterByName('customUniqueIdentifier'),
+              				recommendationKey: getParameterByName('recommendationKey'),
+              				targetElementId: 'bib_related-content'
+                  },
+                  {
+                    onRecommendationClick: function(activityData, event) {
+                      // Do callback implementation
+                    }
+                  });
 
         </script>
     </body>
