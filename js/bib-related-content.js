@@ -12,7 +12,7 @@
 
   // Bibblio module
   var Bibblio = {
-    moduleVersion: "2.0.0",
+    moduleVersion: "2.0.1",
     moduleTracking: {},
 
     outerModuleTemplate: "<ul class=\"bib__module <%= classes %>\">\
