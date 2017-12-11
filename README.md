@@ -62,34 +62,42 @@ Bibblio.initRelatedContent(...)
 
 Typically this would be done on the `pageReady` event, but could also be dropped in a script tag at the bottom of the page.
 
-The function accepts four parameters...
+The function accepts a JavaScript object as its only parameter. This object can contain the following properties:
 
-
-### 1) HTML id
-This should be the DOM id of an HTML element you'd like to initialise as a related content panel. For example, this parameter could be 'yourRelatedContentModuleDiv' if the following element exists on the page:
+#### `'targetElementId'` _(required)_
+The DOM id of an HTML element you'd like to initialise as a related content panel. For example, this parameter could be 'yourRelatedContentModuleDiv', provided the following element exists on the page:
 ```html
 <div id="yourRelatedContentModuleDiv"></div>
 ```
-You will need to drop this (empty) element onto the page yourself so as to position it as you wish.
+You will need to drop this (empty) HTML element onto the page yourself and position it as you wish.
 
-### 2) Recommendation Key
-This allows you to safely connect to the Bibblio API from a page visitor's browser. The recommendation key can be obtained from [our API](http://docs.bibblio.apiary.io/#reference/authorization/recommendation-keys/list-recommendation-keys) or [your management console](https://developer.bibblio.org/admin/account) (click on the _Credentials_ page and then select _Manage my keys_).
+#### `'recommendationKey'` _(required)_
+Allows you to safely connect to the Bibblio API from a page visitor's browser. The recommendation key can be obtained from [our API](http://docs.bibblio.apiary.io/#reference/authorization/recommendation-keys/list-recommendation-keys) or [your management console](https://developer.bibblio.org/admin/account) (click on the _Credentials_ page and then select _Manage my keys_).
 
-### 3) contentItemId
-The Bibblio `contentItemId` of the article (or other piece of content) being displayed must be provided in order to retrieve content recommendations. The `contentItemId` is provided when [creating a content item](http://docs.bibblio.apiary.io/#reference/storing-data/content-items/create-a-content-item), and is also retrievable when [listing your content items](http://docs.bibblio.apiary.io/#reference/storing-data/content-items/list-content-items).
+#### `'contentItemId'` _(required unless customUniqueIdentifier is provided instead)_
+The Bibblio `contentItemId` of the content item being displayed. Content recommendations will be based on this Bibblio content item. The `contentItemId` is provided when [creating a content item](http://docs.bibblio.apiary.io/#reference/storing-data/content-items/create-a-content-item), and is retrievable when [listing your content items](http://docs.bibblio.apiary.io/#reference/storing-data/content-items/list-content-items).
 
-### 4) configuration object (optional)
-A JavaScript object can be provided to set customisation options on the module. This object can contain the following properties:
+**NB**: You must provide either a `contentItemId` **or** a `customUniqueIdentifier`.
 
-`'catalogueIds'`: allows you to specify the [catalogues](http://docs.bibblio.apiary.io/#reference/storing-data/catalogues) that recommendations should draw from. The `catalogueId` of [any catalogues you own](http://docs.bibblio.apiary.io/#reference/storing-data/catalogues/list-catalogues) would be valid. Default is the same catalogue as the source content item specified.
+#### `'customUniqueIdentifier'` _(required if no contentItemId is provided)_
+It is possible to use your own id to retrieve recommendations, thereby avoiding the need to store Bibblio's `contentItemId` in your database. To do this, make sure you provide a `customUniqueIdentifier` when [creating a content item](http://docs.bibblio.apiary.io/#reference/storing-data/content-items/create-a-content-item). This allows you to specify the `customUniqueIdentifier` here, when retrieving recommendations. In this case, content recommendations will be based on the Bibblio content item with the `customUniqueIdentifier` specified. If you would prefer to store Bibblio's id simply use `contentItemId` as documented above.
 
-`'userId'`: your own, unique id for the current site visitor. This allows us to apply recommendation personalization. Please do not provide any personally identifiable information for this field. This field is optional.
+**NB**: You must provide either a `contentItemId` **or** a `customUniqueIdentifier`.
 
-`'styleClasses'`: allows you to customise the CSS styles applied to the related content module. An interactive configuration wizard is available in the Demos section of your Bibblio management console, which allows you to generate parameters for this option. Default is 'bib--box-6 bib--wide'. If you plan to place the module on an area of your page that has a dark background color you can append 'bib--invert' to your parameters to be sure everything remains legible. If most of your content item images are portrait sized, consider appending 'bib--portrait' to your parameters so the images resize nicely in the tiles.
+#### `'catalogueIds'` _(optional)_
+The [catalogues](http://docs.bibblio.apiary.io/#reference/storing-data/catalogues) that recommendations should draw from. The `catalogueId` of [any catalogues you own](http://docs.bibblio.apiary.io/#reference/storing-data/catalogues/list-catalogues) would be valid. Default is the same catalogue as the source content item specified.
 
-`'showRelatedBy'`: allows you to specify whether the terms in common should be displayed along with recommendations. Default is '_false_'.
+#### `'userId'` _(optional)_
+Your own, unique id for the current site visitor. This allows us to apply recommendation personalization. Please do not provide any personally identifiable information for this field.
 
-`'subtitleField'`: allows you to specify the content item field to use as subtitles on the recommended content panel. Any [valid content item field](http://docs.bibblio.apiary.io/#reference/storing-data/content-items/retrieve-a-content-item) can be used. Providing a value of _false_ will disable the subtitle. Default is '_headline_'.
+#### `'styleClasses'` _(optional)_
+Allows you to customise the CSS styles applied to the related content module. An interactive configuration wizard is available in the Demos section of your Bibblio management console, which allows you to generate parameters for this option. If you plan to place the module on an area of your page that has a dark background color you can append 'bib--invert' to your parameters to be sure everything remains legible. If most of your content item images are portrait sized, consider appending 'bib--portrait' to your parameters so the images resize nicely in the tiles. Default is 'bib--box-6 bib--wide'.
+
+#### `'showRelatedBy'` _(optional)_
+Alows you to specify whether the terms in common should be displayed along with recommendations. Default is '_false_'.
+
+#### `'subtitleField'` _(optional)_
+Allows you to specify the content item field to use as subtitles on the recommended content panel. Any [valid content item field](http://docs.bibblio.apiary.io/#reference/storing-data/content-items/retrieve-a-content-item) can be used. Providing a value of _false_ will disable the subtitle. Default is '_headline_'.
 
 
 ## Tracking data
@@ -135,15 +143,17 @@ The following snippet shows the initialisation of a related content module. You 
 <script src="bower_components/bibblio-related-content-module/js/bib-related-content.js"></script>
 <script>
     // Initialise the related content plugin.
-    Bibblio.initRelatedContent("bib_related-content-div",
-        'YOUR_RECOMMENDATION_KEY',
-        'YOUR_CONTENT_ITEM_ID',
+    Bibblio.initRelatedContent(
         {
+            targetElementId: 'bib_related-content', // Required
+            recommendationKey: 'YOUR_RECOMMENDATION_KEY', // Required
+            contentItemId: 'YOUR_CONTENT_ITEM_ID', // Required unless customUniqueIdentifier is provided instead
+            // customUniqueIdentifier: 'YOUR_CUSTOM_UNIQUE_IDENTIFIER', // Required if no contentItemId is provided
             // catalogueIds: ["a8365ab1-00f9-38f8-af51-4d0ff527856f"], // Default: same as content item.
+            // userId: "42", // Default: nil.
             styleClasses: "bib--grd-4 bib--wide", // Default: 'bib--box-6 bib--wide'
             showRelatedBy: true, // Default: false. Will also hide if empty, even if set to true
-            subtitleField: 'provider.name',  // Default: 'headline'. A value of false will disable subtitles
-            userId: "42" // Default: nil.
+            subtitleField: 'provider.name'  // Default: headline. passing a value of false will disable the subtitle   completely
         }
     );
 </script>

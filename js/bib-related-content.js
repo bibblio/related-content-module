@@ -48,9 +48,9 @@
                                             </a>\
                                         </li>",
 
-    initRelatedContent: function(contentItemId, options, callbacks) {
+    initRelatedContent: function(options, callbacks) {
       // Validate the values of the related content moduleSettings
-      if(!Bibblio.validateModuleSettings(contentItemId, options))
+      if(!Bibblio.validateModuleOptions(options))
         return;
       // This uses partial function application to bind the template and render arguments to a
       // new (partially applied) version of the Bibblio.displayRelatedContent function. That function can
@@ -95,10 +95,10 @@
                                    _);
 
       // Gets the related content items and passes the partially-applied display function as a callback.
-      Bibblio.getRelatedContentItems(contentItemId, options, moduleSettings, renderModule);
+      Bibblio.getRelatedContentItems(options, moduleSettings, renderModule);
     },
 
-    getRelatedContentItems: function(contentItemId, options, moduleSettings, successCallback) {
+    getRelatedContentItems: function(options, moduleSettings, successCallback) {
       var subtitleField = moduleSettings.subtitleField;
       var accessToken = options.recommendationKey;
       var xmlhttp = (XMLHttpRequestNodeJS) ? new XMLHttpRequestNodeJS() : new XMLHttpRequest();
@@ -114,7 +114,7 @@
       };
       // URL arguments should be injected but the module only supports these settings now anyway.
       var fields = ["name", "url", "moduleImage"].concat(Bibblio.getRootProperty(subtitleField)).filter(Boolean); // filter out falsey values
-      var url = Bibblio.recommendationUrl(contentItemId, options, 6, 1, fields);
+      var url = Bibblio.recommendationUrl(options, 6, 1, fields);
       xmlhttp.open("GET", url, true);
       xmlhttp.setRequestHeader("Authorization", "Bearer " + accessToken);
       xmlhttp.send();
@@ -190,7 +190,7 @@
       return compiled(varBindings);
     },
 
-    recommendationUrl: function(contentItemId, options, limit, page, fields) {
+    recommendationUrl: function(options, limit, page, fields) {
       var baseUrl = "https://api.bibblio.org/v1";
       var catalogueIds = options.catalogueIds ? options.catalogueIds : [];
       var userId = options.userId;
@@ -201,8 +201,10 @@
       ];
 
       // Add identifier query param depending on if they supplied the uniqueCustomIdentifier or contentItemId
-      var identifierQueryArg = "contentItemId=" + contentItemId;
-      if(Bibblio.isUsingCustomUniqueIdentifier(options))
+      var identifierQueryArg = null;
+      if(options.contentItemId)
+        identifierQueryArg = "contentItemId=" + options.contentItemId;
+      else if(options.customUniqueIdentifier)
         identifierQueryArg = "customUniqueIdentifier=" + options.customUniqueIdentifier;
       querystringArgs.push(identifierQueryArg);
 
@@ -551,27 +553,23 @@
       return moduleSettings;
     },
 
-    isUsingCustomUniqueIdentifier: function(options) {
-      return options.customUniqueIdentifier && options.customUniqueIdentifier != "";
-    },
-
-    validateModuleSettings: function(contentItemId, options) {
-      if(contentItemId && contentItemId != "" && options.customUniqueIdentifier && options.customUniqueIdentifier != "") {
+    validateModuleOptions: function(options) {
+      if(options.contentItemId && options.customUniqueIdentifier) {
         console.error("Bibblio related content module: Cannot supply both contentItemId and customUniqueIdentifier.");
         return false;
       }
 
-      if(!options.targetElementId || options.targetElementId == "") {
+      if(!options.targetElementId) {
         console.error("Bibblio related content module: Please provide a value for targetElementId in the options parameter.");
         return false;
       }
 
-      if(!options.recommendationKey || options.recommendationKey == "") {
+      if(!options.recommendationKey) {
         console.error("Bibblio related content module: Please provide a recommendation key for the recommendationKey value in the options parameter.");
         return false;
       }
 
-      if((!contentItemId || contentItemId == "") && (!options.customUniqueIdentifier || options.customUniqueIdentifier == "")) {
+      if(!options.contentItemId && !options.customUniqueIdentifier) {
         console.error("Bibblio related content module: Please provide a contentItemId or a customUniqueIdentifier in the options parameter.");
         return false;
       }
