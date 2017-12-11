@@ -35,21 +35,16 @@
             // Initialise the related content plugin.
             // NB: Replace the getParameterByName arguments with your own recommendation key and contentitem id (or customUniqueIdentifier).
                 Bibblio.initRelatedContent(
-                  getParameterByName('contentItemId'),
                   {
-                      styleClasses: "bib--box-6 bib--wide", // Custom CSS classes
-                      // catalogueIds: ["123", "456"], // Catalogue Ids to recommend from. Default: same as content item
-                      showRelatedBy: true,
-                      subtitleField: 'provider.name',  // default: headline. passing a value of false will disable the subtitle completely
-                      // userId: "42",
-              				customUniqueIdentifier: getParameterByName('customUniqueIdentifier'),
-              				recommendationKey: getParameterByName('recommendationKey'),
-              				targetElementId: 'bib_related-content'
-                  },
-                  {
-                    onRecommendationClick: function(activityData, event) {
-                      // Do callback implementation
-                    }
+                      targetElementId: 'bib_related-content', // Required
+                      recommendationKey: getParameterByName('recommendationKey'), // Required
+                      contentItemId: getParameterByName('contentItemId'), // Required unless customUniqueIdentifier is provided instead
+                      // customUniqueIdentifier: getParameterByName('customUniqueIdentifier'), // Required if no contentItemId is provided
+                      // catalogueIds: ["a8365ab1-00f9-38f8-af51-4d0ff527856f"], // Default: same as content item.
+                      // userId: "42", // Default: nil.
+                      styleClasses: "bib--grd-4 bib--wide", // Default: 'bib--box-6 bib--wide'
+                      showRelatedBy: true, // Default: false. Will also hide if empty, even if set to true
+                      subtitleField: 'provider.name'  // Default: headline. passing a value of false will disable the subtitle   completely
                   });
 
         </script>
