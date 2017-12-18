@@ -299,9 +299,7 @@
 
 /* Tile Metadata */
 .bib__link .bib__preview,
-.bib__link .bib__terms,
-.bib--hover .bib__link:hover .bib__preview,
-.bib--hover .bib__link:hover .bib__terms {
+.bib--hover .bib__link:hover .bib__preview {
     display: block;
     max-height: 10em;
     margin: 5px 0 5px;
@@ -317,10 +315,8 @@
 }
 
 .bib--hover .bib__preview,
-.bib--hover .bib__terms,
 .bib--title-only .bib__attributes,
-.bib--title-only .bib__preview,
-.bib--title-only .bib__terms {
+.bib--title-only .bib__preview {
     margin: 0;
     padding: 0;
     border-top: 0 solid rgba(255,255,255,0);
@@ -337,12 +333,6 @@
 .bib__title {
     display: block;
     margin: 10px 0 5px;
-}
-
-.bib__term-label,
-.bib__term-item {
-    display: inline-block;
-    margin: 0 6px 0 0;
 }
 
 .bib--shine .bib__link .bib__container:after {
@@ -387,8 +377,7 @@
         color: #000000;
     }
 
-    .bib--split.bib--hover .bib__link:hover .bib__preview,
-    .bib--split.bib--hover .bib__link:hover .bib__terms {
+    .bib--split.bib--hover .bib__link:hover .bib__preview {
         border-top: 1px solid rgba(0,0,0,0.2);
     }
 
@@ -437,9 +426,7 @@
     display: block; margin: 5px 0; max-height: 10em; padding: 0; }
     .bib--title-only .bib__link .bib__attributes,
     .bib__link .bib__preview,
-    .bib__link .bib__terms,
-    .bib__link:hover .bib__preview,
-    .bib__link:hover .bib__terms { display: none !important; }
+    .bib__link:hover .bib__preview { display: none !important; }
     .bib__title span { font-size: medium !important; line-height: 1.1em !important; }
     .bib__tile { padding: 0 0 37.5% 0 !important; }
     .bib--wide .bib__tile { padding: 0 0 28% 0 !important; } /* DEBUG: Was 0 0 30% 0 */
@@ -508,8 +495,7 @@
 .bib__author,
 .bib__recency,
 .bib__duration,
-.bib__preview,
-.bib__terms {
+.bib__preview {
     display: inline-block;
     opacity: 0.8;
 }
@@ -518,8 +504,7 @@
     margin-right: 5px;
 }
 
-.bib__recency,
-.bib__term-label {
+.bib__recency {
     font-style: italic;
     opacity: 0.6;
 }
@@ -527,10 +512,6 @@
 .bib__duration {
     float: right;
     margin-left: 5px;
-}
-
-.bib__term-item {
-    border-bottom: 1px dashed rgba(255,255,255,0.5);
 }
 
 .bib__tile--1 .bib__link {
