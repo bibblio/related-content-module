@@ -93,9 +93,6 @@ Your own, unique id for the current site visitor. This allows us to apply recomm
 #### `'styleClasses'` _(optional)_
 Allows you to customise the CSS styles applied to the related content module. An interactive configuration wizard is available in the Demos section of your Bibblio management console, which allows you to generate parameters for this option. If you plan to place the module on an area of your page that has a dark background color you can append 'bib--invert' to your parameters to be sure everything remains legible. If most of your content item images are portrait sized, consider appending 'bib--portrait' to your parameters so the images resize nicely in the tiles. Default is 'bib--box-6 bib--wide'.
 
-#### `'showRelatedBy'` _(optional)_
-Alows you to specify whether the terms in common should be displayed along with recommendations. Default is '_false_'.
-
 #### `'subtitleField'` _(optional)_
 Allows you to specify the content item field to use as subtitles on the recommended content panel. Any [valid content item field](http://docs.bibblio.apiary.io/#reference/storing-data/content-items/retrieve-a-content-item) can be used. Providing a value of _false_ will disable the subtitle. Default is '_headline_'.
 
@@ -152,7 +149,6 @@ The following snippet shows the initialisation of a related content module. You 
             // catalogueIds: ["a8365ab1-00f9-38f8-af51-4d0ff527856f"], // Default: same as content item.
             // userId: "42", // Default: nil.
             styleClasses: "bib--grd-4 bib--wide", // Default: 'bib--box-6 bib--wide'
-            showRelatedBy: true, // Default: false. Will also hide if empty, even if set to true
             subtitleField: 'provider.name'  // Default: headline. passing a value of false will disable the subtitle   completely
         }
     );

@@ -12,7 +12,7 @@
 
   // Bibblio module
   var Bibblio = {
-    moduleVersion: "2.0.1",
+    moduleVersion: "2.0.2",
     moduleTracking: {},
 
     outerModuleTemplate: "<ul class=\"bib__module <%= classes %>\">\
@@ -33,16 +33,6 @@
                                                           </span>\
                                                         <% } %>\
                                                         <% if (subtitle) { %><span class=\"bib__preview\"><%= subtitle %></span><% } %>\
-                                                        <% if (showRelatedBy && relatedBy.length > 0) { %>\
-                                                          <span class=\"bib__terms\">\
-                                                              <span class=\"bib__term-label\">Related by</span>\
-                                                              <span class=\"bib__term-list\">\
-                                                                  <span class=\"bib__term-item\"><%= relatedBy[0] %></span>\
-                                                                  <span class=\"bib__term-item\"><%= relatedBy[1] %></span>\
-                                                                  <span class=\"bib__term-item\"><%= relatedBy[2] %></span>\
-                                                              </span>\
-                                                          </span>\
-                                                        <% } %>\
                                                     </span>\
                                                 </span>\
                                             </a>\
@@ -183,9 +173,7 @@
           url:            (Bibblio.getProperty(contentItem, 'fields.url'))                              ? contentItem.fields.url    : null,
           subtitle:       (Bibblio.getProperty(contentItem, 'fields.' + moduleSettings.subtitleField))  ? Bibblio.getProperty(contentItem.fields, moduleSettings.subtitleField) : null,
           imageUrl:       (Bibblio.getProperty(contentItem, 'fields.moduleImage.contentUrl'))           ? Bibblio.stripImgProtocol(contentItem.fields.moduleImage.contentUrl) : null,
-          relatedBy:      (Bibblio.getProperty(contentItem, 'relationships.inCommon'))                  ? contentItem.relationships.inCommon : null,
-          tileNumber:     (contentItemIndex + 1),
-          showRelatedBy:  moduleSettings.showRelatedBy
+          tileNumber:     (contentItemIndex + 1)
       };
       return compiled(varBindings);
     },
@@ -548,7 +536,6 @@
       var moduleSettings = {};
       moduleSettings.stylePreset = options.stylePreset || "default";
       moduleSettings.styleClasses = options.styleClasses || false;
-      moduleSettings.showRelatedBy = options.showRelatedBy || false;
       moduleSettings.subtitleField = (Bibblio.validateField(options.subtitleField) ? options.subtitleField : "headline");
       return moduleSettings;
     },
