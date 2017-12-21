@@ -12,7 +12,7 @@
 
   // Bibblio module
   var Bibblio = {
-    moduleVersion: "2.0.2",
+    moduleVersion: "2.0.3",
     moduleTracking: {},
 
     outerModuleTemplate: "<ul class=\"bib__module <%= classes %>\">\
@@ -21,7 +21,7 @@
                                  </ul>",
 
     relatedContentItemTemplate: "<li class=\"bib__tile bib__tile--<%= tileNumber %>\">\
-                                            <a href=\"<%= url %>\" target=\"<%= Bibblio.linkTargetFor(url) %>\"  <%= Bibblio.linkRelFor(url) %> data=\"<%= contentItemId %>\" class=\"bib__link <%= (imageUrl ? 'bib__link--image' : '') %>\" <%= (imageUrl ? 'style=\"background-image: url(' + imageUrl + ')' : '') %>\">\
+                                            <a href=\"<%= Bibblio.linkHrefFor(url, queryStringParams) %>\" target=\"<%= Bibblio.linkTargetFor(url) %>\"  <%= Bibblio.linkRelFor(url) %> data=\"<%= contentItemId %>\" class=\"bib__link <%= (imageUrl ? 'bib__link--image' : '') %>\" <%= (imageUrl ? 'style=\"background-image: url(' + imageUrl + ')' : '') %>\">\
                                                 <span class=\"bib__container\">\
                                                     <span class=\"bib__info\">\
                                                         <span class=\"bib__title\"><span><%= name %></span></span>\
@@ -56,6 +56,7 @@
                                            options.targetElementId,
                                            Bibblio.outerModuleTemplate,
                                            Bibblio.relatedContentItemTemplate,
+                                           options,
                                            moduleSettings,
                                            _);
 
@@ -131,15 +132,17 @@
     },
 
     displayRelatedContent: function(containerId,
-                                        outerModuleTemplate,
-                                        contentItemTemplate,
-                                        moduleSettings,
-                                        relatedContentItems) {
+                                    outerModuleTemplate,
+                                    contentItemTemplate,
+                                    options,
+                                    moduleSettings,
+                                    relatedContentItems) {
       var relatedContentItemCountainer = document.getElementById(containerId);
       var relatedContentItemPanels = _.map(relatedContentItems, function (contentItem, index) {
           return Bibblio.renderContentItemTemplate(contentItem,
                                                index,
                                                contentItemTemplate,
+                                               options,
                                                moduleSettings);
       }).join('\n');
       var module = Bibblio.renderOuterModuleTemplate(moduleSettings, relatedContentItemPanels, outerModuleTemplate);
@@ -165,7 +168,7 @@
       }
     },
 
-    renderContentItemTemplate: function(contentItem, contentItemIndex, contentItemTemplate, moduleSettings) {
+    renderContentItemTemplate: function(contentItem, contentItemIndex, contentItemTemplate, options, moduleSettings) {
       var compiled = _.template(contentItemTemplate);
       var varBindings = {
           contentItemId:  (Bibblio.getProperty(contentItem, 'contentItemId'))                           ? contentItem.contentItemId : null,
@@ -173,7 +176,8 @@
           url:            (Bibblio.getProperty(contentItem, 'fields.url'))                              ? contentItem.fields.url    : null,
           subtitle:       (Bibblio.getProperty(contentItem, 'fields.' + moduleSettings.subtitleField))  ? Bibblio.getProperty(contentItem.fields, moduleSettings.subtitleField) : null,
           imageUrl:       (Bibblio.getProperty(contentItem, 'fields.moduleImage.contentUrl'))           ? Bibblio.stripImgProtocol(contentItem.fields.moduleImage.contentUrl) : null,
-          tileNumber:     (contentItemIndex + 1)
+          tileNumber:     (contentItemIndex + 1),
+          queryStringParams:  options.queryStringParams ? options.queryStringParams : null
       };
       return compiled(varBindings);
     },
@@ -226,6 +230,28 @@
       var currentdomain = window.location.hostname;
       var matches = (Bibblio.getDomainName(currentdomain) == Bibblio.getDomainName(url));
       return (matches ? '_self' : '_blank');
+    },
+
+    linkHrefFor: function(url, queryStringParams) {
+      if(queryStringParams == null)
+        return url;
+
+      var queryStringParamsList = [];
+      var param;
+      Object.keys(queryStringParams).forEach(function (key) {
+        param = encodeURIComponent(key) + "=" + encodeURIComponent(queryStringParams[key]);
+        queryStringParamsList.push(param);
+      });
+
+      // Check if the url already has query params attached
+      var urlSegments = url.split("#");
+      if(urlSegments[0].indexOf('?') == -1)
+        urlSegments[0] += "?";
+      else
+        urlSegments[0] += "&";
+      urlSegments[0] += queryStringParamsList.join("&");
+
+      return urlSegments.join("#");
     },
 
     getDomainName: function(url) {
