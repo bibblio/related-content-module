@@ -40,8 +40,9 @@
                       recommendationKey: getParameterByName('recommendationKey'), // Required
                       contentItemId: getParameterByName('contentItemId'), // Required unless customUniqueIdentifier is provided instead
                       // customUniqueIdentifier: getParameterByName('customUniqueIdentifier'), // Required if no contentItemId is provided
-                      // catalogueIds: ["a8365ab1-00f9-38f8-af51-4d0ff527856f"], // Default: same as content item.
-                      // userId: "42", // Default: nil.
+                      // catalogueIds: ["a8365ab1-00f9-38f8-af51-4d0ff527856f"], // Default: same as content item
+                      // userId: "42", // Default: nil
+                      // queryStringParams: { "utm_source" : "BibblioRCM" }, // Appends 'utm_source=BibblioRCM' to recommended urls
                       styleClasses: "bib--grd-4 bib--wide", // Default: 'bib--box-6 bib--wide'
                       subtitleField: 'provider.name'  // Default: headline. passing a value of false will disable the subtitle   completely
                   });
