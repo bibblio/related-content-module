@@ -2,162 +2,69 @@
 
 (function() {
   var isNodeJS = false;
-  var XMLHttpRequestNodeJS = false;
 
   // support for NodeJS, which doesn't support XMLHttpRequest natively
   if (typeof module !== 'undefined' && typeof module.exports !== 'undefined') {
     isNodeJS = true;
-    XMLHttpRequestNodeJS = require('xmlhttprequest').XMLHttpRequest;
   }
 
   // Bibblio module
   var Bibblio = {
-    moduleVersion: "2.0.4",
+    moduleVersion: "3.0.0",
     moduleTracking: {},
 
-    outerModuleTemplate: "<ul class=\"bib__module <%= classes %>\">\
-                                    <%= recommendedContentItems %>\
-                                    <a href=\"http://bibblio.org/about\" target=\"_blank\" class=\"bib__origin\">Refined by</a>\
-                                 </ul>",
-
-    relatedContentItemTemplate: "<li class=\"bib__tile bib__tile--<%= tileNumber %>\">\
-                                            <a href=\"<%= Bibblio.linkHrefFor(url, queryStringParams) %>\" target=\"<%= Bibblio.linkTargetFor(url) %>\"  <%= Bibblio.linkRelFor(url) %> data=\"<%= contentItemId %>\" class=\"bib__link <%= (imageUrl ? 'bib__link--image' : '') %>\" <%= (imageUrl ? 'style=\"background-image: url(' + imageUrl + ')' : '') %>\">\
-                                                <span class=\"bib__container\">\
-                                                    <span class=\"bib__info\">\
-                                                        <span class=\"bib__title\"><span><%= name %></span></span>\
-                                                        <% if (typeof(attributes) != \"undefined\") { %>\
-                                                          <span class=\"bib__attributes\">\
-                                                              <% if (attributes['duration']) { %> <span class=\"bib__duration\"><%= attributes['duration'] %></span> <% } %>\
-                                                              <% if (attributes['author']) { %> <span class=\"bib__author\"><%= attributes['author'] %></span> <% } %>\
-                                                              <% if (attributes['recency']) { %> <span class=\"bib__recency\"><%= attributes['recency'] %></span> <% } %>\
-                                                          </span>\
-                                                        <% } %>\
-                                                        <% if (subtitle) { %><span class=\"bib__preview\"><%= subtitle %></span><% } %>\
-                                                    </span>\
-                                                </span>\
-                                            </a>\
-                                        </li>",
-
-    comingSoonTemplate: "<div class=\"bib_pending-recs\"> \
-                          <div class=\"bib_pending-recs-text\"> \
-                            <div class=\"bib_pending-recs-header\">Bibblio is busy indexing this content</div> \
-                            <div class=\"bib_pending-recs-subheader\">Relevant recommendations are on their way!</div> \
-                          </div> \
-                        </div>",
-
     initRelatedContent: function(options, callbacks) {
-      // Validate the values of the related content moduleSettings
-      if(!Bibblio.validateModuleOptions(options))
+      // Validate the values of the related content module options
+      if(!BibblioUtils.validateModuleOptions(options))
         return;
-      // This uses partial function application to bind the template and render arguments to a
-      // new (partially applied) version of the Bibblio.displayRelatedContent function. That function can
-      // then be passed around as a callback without worrying about the template arguments.
-      // i.e. the templates are at this point bound to the rest of the function call chain.
-      // Modify the global Bibblio.relatedContentItemTemplate and Bibblio.outerModuleTemplate variables
-      // if you want to change the templates.
-      var moduleSettings = Bibblio.initModuleSettings(options);
+
       var callbacks = callbacks || {};
-
-      var displayWithTemplates = _.partial(Bibblio.displayRelatedContent,
-                                           options.targetElementId,
-                                           Bibblio.outerModuleTemplate,
-                                           Bibblio.relatedContentItemTemplate,
-                                           options,
-                                           moduleSettings,
-                                           _);
-
-      var submitClickedActivityData = _.partial(Bibblio.onRecommendationClick,
-                                         options,
-                                         moduleSettings,
-                                         _,
-                                         _,
-                                         _,
-                                         _,
-                                         _,
-                                         _);
-
-      var submitViewedActivityData = _.partial(Bibblio.onRecommendationViewed,
-                                        options,
-                                        moduleSettings,
-                                        _,
-                                        _,
-                                        _);
-
-      var renderModule = _.partial(Bibblio.renderModule,
-                                   options.targetElementId,
-                                   displayWithTemplates,
-                                   submitClickedActivityData,
-                                   submitViewedActivityData,
-                                   callbacks,
-                                   _);
-
-      var handleAutoIngestion = _.partial(Bibblio.handleAutoIngestion,
-                                         options,
-                                         renderModule,
-                                         _);
-
-      // Gets the related content items and passes the partially-applied display function as a callback.
-      Bibblio.getRelatedContentItems(options, moduleSettings, handleAutoIngestion);
+      Bibblio.getRelatedContentItems(options, callbacks);
     },
 
-    getRelatedContentItems: function(options, moduleSettings, successCallback) {
+    getRelatedContentItems: function(options, callbacks) {
+      var moduleSettings = BibblioUtils.getModuleSettings(options);
       var subtitleField = moduleSettings.subtitleField;
       var accessToken = options.recommendationKey;
-      var xmlhttp = (XMLHttpRequestNodeJS) ? new XMLHttpRequestNodeJS() : new XMLHttpRequest();
-      xmlhttp.onreadystatechange = function () {
-        if (xmlhttp.readyState === 4) {
-          if (xmlhttp.status === 200 || xmlhttp.status == 404) {
-            var response = JSON.parse(xmlhttp.responseText);
-            successCallback(response);
-          } else if (isNodeJS) {
-            successCallback(new Error(xmlhttp.status));
-          }
-        }
-      };
       // URL arguments should be injected but the module only supports these settings now anyway.
-      var fields = ["name", "url", "moduleImage"].concat(Bibblio.getRootProperty(subtitleField)).filter(Boolean); // filter out falsey values
-      var url = Bibblio.recommendationUrl(options, 6, 1, fields);
-      xmlhttp.open("GET", url, true);
-      xmlhttp.setRequestHeader("Authorization", "Bearer " + accessToken);
-      xmlhttp.send();
+      var fields = BibblioUtils.getRecommendationFields(subtitleField);
+      var url = BibblioUtils.getRecommendationUrl(options, 6, 1, fields);
+      BibblioUtils.bibblioHttpGetRequest(url, accessToken, true, function(response, status) {
+        Bibblio.handleAutoIngestion(options, callbacks, response, status);
+      });
     },
 
-    stripUrlTrackingParameters: function(url) {
-      var trackingParameters = ['utm_source', 'utm_medium', 'utm_campaign', 'utm_term', 'utm_content'];
+    handleAutoIngestion: function(options, callbacks, recommendationsResponse, status) {
+      if(options.autoIngestion) {
+        // Check if results does not exists, or is empty string
+        if(!recommendationsResponse.results) {
 
-      var parser = document.createElement('a');
-      parser.href = url;
-
-      var params = parser.search;
-      if (params.charAt(0) === '?') {
-        params = params.substr(1);
+          // Create scrape request
+          Bibblio.createScrapeRequest(options);
+          // Skip rendering module
+          return;
+        }
+        else if(recommendationsResponse.results.length < 1) {
+          // Display coming soon disclaimer
+          BibblioUtils.displayComingSoonTemplate(options.targetElementId);
+          // Skip rendering module
+          return;
+        }
       }
-
-      if (params) {
-        params = params.split('&');
-        params = params.filter(function(param) {
-          var paramName = param.split('=')[0].toLowerCase();
-          return (trackingParameters.indexOf(paramName) === -1);
-        });
+      // Render module only when recommendations have been retrieved
+      if(status != 404 && recommendationsResponse.results) {
+        Bibblio.renderModule(options, callbacks, recommendationsResponse);
       }
-
-      if (params.length > 0) {
-        parser.search = '?' + params.join('&');
-      } else {
-        parser.search = '';
-      }
-
-      return parser.href;
     },
 
-    createScrapeRequest: function(options, callback) {
+    createScrapeRequest: function(options) {
       var href = ((typeof window !== 'undefined') && window.location && window.location.href) ? window.location.href : '';
 
       if (!href) {
         console.error("Bibblio related content module: Cannot not determine url to scrape.");
         return false;
       } else {
-        href = Bibblio.stripUrlTrackingParameters(href);
+        href = BibblioUtils.stripUrlTrackingParameters(href);
       }
 
       var accessToken = options.recommendationKey;
@@ -167,130 +74,84 @@
         url: href
       };
 
-      var xmlhttp = (XMLHttpRequestNodeJS) ? new XMLHttpRequestNodeJS() : new XMLHttpRequest();
-      xmlhttp.onreadystatechange = function () {
-        if (xmlhttp.readyState === 4) {
-          var responseText = JSON.parse(xmlhttp.responseText);
-          callback(responseText, xmlhttp.status, options);
-        }
-      };
-
       var url = "https://api.bibblio.org/v1/content-item-url-ingestions/";
 
-      xmlhttp.open("POST", url, true);
-      xmlhttp.setRequestHeader("Authorization", "Bearer " + accessToken);
-      xmlhttp.setRequestHeader("Content-Type", "application/json");
-      xmlhttp.send(JSON.stringify(scrapeRequest));
+      BibblioUtils.bibblioHttpPostRequest(url, accessToken, scrapeRequest, true, function(response, status) {
+        Bibblio.handleCreatedScrapeRequest(response, status, options);
+      });
     },
 
-    handleAutoIngestion: function(options, renderModule, recommendationsResponse) {
-      if(options.autoIngestion) {
-        // Check if results does not exists, is empty list or is empty string
-        if(!recommendationsResponse.results) {
-          // Create scrape request
-          Bibblio.createScrapeRequest(options, Bibblio.autoIngestionCallback);
-          // Skip rendering module
-          return;
-        }
-        else if(recommendationsResponse.results.length < 1) {
-          // Display coming soon disclaimer
-          Bibblio.displayComingSoonTemplate(options.targetElementId);
-          // Skip rendering module
-          return;
-        }
-      }
-      // Render module when recommendations have been retrieved
-      renderModule(recommendationsResponse);
-    },
-
-    autoIngestionCallback: function(response, status, options) {
+    handleCreatedScrapeRequest: function(response, status, options) {
       // If response is 422 and is a domain whitelist error, don't display coming soon container
       if(status == 422 && response.errors.url == "domain is not whitelisted") {
         console.error("Bibblio related content module: Page could not be ingested to Bibblio because domain has not been whitelisted for auto ingestion.");
       } else {
         // Display coming soon disclaimer
-        Bibblio.displayComingSoonTemplate(options.targetElementId);
+        BibblioUtils.displayComingSoonTemplate(options.targetElementId);
       }
     },
 
-    renderModule: function(containerId, displayWithTemplates, submitClickedActivityData, submitViewedActivityData, callbacks, recommendationsResponse) {
-      var relatedContentItems = [];
-      var trackingLink = null;
-      var activityId = null;
-      var sourceContentItemId = null;
-      try {
-        relatedContentItems = recommendationsResponse.results;
-        trackingLink = recommendationsResponse._links.tracking.href;
-        sourceContentItemId = recommendationsResponse._links.sourceContentItem.id;
-        activityId = Bibblio.getActivityId(trackingLink);
-      } catch(err) {}
-      // Create tracking entry for this module instance
-      Bibblio.createModuleTrackingEntry(activityId);
-      var submitClickedActivityData = _.partial(submitClickedActivityData, sourceContentItemId, activityId, relatedContentItems, trackingLink, _, _);
-      var submitViewedActivityData = _.partial(submitViewedActivityData, sourceContentItemId, activityId, relatedContentItems, trackingLink, _);
-      displayWithTemplates(relatedContentItems);
-      Bibblio.bindRelatedContentItemLinks(submitClickedActivityData, containerId, callbacks);
-      Bibblio.setOnViewedListeners(containerId, submitViewedActivityData, activityId, callbacks);
+    renderModule: function(options, callbacks, recommendationsResponse) {
+      var relatedContentItems = recommendationsResponse.results;
+      var moduleSettings = BibblioUtils.getModuleSettings(options);
+      var containerId = options.targetElementId;
+      var relatedContentItemContainer = document.getElementById(containerId);
+      var moduleHTML = BibblioTemplates.getModuleHTML(relatedContentItems, options, moduleSettings);
+      relatedContentItemContainer.innerHTML = moduleHTML;
+
+      Bibblio.initTracking(options, callbacks, recommendationsResponse);
     },
 
-    displayComingSoonTemplate: function(targetElementId) {
-      var comingSoonTemplate = _.template(Bibblio.comingSoonTemplate);
-      var relatedContentItemCountainer = document.getElementById(targetElementId);
-      relatedContentItemCountainer.innerHTML = comingSoonTemplate();
-    },
+    initTracking: function(options, callbacks, recommendationsResponse) {
+      var trackingLink = recommendationsResponse._links.tracking.href;
+      var activityId = BibblioUtils.getActivityId(trackingLink);
+      BibblioUtils.createModuleTrackingEntry(activityId);
+      BibblioUtils.bindContentItemsClickEvents(options, callbacks, recommendationsResponse);
+      BibblioUtils.setOnViewedListeners(options, callbacks, recommendationsResponse);
+    }
+  };
 
-    displayRelatedContent: function(containerId,
-                                    outerModuleTemplate,
-                                    contentItemTemplate,
-                                    options,
-                                    moduleSettings,
-                                    relatedContentItems) {
-      var relatedContentItemCountainer = document.getElementById(containerId);
-      var relatedContentItemPanels = _.map(relatedContentItems, function (contentItem, index) {
-          return Bibblio.renderContentItemTemplate(contentItem,
-                                               index,
-                                               contentItemTemplate,
-                                               options,
-                                               moduleSettings);
-      }).join('\n');
-      var module = Bibblio.renderOuterModuleTemplate(moduleSettings, relatedContentItemPanels, outerModuleTemplate);
-      relatedContentItemCountainer.innerHTML = module;
-    },
-
-    renderOuterModuleTemplate: function(moduleSettings, contentItemsHTML, outerModuleTemplate) {
-      // If style classes are specified then omit styled preset
-      var classes = moduleSettings.styleClasses ? moduleSettings.styleClasses : Bibblio.getPresetModuleClasses(moduleSettings.stylePreset);
-      var compiled = _.template(outerModuleTemplate);
-      var varBindings = {
-          classes: classes,
-          recommendedContentItems: contentItemsHTML
-      };
-      return compiled(varBindings);
-    },
-
-    stripImgProtocol: function(contentUrl) {
-      if (contentUrl && (typeof contentUrl === 'string')) {
-        return contentUrl.replace(/^https?\:/, "");
-      } else {
-        return contentUrl;
+  // Bibblio utility module
+  var BibblioUtils = {
+    /// Init module functions
+    validateModuleOptions: function(options) {
+      if(options.autoIngestion && !options.customUniqueIdentifier) {
+        console.error("Bibblio related content module: Please provide a customUniqueIdentifier in the options parameter when autoIngestion is set to true.");
+        return false;
       }
+
+      if(options.contentItemId && options.customUniqueIdentifier) {
+        console.error("Bibblio related content module: Cannot supply both contentItemId and customUniqueIdentifier.");
+        return false;
+      }
+
+      if(!options.targetElementId) {
+        console.error("Bibblio related content module: Please provide a value for targetElementId in the options parameter.");
+        return false;
+      }
+
+      if(!options.recommendationKey) {
+        console.error("Bibblio related content module: Please provide a recommendation key for the recommendationKey value in the options parameter.");
+        return false;
+      }
+
+      if(!options.contentItemId && !options.customUniqueIdentifier) {
+        console.error("Bibblio related content module: Please provide a contentItemId or a customUniqueIdentifier in the options parameter.");
+        return false;
+      }
+
+      return true;
     },
 
-    renderContentItemTemplate: function(contentItem, contentItemIndex, contentItemTemplate, options, moduleSettings) {
-      var compiled = _.template(contentItemTemplate);
-      var varBindings = {
-          contentItemId:  (Bibblio.getProperty(contentItem, 'contentItemId'))                           ? contentItem.contentItemId : null,
-          name:           (Bibblio.getProperty(contentItem, 'fields.name'))                             ? contentItem.fields.name   : null,
-          url:            (Bibblio.getProperty(contentItem, 'fields.url'))                              ? contentItem.fields.url    : null,
-          subtitle:       (Bibblio.getProperty(contentItem, 'fields.' + moduleSettings.subtitleField))  ? Bibblio.getProperty(contentItem.fields, moduleSettings.subtitleField) : null,
-          imageUrl:       (Bibblio.getProperty(contentItem, 'fields.moduleImage.contentUrl'))           ? Bibblio.stripImgProtocol(contentItem.fields.moduleImage.contentUrl) : null,
-          tileNumber:     (contentItemIndex + 1),
-          queryStringParams:  options.queryStringParams ? options.queryStringParams : null
-      };
-      return compiled(varBindings);
+    /// Get recommendations functions
+    getRecommendationFields: function(subtitleField) {
+      var fields = ["name", "url", "moduleImage"];
+      if(subtitleField)
+        fields.push(BibblioUtils.getRootProperty(subtitleField));
+      return fields;
     },
 
-    recommendationUrl: function(options, limit, page, fields) {
+    getRecommendationUrl: function(options, limit, page, fields) {
       var baseUrl = "https://api.bibblio.org/v1";
       var catalogueIds = options.catalogueIds ? options.catalogueIds : [];
       var userId = options.userId;
@@ -319,6 +180,41 @@
       return baseUrl + "/recommendations?" + querystringArgs.join("&");
     },
 
+    /// Auto ingestion functions
+    stripUrlTrackingParameters: function(url) {
+      var trackingParameters = ['utm_source', 'utm_medium', 'utm_campaign', 'utm_term', 'utm_content'];
+
+      var parser = document.createElement('a');
+      parser.href = url;
+
+      var params = parser.search;
+      if (params.charAt(0) === '?') {
+        params = params.substr(1);
+      }
+
+      if (params) {
+        params = params.split('&');
+        params = params.filter(function(param) {
+          var paramName = param.split('=')[0].toLowerCase();
+          return (trackingParameters.indexOf(paramName) === -1);
+        });
+      }
+
+      if (params.length > 0) {
+        parser.search = '?' + params.join('&');
+      } else {
+        parser.search = '';
+      }
+
+      return parser.href;
+    },
+
+    displayComingSoonTemplate: function(targetElementId) {
+      var relatedContentItemCountainer = document.getElementById(targetElementId);
+      relatedContentItemCountainer.innerHTML = BibblioTemplates.getComingSoonHTML();
+    },
+
+    /// Render module functions
     getPresetModuleClasses: function(stylePreset) {
       var presets = {
           "grid-4": "bib--grd-4 bib--wide",
@@ -330,13 +226,13 @@
 
     linkRelFor: function(url) {
       var currentdomain = window.location.hostname;
-      var matches = (Bibblio.getDomainName(currentdomain) == Bibblio.getDomainName(url));
+      var matches = (BibblioUtils.getDomainName(currentdomain) == BibblioUtils.getDomainName(url));
       return (matches ? '' : ' rel="noopener noreferrer" ');
     },
 
     linkTargetFor: function(url) {
       var currentdomain = window.location.hostname;
-      var matches = (Bibblio.getDomainName(currentdomain) == Bibblio.getDomainName(url));
+      var matches = (BibblioUtils.getDomainName(currentdomain) == BibblioUtils.getDomainName(url));
       return (matches ? '_self' : '_blank');
     },
 
@@ -362,55 +258,28 @@
       return urlSegments.join("#");
     },
 
-    getDomainName: function(url) {
-      var r = /^(?:https?:\/\/)?(?:www\.)?(.[^/]+)/;
-      var matchResult = url.match(r);
-      return (url.match(r) ? matchResult[1].replace('www.', '') : "");
+    /// Tracking functions
+    getActivityId: function(trackingLink) {
+      var activityId = trackingLink.replace("https://", "")
+                                   .replace("http://", "")
+                                   .replace(/v[0-9]\//g, "")
+                                   .replace("api.bibblio.org/activities/", "");
+      return activityId;
     },
 
-    getProperty: function(properties, accessor) {
-      if (accessor == false || accessor == undefined) {
-          return accessor;
-      } else {
-          var reduceProps = function(props, field) { return (props == undefined ? undefined : props[field] ); };
-          return _.reduce(accessor.split("."), reduceProps, properties);
+    createModuleTrackingEntry: function(activityId) {
+      Bibblio.moduleTracking[activityId] = {
+        "trackedRecommendations": [],
+        "hasModuleBeenViewed": false
       }
     },
 
-    getRootProperty: function(accessor) {
-      if (accessor == false || accessor == undefined) {
-          return accessor;
-      } else {
-         return accessor.split(".")[0];
-      }
-    },
-
-    validateField: function(accessor) {
-      // TODO: this is not ideal. Can we get the valid fields programmatically?
-      //       Else change the feature spec and be willing to fail with 422 if field is wrong?
-      var validFields = [
-          "name",
-          "url",
-          "text",
-          "description",
-          "keywords",
-          "learningResourceType",
-          "thumbnail",
-          "image",
-          "moduleImage",
-          "video",
-          "dateCreated",
-          "dateModified",
-          "datePublished",
-          "provider",
-          "publisher"];
-      return _.contains(validFields, Bibblio.getRootProperty(accessor));
-    },
-
-    bindRelatedContentItemLinks: function(submitClickedActivityData, containerId, callbacks) {
+    // Click events
+    bindContentItemsClickEvents: function(options, callbacks, recommendationsResponse) {
+      var containerId = options.targetElementId;
       var relatedContentItemlinks = document.getElementById(containerId).getElementsByClassName("bib__link");
+      // (options, recommendationsResponse, callback, event)
       for (var i = 0; i < relatedContentItemlinks.length; i++) {
-
         // This event is only here for the callback on left clicks
         relatedContentItemlinks[i].addEventListener('click', function(event) {
           var callback = null;
@@ -419,58 +288,73 @@
             callback = callbacks.onRecommendationClick;
           }
 
-          Bibblio.triggerRecommendationClickedEvent(submitClickedActivityData, event, callback);
+          BibblioEvents.onRecommendationClick(options, recommendationsResponse, event, callback);
         }, false);
 
         relatedContentItemlinks[i].addEventListener('mousedown', function(event) {
           if (event.which == 3)
-
-            Bibblio.triggerRecommendationClickedEvent(submitClickedActivityData, event);
+            BibblioEvents.onRecommendationClick(options, recommendationsResponse, event);
         }, false);
 
         relatedContentItemlinks[i].addEventListener('mouseup', function(event) {
         	if (event.which < 4) {
-        		Bibblio.triggerRecommendationClickedEvent(submitClickedActivityData, event);
+        		BibblioEvents.onRecommendationClick(options, recommendationsResponse, event);
         	}
         }, false);
 
         relatedContentItemlinks[i].addEventListener('auxclick', function(event) {
           if (event.which < 4) {
-            Bibblio.triggerRecommendationClickedEvent(submitClickedActivityData, event);
+            BibblioEvents.onRecommendationClick(options, recommendationsResponse, event);
           }
         }, false);
 
         relatedContentItemlinks[i].addEventListener('keydown', function(event) {
           if (event.which == 13) {
-            Bibblio.triggerRecommendationClickedEvent(submitClickedActivityData, event);
+            BibblioEvents.onRecommendationClick(options, recommendationsResponse, event);
           }
         }, false);
       }
     },
 
-    setOnViewedListeners: function(containerId, submitViewedActivityData, activityId, callbacks) {
+    hasRecommendationBeenClicked: function(activityId, clickedContentItemId) {
+      var moduleTrackedRecommendations = Bibblio.moduleTracking[activityId]["trackedRecommendations"];
+      return moduleTrackedRecommendations.indexOf(clickedContentItemId) !== -1;
+    },
+
+    addTrackedRecommendation: function(activityId, clickedContentItemId) {
+      var moduleTrackedRecommendations = Bibblio.moduleTracking[activityId]["trackedRecommendations"];
+      moduleTrackedRecommendations.push(clickedContentItemId);
+    },
+
+    // Viewed event
+    setOnViewedListeners: function(options, callbacks, recommendationsResponse) {
+      // old (options, submitViewedActivityData, activityId, callbacks)
+      // (options, recommendationsResponse, callback)
       var callback = null;
+      var containerId = options.targetElementId;
+      var trackingLink = recommendationsResponse._links.tracking.href;
+      var activityId = BibblioUtils.getActivityId(trackingLink);
       if(callbacks.onRecommendationViewed) {
         callback = callbacks.onRecommendationViewed;
       }
 
-      // Check if the module is in view after rendered
-      if(Bibblio.isRecommendationTileInView(containerId)) {
-        Bibblio.triggerRecommendationViewedEvent(submitViewedActivityData, activityId, callback);
+      // Check if the module is in view immeditally after rendered
+      if(BibblioUtils.isRecommendationTileInView(containerId)) {
+        BibblioEvents.onRecommendationViewed(options, recommendationsResponse, callback);
       }
       else {
         var ticking = false;
         var visiblityCheckDelay = 50;
         // Scroll event
         var eventListener = function(event) {
-          if(Bibblio.hasModuleBeenViewed(activityId)){
+          if(BibblioUtils.hasModuleBeenViewed(activityId)){
             window.removeEventListener("scroll", eventListener, true);
             return;
           }
           if(!ticking) {
             window.setTimeout(function() {
-              if(Bibblio.isRecommendationTileInView(containerId))
-                Bibblio.triggerRecommendationViewedEvent(submitViewedActivityData, activityId, callback);
+              if(BibblioUtils.isRecommendationTileInView(containerId))
+                BibblioEvents.onRecommendationViewed(options, recommendationsResponse, callback);
               ticking = false;
             }, visiblityCheckDelay);
           }
@@ -482,18 +366,14 @@
 
     isRecommendationTileInView: function(containerId) {
       var tiles = document.getElementById(containerId).getElementsByClassName("bib__tile");
-      var scrollableParents = Bibblio.getScrollableParents(containerId);
+      var scrollableParents = BibblioUtils.getScrollableParents(containerId);
       if(scrollableParents !== false) {
         for(var i = 0; i < tiles.length; i++) {
-          if(Bibblio.isTileVisible(tiles[i], scrollableParents))
+          if(BibblioUtils.isTileVisible(tiles[i], scrollableParents))
             return true;
         }
       }
       return false;
-    },
-
-    hasScrollableOverflow: function(overflowProp) {
-      return overflowProp === "scroll" || overflowProp === "auto" || overflowProp === "hidden";
     },
 
     getScrollableParents: function(containerId) {
@@ -520,8 +400,8 @@
           return false;
 
         // does container have scrollbar
-        isScrollable = Bibblio.hasScrollableOverflow(parentStyle.getPropertyValue("overflow-x")) ||
-                       Bibblio.hasScrollableOverflow(parentStyle.getPropertyValue("overflow-y"));
+        isScrollable = BibblioUtils.hasScrollableOverflow(parentStyle.getPropertyValue("overflow-x")) ||
+                       BibblioUtils.hasScrollableOverflow(parentStyle.getPropertyValue("overflow-y"));
         if(isScrollable) {
           parentRect = parent.getBoundingClientRect();
           scrollableParents.push({
@@ -573,29 +453,8 @@
       return true;
     },
 
-    getActivityId: function(trackingLink) {
-      var activityId = trackingLink.replace("https://", "")
-                                   .replace("http://", "")
-                                   .replace(/v[0-9]\//g, "")
-                                   .replace("api.bibblio.org/activities/", "");
-      return activityId;
-    },
-
-    createModuleTrackingEntry: function(activityId) {
-      Bibblio.moduleTracking[activityId] = {
-        "trackedRecommendations": [],
-        "hasModuleBeenViewed": false
-      }
-    },
-
-    hasRecommendationBeenClicked: function(activityId, clickedContentItemId) {
-      var moduleTrackedRecommendations = Bibblio.moduleTracking[activityId]["trackedRecommendations"];
-      return moduleTrackedRecommendations.indexOf(clickedContentItemId) !== -1;
-    },
-
-    addTrackedRecommendation: function(activityId, clickedContentItemId) {
-      var moduleTrackedRecommendations = Bibblio.moduleTracking[activityId]["trackedRecommendations"];
-      moduleTrackedRecommendations.push(clickedContentItemId);
+    hasScrollableOverflow: function(overflowProp) {
+      return overflowProp === "scroll" || overflowProp === "auto" || overflowProp === "hidden";
     },
 
     hasModuleBeenViewed: function(activityId) {
@@ -606,16 +465,153 @@
       Bibblio.moduleTracking[activityId]["hasModuleBeenViewed"] = true;
     },
 
-    triggerRecommendationClickedEvent: function(submitClickedActivityData, event, callback) {
+    /// Common utils
+    getChildProperty: function(obj, desc) {
+      var arr = desc.split('.');
+      while (arr.length && (obj = obj[arr.shift()]));
+      return obj;
+    },
+
+    getModuleSettings: function(options) {
+      var moduleSettings = {};
+      moduleSettings.stylePreset = options.stylePreset || "default";
+      moduleSettings.styleClasses = options.styleClasses || false;
+      moduleSettings.subtitleField = (options.subtitleField ? options.subtitleField : "headline");
+      return moduleSettings;
+    },
+
+    getDomainName: function(url) {
+      var r = /^(?:https?:\/\/)?(?:www\.)?(.[^/]+)/;
+      var matchResult = url.match(r);
+      return (url.match(r) ? matchResult[1].replace('www.', '') : "");
+    },
+
+    getRootProperty: function(accessor) {
+      if (accessor == false || accessor == undefined) {
+          return accessor;
+      } else {
+         return accessor.split(".")[0];
+      }
+    },
+
+    // Http requests
+    bibblioHttpGetRequest: function(url, accessToken, isAsync, callback) {
+      var options = {
+        url: url,
+        method: "GET",
+        accessToken: accessToken
+      }
+      BibblioUtils.bibblioHttpRequest(options, isAsync, callback);
+    },
+
+    bibblioHttpPostRequest: function(url, accessToken, body, isAsync, callback) {
+      var options = {
+        url: url,
+        method: "POST",
+        accessToken: accessToken,
+        body: body
+      }
+      BibblioUtils.bibblioHttpRequest(options, isAsync, callback);
+    },
+
+    bibblioHttpRequest: function(options, isAsync, callback) {
+      var url = options.url;
+      var method = options.method;
+      var accessToken = options.accessToken;
+      if(isNodeJS) {
+        var https = require('https');
+        var baseUrl = "https://api.bibblio.org";
+        var path = url.replace(baseUrl, "");
+        var hostname = baseUrl.replace("https://", "");
+        var httpOptions = {
+          hostname: hostname,
+          path: path,
+          method: method,
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        };
+        if(accessToken) {
+          httpOptions.headers.Authorization = "Bearer " + accessToken;
+        }
+        // Add body if method is POST
+        if(method == "POST")
+          httpOptions.body = JSON.stringify(options.body);
+
+        var req = https.request(httpOptions, function(response) {
+          var responseText = "";
+          // Build response text
+          response.on('data', function(dataChunk) {
+            responseText += dataChunk;
+          });
+
+          response.on('end', function() {
+              try {
+                var responseObject = JSON.parse(responseText);
+                BibblioUtils.httpCallback(callback, responseObject, response.statusCode);
+              }
+              catch(err) {
+                BibblioUtils.httpCallback(callback, {}, response.statusCode);
+              }
+          })
+        });
+
+        req.on('error', function(e) {
+          BibblioUtils.httpCallback(callback, {}, response.statusCode);
+        });
+
+        // Add body if method is POST
+        if(method == "POST") {
+          var requestBody = JSON.stringify(options.body);
+          req.write(requestBody);
+        }
+
+        req.end();
+      }
+      else {
+        var xmlhttp = new XMLHttpRequest();
+        xmlhttp.onreadystatechange = function () {
+          if (xmlhttp.readyState === 4) {
+            try {
+              var response = JSON.parse(xmlhttp.responseText);
+              BibblioUtils.httpCallback(callback, response, xmlhttp.status);
+            }
+            catch (err) {
+              BibblioUtils.httpCallback(callback, {}, xmlhttp.status);
+            }
+          }
+        };
+        xmlhttp.open(method, url, isAsync);
+        xmlhttp.setRequestHeader('Content-Type', 'application/json');
+        if(accessToken)
+          xmlhttp.setRequestHeader("Authorization", "Bearer " + accessToken);
+        // If method is POST add body to request
+        if(method == "POST") {
+          var requestBody = JSON.stringify(options.body);
+          xmlhttp.send(requestBody);
+        }
+        else
+          xmlhttp.send();
+      }
+    },
+
+    httpCallback: function(callback, response, status) {
+      if (callback != null && typeof callback === "function") {
+        callback(response, status);
+      }
+    }
+  };
+
+  // Bibblio events module
+  var BibblioEvents = {
+    onRecommendationClick: function(options, recommendationsResponse, event, callback) {
       var clickedContentItemId = event.currentTarget.getAttribute("data");
-      submitClickedActivityData(clickedContentItemId, event, callback);
-    },
+      var moduleSettings = BibblioUtils.getModuleSettings(options);
+      var relatedContentItems = recommendationsResponse.results;
+      var trackingLink = recommendationsResponse._links.tracking.href;
+      var sourceContentItemId = recommendationsResponse._links.sourceContentItem.id;
+      var activityId = BibblioUtils.getActivityId(trackingLink);
 
-    triggerRecommendationViewedEvent: function(submitViewedActivityData, activityId, callback) {
-      submitViewedActivityData(callback);
-    },
-
-    onRecommendationClick: function(options, moduleSettings, sourceContentItemId, activityId, relatedContentItems, trackingLink, clickedContentItemId, event, callback) {
       var userId = options.userId ? options.userId : null;
       var activityData = BibblioActivity.constructOnClickedActivityData(
           sourceContentItemId,
@@ -630,9 +626,9 @@
           userId
       );
 
-      if(!Bibblio.hasRecommendationBeenClicked(activityId, clickedContentItemId)) {
+      if(!BibblioUtils.hasRecommendationBeenClicked(activityId, clickedContentItemId)) {
         var response = BibblioActivity.track(trackingLink, activityData);
-        Bibblio.addTrackedRecommendation(activityId, clickedContentItemId);
+        BibblioUtils.addTrackedRecommendation(activityId, clickedContentItemId);
       }
 
       // Call client callback if it exists
@@ -641,9 +637,14 @@
       }
     },
 
-    onRecommendationViewed: function(options, moduleSettings, sourceContentItemId, activityId, relatedContentItems, trackingLink, callback) {
-      if(!Bibblio.hasModuleBeenViewed(activityId)) {
-        Bibblio.setModuleViewed(activityId);
+    onRecommendationViewed: function(options, recommendationsResponse, callback) {
+      var trackingLink = recommendationsResponse._links.tracking.href;
+      var activityId = BibblioUtils.getActivityId(trackingLink);
+      if(!BibblioUtils.hasModuleBeenViewed(activityId)) {
+        var moduleSettings = BibblioUtils.getModuleSettings(options);
+        var relatedContentItems = recommendationsResponse.results;
+        var sourceContentItemId = recommendationsResponse._links.sourceContentItem.id;
+        BibblioUtils.setModuleViewed(activityId);
         var userId = options.userId ? options.userId : null;
         var activityData = BibblioActivity.constructOnViewedActivityData(
             sourceContentItemId,
@@ -664,74 +665,130 @@
             callback(activityData);
         }
       }
-    },
-
-    initModuleSettings: function(options) {
-      var moduleSettings = {};
-      moduleSettings.stylePreset = options.stylePreset || "default";
-      moduleSettings.styleClasses = options.styleClasses || false;
-      moduleSettings.subtitleField = (Bibblio.validateField(options.subtitleField) ? options.subtitleField : "headline");
-      return moduleSettings;
-    },
-
-    validateModuleOptions: function(options) {
-      if(options.autoIngestion && !options.customUniqueIdentifier) {
-        console.error("Bibblio related content module: Please provide a customUniqueIdentifier in the options parameter when autoIngestion is set to true.");
-        return false;
-      }
-
-      if(options.contentItemId && options.customUniqueIdentifier) {
-        console.error("Bibblio related content module: Cannot supply both contentItemId and customUniqueIdentifier.");
-        return false;
-      }
-
-      if(!options.targetElementId) {
-        console.error("Bibblio related content module: Please provide a value for targetElementId in the options parameter.");
-        return false;
-      }
-
-      if(!options.recommendationKey) {
-        console.error("Bibblio related content module: Please provide a recommendation key for the recommendationKey value in the options parameter.");
-        return false;
-      }
-
-      if(!options.contentItemId && !options.customUniqueIdentifier) {
-        console.error("Bibblio related content module: Please provide a contentItemId or a customUniqueIdentifier in the options parameter.");
-        return false;
-      }
-
-      return true;
     }
   };
+
+  // Bibblio template module
+  var BibblioTemplates = {
+    outerModuleTemplate: '<ul class="bib__module <% classes %>">\
+                            <% recommendedContentItems %>\
+                            <a href="http://bibblio.org/about" target="_blank" class="bib__origin">Refined by</a>\
+                          </ul>',
+
+    relatedContentItemTemplate: '<li class="bib__tile bib__tile--<% tileNumber %> ">\
+                                    <a href="<% linkHref %>" target="<% linkTarget %>" <% linkRel %> data="<% contentItemId %>" class="bib__link <% linkImageClass %>" <% linkStyle %> >\
+                                      <span class="bib__container">\
+                                            <span class="bib__info">\
+                                                <span class="bib__title"><span><% name %></span></span>\
+                                                <% subtitleHTML %>\
+                                            </span>\
+                                        </span>\
+                                    </a> \
+                                </li>',
+
+    subtitleTemplate: '<span class="bib__preview"><% subtitle %></span>',
+
+    comingSoonTemplate: '<div class="bib_pending-recs"> \
+                          <div class="bib_pending-recs-text"> \
+                            <div class="bib_pending-recs-header">Bibblio is busy indexing this content</div> \
+                            <div class="bib_pending-recs-subheader">Relevant recommendations are on their way!</div> \
+                          </div> \
+                        </div>',
+
+    getTemplate: function(template, options) {
+      Object.keys(options).forEach(function(key) {
+        template = template.replace("<% " + key + " %>", options[key]);
+      });
+      // Remove any unused placeholders
+      var placeHolderStart = template.indexOf("<%");
+      while(placeHolderStart != -1) {
+        var placeHolderEnd = template.indexOf("%>", placeHolderStart);
+        var placeHolder = template.substring(placeHolderStart, placeHolderEnd + 2);
+        // Remove unused place holder
+        template = template.replace(placeHolder, '');
+        // Get next unused place holder
+        placeHolderStart = template.indexOf("<%");
+      }
+      return template;
+    },
+
+    getSubtitleHTML: function(contentItem, moduleSettings) {
+      var subtitleField = BibblioUtils.getChildProperty(contentItem.fields, moduleSettings.subtitleField);
+      var subtitleHTML = '';
+      if(subtitleField) {
+        var templateOptions = {
+          subtitle: subtitleField
+        };
+        subtitleHTML = BibblioTemplates.getTemplate(BibblioTemplates.subtitleTemplate, templateOptions);
+      }
+
+      return subtitleHTML;
+    },
+
+    getRelatedContentItemHTML: function(contentItem, contentItemIndex, options, moduleSettings) {
+      // Create template for subtitle
+      var subtitleHTML = BibblioTemplates.getSubtitleHTML(contentItem, moduleSettings);
+
+      // Create template for related content item
+      var contentItemUrl = (contentItem.fields.url ? contentItem.fields.url : '');
+      var contentItemImageUrl = "";
+      if(contentItem.fields.moduleImage && contentItem.fields.moduleImage.contentItemUrl)
+        contentItemImageUrl = contentItem.fields.moduleImage.contentItemUrl;
+
+      var templateOptions = {
+          contentItemId: (contentItem.contentItemId ? contentItem.contentItemId : ''),
+          name: (contentItem.fields.name ? contentItem.fields.name   : ''),
+          linkHref: BibblioUtils.linkHrefFor(contentItemUrl, options.queryStringParams),
+          linkTarget: BibblioUtils.linkTargetFor(contentItemUrl),
+          linkRel: BibblioUtils.linkRelFor(contentItemUrl),
+          linkImageClass: (contentItemImageUrl ? 'bib__link--image' : ''),
+          linkStyle: (contentItemImageUrl ? 'style="background-image: url(' + contentItemImageUrl + ')"' : ''),
+          subtitleHTML: subtitleHTML,
+          tileNumber: contentItemIndex + 1
+      };
+
+      return BibblioTemplates.getTemplate(BibblioTemplates.relatedContentItemTemplate, templateOptions);
+    },
+
+    getOuterModuleHTML: function(moduleSettings, relatedContentItemsHTML) {
+      var classes = moduleSettings.styleClasses ? moduleSettings.styleClasses : BibblioUtils.getPresetModuleClasses(moduleSettings.stylePreset);
+      var templateOptions = {
+          classes: classes,
+          recommendedContentItems: relatedContentItemsHTML
+      };
+
+      return BibblioTemplates.getTemplate(BibblioTemplates.outerModuleTemplate, templateOptions);
+    },
+
+    getModuleHTML: function(relatedContentItems, options, moduleSettings) {
+      // Create content items HTML
+      var contentItemsHTML = "";
+      for(var i = 0; i < relatedContentItems.length; i++) {
+        contentItemsHTML += BibblioTemplates.getRelatedContentItemHTML(relatedContentItems[i], i, options, moduleSettings) + "\n";
+      }
+
+      // Create module HTML
+      var moduleHTML = BibblioTemplates.getOuterModuleHTML(moduleSettings, contentItemsHTML);
+      return moduleHTML;
+    },
+
+    getComingSoonHTML: function() {
+      return BibblioTemplates.comingSoonTemplate;
+    }
+  }
 
   // BibblioActivity module
   var BibblioActivity = {
     track: function(trackingLink, activityData) {
       if(trackingLink != null) {
-        var requestBody = BibblioActivity.constructRequestBody(activityData);
-        var httpClient = BibblioActivity.constructHttpClient(trackingLink, false);
-        return httpClient.send(requestBody);
+        BibblioUtils.bibblioHttpPostRequest(trackingLink, null, activityData, false);
       }
     },
 
     trackAsync: function(trackingLink, activityData){
       if(trackingLink != null) {
-        var requestBody = BibblioActivity.constructRequestBody(activityData);
-        var httpClient = BibblioActivity.constructHttpClient(trackingLink, true);
-        return httpClient.send(requestBody);
+        BibblioUtils.bibblioHttpPostRequest(trackingLink, null, activityData, true);
       }
-    },
-
-    constructRequestBody: function(activityData) {
-      return JSON.stringify(activityData);
-    },
-
-    constructHttpClient: function(trackingLink, isAsyncClient) {
-      var url = trackingLink;
-      var httpClient = (XMLHttpRequestNodeJS) ? new XMLHttpRequestNodeJS() : new XMLHttpRequest();
-      httpClient.open("POST", url, isAsyncClient);
-      httpClient.setRequestHeader('Content-Type', 'application/json');
-      return httpClient;
     },
 
     constructOnClickedActivityData: function(sourceContentItemId, clickedContentItemId, catalogueIds, relatedContentItems, instrument, userId) {
@@ -739,8 +796,9 @@
         "type": "Clicked",
         "object": BibblioActivity.constructActivityObject(clickedContentItemId),
         "context": BibblioActivity.constructActivityContext(sourceContentItemId, catalogueIds, relatedContentItems),
-        "instrument": BibblioActivity.constructActivityInstrument(instrument),
+        "instrument": BibblioActivity.constructActivityInstrument(instrument)
       };
+
       if(userId != null)
         activityData["actor"] = {"userId": userId};
 
@@ -751,8 +809,9 @@
       var activityData = {
         "type": "Viewed",
         "context": BibblioActivity.constructActivityContext(sourceContentItemId, catalogueIds, relatedContentItems),
-        "instrument": BibblioActivity.constructActivityInstrument(instrument),
+        "instrument": BibblioActivity.constructActivityInstrument(instrument)
       };
+
       if(userId != null)
         activityData["actor"] = {"userId": userId};
 
@@ -777,16 +836,14 @@
 
       context.push(["sourceHref", href]);
       context.push(["sourceContentItemId", sourceContentItemId]);
-      context = context.concat(_.map(relatedContentItems, function(contentItem) {
-        return ["recommendations.contentItemId", contentItem.contentItemId]
-      }));
+      for(var i = 0; i < relatedContentItems.length; i++)
+        context.push(["recommendations.contentItemId", relatedContentItems[i].contentItemId]);
 
       // include all specified catalogue ids in the context
       // but assume recommendations are from the source content item's catalogue if no catalogues were specified
       if (catalogueIds && (catalogueIds.length > 0)) {
-        context = context.concat(_.map(catalogueIds, function(catalogueId) {
-          return ["recommendations.catalogueId", catalogueId]
-        }));
+        for(var i = 0; i < catalogueIds.length; i++)
+          context.push(["recommendations.catalogueId", catalogueIds[i]]);
       } else {
         if (relatedContentItems[0].catalogueId) {
           context.push(["recommendations.catalogueId", relatedContentItems[0].catalogueId]);
@@ -798,9 +855,16 @@
   };
 
   if (isNodeJS) {
-    module.exports = {Bibblio: Bibblio, BibblioActivity: BibblioActivity};
+    module.exports = {
+      Bibblio: Bibblio,
+      BibblioUtils: BibblioUtils,
+      BibblioActivity: BibblioActivity,
+      BibblioEvents: BibblioEvents
+    };
   } else {
     window.Bibblio = Bibblio;
     window.BibblioActivity = BibblioActivity;
+    window.BibblioUtils = BibblioUtils;
+    window.BibblioEvents = BibblioEvents;
   }
 })();

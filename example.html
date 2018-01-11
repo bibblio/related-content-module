@@ -28,14 +28,11 @@
         <!-- Provide an enclosing element with an id. Position and size it as you wish. -->
         <div id="bib_related-content"></div>
 
-
         <!-- * Related Content Javascript -->
-        <script src="bower_components/underscore/underscore-min.js"></script>
         <script src="js/bib-related-content.js"></script>
         <script>
             // Initialise the related content plugin.
             (function() {
-                // NB: Replace the getParameterByName arguments with your own recommendation key and contentitem id (or customUniqueIdentifier).
                 Bibblio.initRelatedContent({
                   targetElementId: 'bib_related-content', // Required
                   recommendationKey: getParameterByName('recommendationKey'), // Required
