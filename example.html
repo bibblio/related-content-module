@@ -28,25 +28,27 @@
         <!-- Provide an enclosing element with an id. Position and size it as you wish. -->
         <div id="bib_related-content"></div>
 
+
         <!-- * Related Content Javascript -->
         <script src="bower_components/underscore/underscore-min.js"></script>
         <script src="js/bib-related-content.js"></script>
         <script>
             // Initialise the related content plugin.
-            // NB: Replace the getParameterByName arguments with your own recommendation key and contentitem id (or customUniqueIdentifier).
-                Bibblio.initRelatedContent(
-                  {
-                      targetElementId: 'bib_related-content', // Required
-                      recommendationKey: getParameterByName('recommendationKey'), // Required
-                      contentItemId: getParameterByName('contentItemId'), // Required unless customUniqueIdentifier is provided instead
-                      // customUniqueIdentifier: getParameterByName('customUniqueIdentifier'), // Required if no contentItemId is provided
-                      // catalogueIds: ["a8365ab1-00f9-38f8-af51-4d0ff527856f"], // Default: same as content item
-                      // userId: "42", // Default: nil
-                      // queryStringParams: { "utm_source" : "BibblioRCM" }, // Appends 'utm_source=BibblioRCM' to recommended urls
-                      styleClasses: "bib--grd-4 bib--wide", // Default: 'bib--box-6 bib--wide'
-                      subtitleField: 'provider.name'  // Default: headline. passing a value of false will disable the subtitle   completely
-                  });
-
+            (function() {
+                // NB: Replace the getParameterByName arguments with your own recommendation key and contentitem id (or customUniqueIdentifier).
+                Bibblio.initRelatedContent({
+                  targetElementId: 'bib_related-content', // Required
+                  recommendationKey: getParameterByName('recommendationKey'), // Required
+                  contentItemId: getParameterByName('contentItemId'), // Required unless customUniqueIdentifier is provided instead
+                  // customUniqueIdentifier: getParameterByName('customUniqueIdentifier'), // Required if no contentItemId is provided. Also required if autoIngestion is enabled.
+                  // autoIngestion: true // Requires a customUniqueIdentifier. Default: false.
+                  // catalogueIds: ["a8365ab1-00f9-38f8-af51-4d0ff527856f"], // Default: same as content item.
+                  // userId: "42", // Default: nil.
+                  // queryStringParams: { "utm_source" : "BibblioRCM" }, // Appends 'utm_source=BibblioRCM' to recommended urls
+                  styleClasses: "bib--grd-4 bib--wide", // Default: 'bib--box-6 bib--wide'
+                  subtitleField: 'provider.name'  // Default: headline. passing a value of false will disable the subtitle   completely
+                });
+            })();
         </script>
     </body>
 </html>

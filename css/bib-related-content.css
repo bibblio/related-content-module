@@ -3,7 +3,7 @@
 }
 
 .bib__module {
-    margin: 0;
+    margin: 0 !important;
     padding: 0 !important;
     border: 0 !important;
     outline: 0 !important;
@@ -15,7 +15,7 @@
     min-height: initial;
     width: 100%;
     overflow: hidden;
-    line-height: normal;
+    line-height: normal !important;
     list-style-type: none;
     font-family: Arial, sans-serif;
 }
@@ -30,6 +30,7 @@
     float: right;
     font-size: 12px !important;
     font-weight: normal !important;
+    font-style: normal !important;
     border: 0 !important;
     outline: 0 !important;
     -moz-box-shadow: 0 0 0 !important;
@@ -44,6 +45,7 @@
     line-height: 1.25 !important;
     opacity: 0.5;
     text-decoration: none;
+    text-transform: none !important;
     -webkit-transition: opacity 0.5s ease-in-out;
     -moz-transition: opacity 0.5s ease-in-out;
     -ms-transition: opacity 0.5s ease-in-out;
@@ -69,6 +71,46 @@
 .bib--white-label .bib__origin {
     display: none;
 }
+
+.bib_pending-recs {
+    display: block;
+    width: 100%;
+    padding-top: 250px;
+    position: relative;
+    border: 0;
+}
+
+.bib_pending-recs-text {
+    background-color: rgba(0,0,0,0.05);
+    position: absolute;
+    top: 5px;
+    left: 5px;
+    right: 5px;
+    bottom: 5px;
+    text-align: center;
+    padding: 95px 15px 0;
+}
+
+.bib_pending-recs-header {
+    font-family: Arial, sans-serif;
+    color: rgba(0,0,0,0.35);
+    font-size: 18px;
+    font-weight: bold;
+    font-style: normal;
+    padding: 0 0 12px;
+    margin: 0;
+}
+
+.bib_pending-recs-subheader {
+    font-family: Arial, sans-serif;
+    color: rgba(0,0,0,0.35);
+    font-size: 15px;
+    font-weight: normal;
+    font-style: normal;
+    padding: 0;
+    margin: 0;
+}
+
 
 .bib__tile {
     float: left;
@@ -104,102 +146,102 @@
 }
 
 /* Col-* Standard ratio 4:3 */
-[class*="bib--col"] .bib__tile { width: 100%; padding: 0 0 75% 0; }
+[class*="bib--col"] .bib__tile { width: 100%; padding: 0 0 75% 0 !important; }
 
 /* Col-* Widescreen ratio 16:9 */
-[class*="bib--col"].bib--wide .bib__tile { padding: 0 0 56% 0; }
+[class*="bib--col"].bib--wide .bib__tile { padding: 0 0 56% 0 !important; }
 
 /* Col-* Square ratio 1:1 */
-[class*="bib--col"].bib--square .bib__tile { padding: 0 0 100% 0; }
+[class*="bib--col"].bib--square .bib__tile { padding: 0 0 100% 0 !important; }
 
 
 /* Box-3 in Widescreen ratio 16:9 only */
-.bib--box-3 .bib__tile { width: 40%; padding: 0 0 16.7% 0; }
-.bib--box-3 .bib__tile--1 { width: 60%; padding: 0 0 33.4% 0; }
+.bib--box-3 .bib__tile { width: 40%; padding: 0 0 16.7% 0 !important; }
+.bib--box-3 .bib__tile--1 { width: 60%; padding: 0 0 33.4% 0 !important; }
 
 
 /* Box-4 in Widescreen ratio 16:9 only */
-.bib--box-4 .bib__tile { width: 40%; padding: 0 0 11.1% 0; }  /* DEBUG: Was  0 0 11.5% 0 */
-.bib--box-4 .bib__tile--1 { width: 60%; padding: 0 0 33.3% 0; }  /* DEBUG: Was  0 0 34.5% 0 */
+.bib--box-4 .bib__tile { width: 40%; padding: 0 0 11.1% 0 !important; }
+.bib--box-4 .bib__tile--1 { width: 60%; padding: 0 0 33.3% 0 !important; }
 
 
 /* Box-5 Standard ratio 4:3 */
-.bib--box-5 .bib__tile { width: 33.33%; padding: 0 0 25% 0; }
+.bib--box-5 .bib__tile { width: 33.33%; padding: 0 0 25% 0 !important; }
 .bib--box-5 .bib__tile--1,
-.bib--box-5 .bib__tile--2 { width: 50%; padding: 0 0 37.5% 0; }
+.bib--box-5 .bib__tile--2 { width: 50%; padding: 0 0 37.5% 0 !important; }
 
 /* Box-5 Widescreen ratio 16:9 */
-.bib--box-5.bib--wide .bib__tile { padding: 0 0 18.5% 0; } /* DEBUG: Was  0 0 18% 0 */
+.bib--box-5.bib--wide .bib__tile { padding: 0 0 18.5% 0 !important; }
 .bib--box-5.bib--wide .bib__tile--1,
-.bib--box-5.bib--wide .bib__tile--2 { padding: 0 0 28% 0; }
+.bib--box-5.bib--wide .bib__tile--2 { padding: 0 0 28% 0 !important; }
 
 /* Box-5 Square ratio 1:1 */
-.bib--box-5.bib--square .bib__tile { padding: 0 0 33.3% 0; }
+.bib--box-5.bib--square .bib__tile { padding: 0 0 33.3% 0 !important; }
 .bib--box-5.bib--square .bib__tile--1,
-.bib--box-5.bib--square .bib__tile--2 { padding: 0 0 50% 0; }
+.bib--box-5.bib--square .bib__tile--2 { padding: 0 0 50% 0 !important; }
 
 
 /* Box-6 in Widescreen ratio 16:9 only */
-.bib--box-6 .bib__tile { width: 33.33%; padding: 0 0 18.5% 0; } /* DEBUG: Was  0 0 19.5% 0 */
-.bib--box-6 .bib__tile--1 { width: 66.66%; padding: 0 0 37% 0; } /* DEBUG: Was  0 0 39% 0 */
+.bib--box-6 .bib__tile { width: 33.33%; padding: 0 0 18.5% 0 !important; }
+.bib--box-6 .bib__tile--1 { width: 66.66%; padding: 0 0 37% 0 !important; }
 .bib--box-6 .bib__tile--4 { clear: left; }
 
 
 /* Row-2 Standard ratio 4:3 */
-.bib--row-2 .bib__tile { width: 50%; padding: 0 0 37.5% 0; }
+.bib--row-2 .bib__tile { width: 50%; padding: 0 0 37.5% 0 !important; }
 
 /* Row-2 Widescreen ratio 16:9 */
-.bib--row-2.bib--wide .bib__tile { padding: 0 0 28% 0; }
+.bib--row-2.bib--wide .bib__tile { padding: 0 0 28% 0 !important; }
 
 /* Row-2 Square ratio 1:1 */
-.bib--row-2.bib--square .bib__tile { padding: 0 0 50% 0; }
+.bib--row-2.bib--square .bib__tile { padding: 0 0 50% 0 !important; }
 
 
 /* Row-4 Standard ratio 4:3 */
-.bib--row-4 .bib__tile { width: 25%; padding: 0 0 18.75% 0; }
+.bib--row-4 .bib__tile { width: 25%; padding: 0 0 18.75% 0 !important; }
 
 /* Row-4 Widescreen ratio 16:9 */
-.bib--row-4.bib--wide .bib__tile { padding: 0 0 14% 0; }
+.bib--row-4.bib--wide .bib__tile { padding: 0 0 14% 0 !important; }
 
 /* Row-4 Square ratio 1:1 */
-.bib--row-4.bib--square .bib__tile { padding: 0 0 25% 0; }
+.bib--row-4.bib--square .bib__tile { padding: 0 0 25% 0 !important; }
 
 
 /* Row-3 Standard ratio 4:3 */
-.bib--row-3 .bib__tile { width: 33.3%; padding: 0 0 25% 0; }
+.bib--row-3 .bib__tile { width: 33.3%; padding: 0 0 25% 0 !important; }
 
 /* Row-3 Widescreen ratio 16:9 */
-.bib--row-3.bib--wide .bib__tile { padding: 0 0 18.5% 0; }
+.bib--row-3.bib--wide .bib__tile { padding: 0 0 18.5% 0 !important; }
 
 /* Row-3 Square ratio 1:1 */
-.bib--row-3.bib--square .bib__tile { padding: 0 0 33.3% 0; }
+.bib--row-3.bib--square .bib__tile { padding: 0 0 33.3% 0 !important; }
 
 
 /* Grd-4 Standard ratio 4:3 */
-.bib--grd-4 .bib__tile { width: 50%; padding: 0 0 37.5% 0; }
+.bib--grd-4 .bib__tile { width: 50%; padding: 0 0 37.5% 0 !important; }
 
 /* Grd-4 Widescreen ratio 16:9 */
-.bib--grd-4.bib--wide .bib__tile { padding: 0 0 28% 0; }
+.bib--grd-4.bib--wide .bib__tile { padding: 0 0 28% 0 !important; }
 
 /* Grd-4 Square ratio 1:1 */
-.bib--grd-4.bib--square .bib__tile { padding: 0 0 50% 0; }
+.bib--grd-4.bib--square .bib__tile { padding: 0 0 50% 0 !important; }
 
 
 /* Grd-6 Standard ratio 4:3 */
-.bib--grd-6 .bib__tile { width: 33.3%; padding: 0 0 25% 0; }
+.bib--grd-6 .bib__tile { width: 33.3%; padding: 0 0 25% 0 !important; }
 
 /* Grd-6 Widescreen ratio 16:9 */
-.bib--grd-6.bib--wide .bib__tile { padding: 0 0 18.5% 0; } /* DEBUG: Was 0 0 19.5% 0 */
+.bib--grd-6.bib--wide .bib__tile { padding: 0 0 18.5% 0 !important; }
 
 /* Grd-6 Square ratio 1:1 */
-.bib--grd-6.bib--square .bib__tile { padding: 0 0 33.3% 0; }
+.bib--grd-6.bib--square .bib__tile { padding: 0 0 33.3% 0 !important; }
 
 
 .bib__link {
     overflow: hidden;
     position: absolute;
-    padding: 0;
-    margin: 0;
+    padding: 0 !important;
+    margin: 0 !important;
     border: 0 !important;
     outline: 0 !important;
     -moz-box-shadow: 0 0 0 !important;
@@ -382,36 +424,36 @@
     }
 
     /* Box-4 Widescreen Ratio */
-    .bib--box-4.bib--split .bib__tile { padding: 0 0 13% 0; }
-    .bib--box-4.bib--split .bib__tile--1 { padding: 0 0 39% 0; }
+    .bib--box-4.bib--split .bib__tile { padding: 0 0 13% 0 !important; }
+    .bib--box-4.bib--split .bib__tile--1 { padding: 0 0 39% 0 !important; }
 
 
     /* Box-5 Standard Ratio */
-    .bib--box-5.bib--split .bib__tile { padding: 0 0 30% 0; }
+    .bib--box-5.bib--split .bib__tile { padding: 0 0 30% 0 !important; }
     .bib--box-5.bib--split .bib__tile--1,
-    .bib--box-5.bib--split .bib__tile--2 { padding: 0 0 40% 0; }
+    .bib--box-5.bib--split .bib__tile--2 { padding: 0 0 40% 0 !important; }
 
     /* Box-5 Square Ratio */
-    .bib--box-5.bib--split.bib--square .bib__tile { padding: 0 0 33.3% 0; }
+    .bib--box-5.bib--split.bib--square .bib__tile { padding: 0 0 33.3% 0 !important; }
     .bib--box-5.bib--split.bib--square .bib__tile--1,
-    .bib--box-5.bib--split.bib--square .bib__tile--2 { padding: 0 0 50% 0; }
+    .bib--box-5.bib--split.bib--square .bib__tile--2 { padding: 0 0 50% 0 !important; }
 
     /* Box-5 Widescreen Ratio */
-    .bib--box-5.bib--split.bib--wide .bib__tile { padding: 0 0 24% 0; }
+    .bib--box-5.bib--split.bib--wide .bib__tile { padding: 0 0 24% 0 !important; }
     .bib--box-5.bib--split.bib--wide .bib__tile--1,
-    .bib--box-5.bib--split.bib--wide .bib__tile--2 { padding: 0 0 34% 0; }
+    .bib--box-5.bib--split.bib--wide .bib__tile--2 { padding: 0 0 34% 0 !important; }
     .bib--box-5.bib--split.bib--wide .bib__tile .bib__info { min-height: 25%; }
     .bib--box-5.bib--split.bib--wide .bib__tile--1 .bib__info,
     .bib--box-5.bib--split.bib--wide .bib__tile--2 .bib__info { min-height: 17%; }
 
     /* Row-4 Default Ratio  */
-    .bib--row-4.bib--split .bib__tile { padding: 0 0 22% 0; }
+    .bib--row-4.bib--split .bib__tile { padding: 0 0 22% 0 !important; }
 
     /* Row-4 Widescreen Ratio  */
-    .bib--row-4.bib--split.bib--wide .bib__tile { padding: 0 0 18.75% 0; }
+    .bib--row-4.bib--split.bib--wide .bib__tile { padding: 0 0 18.75% 0 !important; }
 
     /* Row-4 Square Ratio  */
-    .bib--row-4.bib--split.bib--square .bib__tile { padding: 0 0 29% 0; }
+    .bib--row-4.bib--split.bib--square .bib__tile { padding: 0 0 29% 0 !important; }
 
 
 /* Responsiveness */
@@ -429,7 +471,7 @@
     .bib__link:hover .bib__preview { display: none !important; }
     .bib__title span { font-size: medium !important; line-height: 1.1em !important; }
     .bib__tile { padding: 0 0 37.5% 0 !important; }
-    .bib--wide .bib__tile { padding: 0 0 28% 0 !important; } /* DEBUG: Was 0 0 30% 0 */
+    .bib--wide .bib__tile { padding: 0 0 28% 0 !important; }
     .bib--wide.bib--split .bib__tile { padding: 0 0 34% 0 !important; }
     .bib--square .bib__tile, .bib--square.bib--split .bib__tile { padding: 0 0 50% 0 !important; }
 
@@ -459,11 +501,11 @@
     .bib--wide.bib--split .bib__tile, .bib--row-3.bib--wide.bib--split .bib__tile.bib__tile--1, .bib--box-3.bib--wide.bib--split .bib__tile.bib__tile--1, .bib--box-5.bib--wide.bib--split .bib__tile.bib__tile--1 { padding: 0 0 62% 0 !important; }
 
     .bib--retina .bib__link { background-size: auto 51%; }
-
 }
 @media (max-width: 320px) {
     .bib--wide .bib__tile { padding: 0 0 56% 0 !important; }
-    .bib--wide.bib--split .bib__tile { padding: 0 0 62% 0 !important; }
+    .bib--wide.bib--split .bib__tile { padding: 0 0 62% 0 !important; } 
+    .bib_pending-recs-text { padding: 75px 20px 0; }
 
 }
 
