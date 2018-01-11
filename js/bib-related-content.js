@@ -12,7 +12,7 @@
 
   // Bibblio module
   var Bibblio = {
-    moduleVersion: "2.0.3",
+    moduleVersion: "2.0.4",
     moduleTracking: {},
 
     outerModuleTemplate: "<ul class=\"bib__module <%= classes %>\">\
@@ -38,6 +38,13 @@
                                             </a>\
                                         </li>",
 
+    comingSoonTemplate: "<div class=\"bib_pending-recs\"> \
+                          <div class=\"bib_pending-recs-text\"> \
+                            <div class=\"bib_pending-recs-header\">Bibblio is busy indexing this content</div> \
+                            <div class=\"bib_pending-recs-subheader\">Relevant recommendations are on their way!</div> \
+                          </div> \
+                        </div>",
+
     initRelatedContent: function(options, callbacks) {
       // Validate the values of the related content moduleSettings
       if(!Bibblio.validateModuleOptions(options))
@@ -48,7 +55,6 @@
       // i.e. the templates are at this point bound to the rest of the function call chain.
       // Modify the global Bibblio.relatedContentItemTemplate and Bibblio.outerModuleTemplate variables
       // if you want to change the templates.
-      var catalogueIds = options.catalogueIds || [];
       var moduleSettings = Bibblio.initModuleSettings(options);
       var callbacks = callbacks || {};
 
@@ -85,8 +91,13 @@
                                    callbacks,
                                    _);
 
+      var handleAutoIngestion = _.partial(Bibblio.handleAutoIngestion,
+                                         options,
+                                         renderModule,
+                                         _);
+
       // Gets the related content items and passes the partially-applied display function as a callback.
-      Bibblio.getRelatedContentItems(options, moduleSettings, renderModule);
+      Bibblio.getRelatedContentItems(options, moduleSettings, handleAutoIngestion);
     },
 
     getRelatedContentItems: function(options, moduleSettings, successCallback) {
@@ -95,7 +106,7 @@
       var xmlhttp = (XMLHttpRequestNodeJS) ? new XMLHttpRequestNodeJS() : new XMLHttpRequest();
       xmlhttp.onreadystatechange = function () {
         if (xmlhttp.readyState === 4) {
-          if (xmlhttp.status === 200) {
+          if (xmlhttp.status === 200 || xmlhttp.status == 404) {
             var response = JSON.parse(xmlhttp.responseText);
             successCallback(response);
           } else if (isNodeJS) {
@@ -109,6 +120,97 @@
       xmlhttp.open("GET", url, true);
       xmlhttp.setRequestHeader("Authorization", "Bearer " + accessToken);
       xmlhttp.send();
+    },
+
+    stripUrlTrackingParameters: function(url) {
+      var trackingParameters = ['utm_source', 'utm_medium', 'utm_campaign', 'utm_term', 'utm_content'];
+
+      var parser = document.createElement('a');
+      parser.href = url;
+
+      var params = parser.search;
+      if (params.charAt(0) === '?') {
+        params = params.substr(1);
+      }
+
+      if (params) {
+        params = params.split('&');
+        params = params.filter(function(param) {
+          var paramName = param.split('=')[0].toLowerCase();
+          return (trackingParameters.indexOf(paramName) === -1);
+        });
+      }
+
+      if (params.length > 0) {
+        parser.search = '?' + params.join('&');
+      } else {
+        parser.search = '';
+      }
+
+      return parser.href;
+    },
+
+    createScrapeRequest: function(options, callback) {
+      var href = ((typeof window !== 'undefined') && window.location && window.location.href) ? window.location.href : '';
+
+      if (!href) {
+        console.error("Bibblio related content module: Cannot not determine url to scrape.");
+        return false;
+      } else {
+        href = Bibblio.stripUrlTrackingParameters(href);
+      }
+
+      var accessToken = options.recommendationKey;
+
+      var scrapeRequest = {
+        customUniqueIdentifier: options.customUniqueIdentifier,
+        url: href
+      };
+
+      var xmlhttp = (XMLHttpRequestNodeJS) ? new XMLHttpRequestNodeJS() : new XMLHttpRequest();
+      xmlhttp.onreadystatechange = function () {
+        if (xmlhttp.readyState === 4) {
+          var responseText = JSON.parse(xmlhttp.responseText);
+          callback(responseText, xmlhttp.status, options);
+        }
+      };
+
+      var url = "https://api.bibblio.org/v1/content-item-url-ingestions/";
+
+      xmlhttp.open("POST", url, true);
+      xmlhttp.setRequestHeader("Authorization", "Bearer " + accessToken);
+      xmlhttp.setRequestHeader("Content-Type", "application/json");
+      xmlhttp.send(JSON.stringify(scrapeRequest));
+    },
+
+    handleAutoIngestion: function(options, renderModule, recommendationsResponse) {
+      if(options.autoIngestion) {
+        // Check if results does not exists, is empty list or is empty string
+        if(!recommendationsResponse.results) {
+          // Create scrape request
+          Bibblio.createScrapeRequest(options, Bibblio.autoIngestionCallback);
+          // Skip rendering module
+          return;
+        }
+        else if(recommendationsResponse.results.length < 1) {
+          // Display coming soon disclaimer
+          Bibblio.displayComingSoonTemplate(options.targetElementId);
+          // Skip rendering module
+          return;
+        }
+      }
+      // Render module when recommendations have been retrieved
+      renderModule(recommendationsResponse);
+    },
+
+    autoIngestionCallback: function(response, status, options) {
+      // If response is 422 and is a domain whitelist error, don't display coming soon container
+      if(status == 422 && response.errors.url == "domain is not whitelisted") {
+        console.error("Bibblio related content module: Page could not be ingested to Bibblio because domain has not been whitelisted for auto ingestion.");
+      } else {
+        // Display coming soon disclaimer
+        Bibblio.displayComingSoonTemplate(options.targetElementId);
+      }
     },
 
     renderModule: function(containerId, displayWithTemplates, submitClickedActivityData, submitViewedActivityData, callbacks, recommendationsResponse) {
@@ -129,6 +231,12 @@
       displayWithTemplates(relatedContentItems);
       Bibblio.bindRelatedContentItemLinks(submitClickedActivityData, containerId, callbacks);
       Bibblio.setOnViewedListeners(containerId, submitViewedActivityData, activityId, callbacks);
+    },
+
+    displayComingSoonTemplate: function(targetElementId) {
+      var comingSoonTemplate = _.template(Bibblio.comingSoonTemplate);
+      var relatedContentItemCountainer = document.getElementById(targetElementId);
+      relatedContentItemCountainer.innerHTML = comingSoonTemplate();
     },
 
     displayRelatedContent: function(containerId,
@@ -567,6 +675,11 @@
     },
 
     validateModuleOptions: function(options) {
+      if(options.autoIngestion && !options.customUniqueIdentifier) {
+        console.error("Bibblio related content module: Please provide a customUniqueIdentifier in the options parameter when autoIngestion is set to true.");
+        return false;
+      }
+
       if(options.contentItemId && options.customUniqueIdentifier) {
         console.error("Bibblio related content module: Cannot supply both contentItemId and customUniqueIdentifier.");
         return false;

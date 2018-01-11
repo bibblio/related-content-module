@@ -26,7 +26,7 @@ npm install bibblio-related-content-module
 
 You will need to load the JavaScript and CSS files in order to use the Related Content Module on your page. If you've installed this as a project dependency and are using asset packaging pipelines then you can safely ignore this step and do it your way.
 
-Include the files by adding these tags to your page:
+Include the files from bower by adding these tags to your page:
 
 ```html
 <!-- CSS -->
@@ -47,7 +47,7 @@ Or, if you're using the npm package:
 <script src="node_modules/bibblio-related-content-module/js/bib-related-content.js"></script>
 ```
 
-The module may also be required using npm's require if installed with npm:
+The module may also be required using NodeJS's require if installed with npm:
 
 ```javascript
 var Bibblio = require("bibblio-related-content-module");
@@ -82,7 +82,11 @@ The Bibblio `contentItemId` of the content item being displayed. Content recomme
 #### `'customUniqueIdentifier'` _(required if no contentItemId is provided)_
 It is possible to use your own id to retrieve recommendations, thereby avoiding the need to store Bibblio's `contentItemId` in your database. To do this, make sure you provide a `customUniqueIdentifier` when [creating a content item](http://docs.bibblio.apiary.io/#reference/storing-data/content-items/create-a-content-item). This allows you to specify the `customUniqueIdentifier` here, when retrieving recommendations. In this case, content recommendations will be based on the Bibblio content item with the `customUniqueIdentifier` specified. If you would prefer to store Bibblio's id simply use `contentItemId` as documented above.
 
-**NB**: You must provide either a `contentItemId` **or** a `customUniqueIdentifier`.
+**NB**: You must provide either a `contentItemId` **or** a `customUniqueIdentifier`. A `customUniqueIdentifier` must be supplied if `autoIngestion` is enabled.
+
+#### `'autoIngestion'` _(optional)_
+The Related Content Module is able to ingest content automatically. It will attempt to retrieve recommendations for the specified content item. If the item does not exist and `autoIngestion` is set to `true`, the module will attempt to parse the content item from the page. Subsequent page loads will then be able to display recommendations once the item has been ingested and indexed. This saves you the trouble of integrating with Bibblio on your backend systems. There are some things to keep in mind when enabling `autoIngestion`: a `customUniqueIdentifier` must be supplied, the item will be ingested the first time it is viewed in a browser, the domain from which it originates must be [whitelisted](http://docs.bibblio.apiary.io/#reference/related-content-module/auto-ingestion-domains), and future updates to item text will not be considered. If you do require content items to be ingested and synced immediately at the time of publication and update then it would be best to [integrate with the API directly](http://docs.bibblio.apiary.io/#reference/storing-data/content-items/create-a-content-item). Please [contact us](http://www.bibblio.org/contact) if you are uncertain about the choice.
+
 
 #### `'catalogueIds'` _(optional)_
 The [catalogues](http://docs.bibblio.apiary.io/#reference/storing-data/catalogues) that recommendations should draw from. The `catalogueId` of [any catalogues you own](http://docs.bibblio.apiary.io/#reference/storing-data/catalogues/list-catalogues) would be valid. Default is the same catalogue as the source content item specified.
@@ -143,8 +147,8 @@ The following snippet shows the initialisation of a related content module. You 
 <script src="bower_components/bibblio-related-content-module/js/bib-related-content.js"></script>
 <script>
     // Initialise the related content plugin.
-    Bibblio.initRelatedContent(
-        {
+    (function() {
+        Bibblio.initRelatedContent({
             targetElementId: 'bib_related-content', // Required
             recommendationKey: 'YOUR_RECOMMENDATION_KEY', // Required
             contentItemId: 'YOUR_CONTENT_ITEM_ID', // Required unless customUniqueIdentifier is provided instead
@@ -154,8 +158,8 @@ The following snippet shows the initialisation of a related content module. You 
             // queryStringParams: { "utm_source" : "BibblioRCM" }, // Appends 'utm_source=BibblioRCM' to recommended urls
             styleClasses: "bib--grd-4 bib--wide", // Default: 'bib--box-6 bib--wide'
             subtitleField: 'provider.name'  // Default: headline. passing a value of false will disable the subtitle   completely
-        }
-    );
+        });
+    })();
 </script>
 ```
 
