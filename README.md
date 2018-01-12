@@ -153,6 +153,7 @@ The following snippet shows the initialisation of a related content module. You 
             recommendationKey: 'YOUR_RECOMMENDATION_KEY', // Required
             contentItemId: 'YOUR_CONTENT_ITEM_ID', // Required unless customUniqueIdentifier is provided instead
             // customUniqueIdentifier: 'YOUR_CUSTOM_UNIQUE_IDENTIFIER', // Required if no contentItemId is provided
+            // autoIngestion: true, // Requires a customUniqueIdentifier. Default: false.
             // catalogueIds: ["a8365ab1-00f9-38f8-af51-4d0ff527856f"], // Default: same as content item
             // userId: "42", // Default: nil
             // queryStringParams: { "utm_source" : "BibblioRCM" }, // Appends 'utm_source=BibblioRCM' to recommended urls
