@@ -10,7 +10,7 @@
 
   // Bibblio module
   var Bibblio = {
-    moduleVersion: "3.0.0",
+    moduleVersion: "3.0.1",
     moduleTracking: {},
 
     initRelatedContent: function(options, callbacks) {
@@ -237,7 +237,7 @@
     },
 
     linkHrefFor: function(url, queryStringParams) {
-      if(queryStringParams == null)
+      if (!queryStringParams || (typeof queryStringParams !== 'object') || (Object.keys(queryStringParams).length === 0))
         return url;
 
       var queryStringParamsList = [];
@@ -466,10 +466,14 @@
     },
 
     /// Common utils
-    getChildProperty: function(obj, desc) {
-      var arr = desc.split('.');
-      while (arr.length && (obj = obj[arr.shift()]));
-      return obj;
+    getChildProperty: function(obj, path) {
+      if ((typeof obj === 'object') && (typeof path === 'string')) {
+        var arr = path.split('.');
+        while (arr.length && (obj = obj[arr.shift()]));
+        return obj;
+      } else {
+        return undefined;
+      }
     },
 
     getModuleSettings: function(options) {
@@ -732,8 +736,8 @@
       // Create template for related content item
       var contentItemUrl = (contentItem.fields.url ? contentItem.fields.url : '');
       var contentItemImageUrl = "";
-      if(contentItem.fields.moduleImage && contentItem.fields.moduleImage.contentItemUrl)
-        contentItemImageUrl = contentItem.fields.moduleImage.contentItemUrl;
+      if(contentItem.fields.moduleImage && contentItem.fields.moduleImage.contentUrl)
+        contentItemImageUrl = contentItem.fields.moduleImage.contentUrl;
 
       var templateOptions = {
           contentItemId: (contentItem.contentItemId ? contentItem.contentItemId : ''),
