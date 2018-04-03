@@ -10,7 +10,7 @@
 
   // Bibblio module
   var Bibblio = {
-    moduleVersion: "3.0.2",
+    moduleVersion: "3.0.3",
     moduleTracking: {},
 
     initRelatedContent: function(options, callbacks) {
@@ -729,6 +729,17 @@
       return subtitleHTML;
     },
 
+    filterContentItemImageUrl: function(moduleImageUrl) {
+      var escapeSingleQuotes = moduleImageUrl.replace(/'/g, "\\'");
+
+      if(escapeSingleQuotes.indexOf("http://") > -1 || escapeSingleQuotes.indexOf("https://") > -1) {
+        return escapeSingleQuotes;
+      } else {
+          var withProtocol = "http://" + escapeSingleQuotes;
+          return withProtocol;
+      };
+    },
+
     getRelatedContentItemHTML: function(contentItem, contentItemIndex, options, moduleSettings) {
       // Create template for subtitle
       var subtitleHTML = BibblioTemplates.getSubtitleHTML(contentItem, moduleSettings);
@@ -737,7 +748,8 @@
       var contentItemUrl = (contentItem.fields.url ? contentItem.fields.url : '');
       var contentItemImageUrl = "";
       if(contentItem.fields.moduleImage && contentItem.fields.moduleImage.contentUrl)
-        contentItemImageUrl = contentItem.fields.moduleImage.contentUrl;
+        var filteredImageUrl = BibblioTemplates.filterContentItemImageUrl(contentItem.fields.moduleImage.contentUrl);
+        contentItemImageUrl = filteredImageUrl;
 
       var templateOptions = {
           contentItemId: (contentItem.contentItemId ? contentItem.contentItemId : ''),
@@ -746,7 +758,7 @@
           linkTarget: BibblioUtils.linkTargetFor(contentItemUrl),
           linkRel: BibblioUtils.linkRelFor(contentItemUrl),
           linkImageClass: (contentItemImageUrl ? 'bib__link--image' : ''),
-          linkStyle: (contentItemImageUrl ? 'style="background-image: url(' + contentItemImageUrl + ')"' : ''),
+          linkStyle: (contentItemImageUrl ? 'style="background-image: url(' + "'"  + contentItemImageUrl + "'" + ')"' : ''),
           subtitleHTML: subtitleHTML,
           tileNumber: contentItemIndex + 1
       };
