@@ -327,10 +327,10 @@
     -ms-transition: all 0.5s ease-in-out;
     -o-transition: all 0.5s ease-in-out;
     transition: all 0.5s ease-in-out;
-    background: -moz-linear-gradient(top,  rgba(0,0,0,0) 0%, rgba(0,0,0,0.5) 100%);
-    background: -webkit-linear-gradient(top,  rgba(0,0,0,0) 0%,rgba(0,0,0,0.5) 100%);
-    background: linear-gradient(to bottom,  rgba(0,0,0,0) 0%,rgba(0,0,0,0.5) 100%);
-    filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#00000000', endColorstr='#00000080',GradientType=0 );
+    background: -moz-linear-gradient(top,  rgba(0,0,0,0) 0%, rgba(0,0,0,0.7) 100%);
+    background: -webkit-linear-gradient(top,  rgba(0,0,0,0) 0%,rgba(0,0,0,0.7) 100%);
+    background: linear-gradient(to bottom,  rgba(0,0,0,0) 0%,rgba(0,0,0,0.7) 100%);
+    filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#00000000', endColorstr='#000000B3',GradientType=0 );
 }
 
 .bib__link.bib__link--image .bib__info {
@@ -378,6 +378,24 @@
     display: block;
     margin: 10px 0 5px;
 }
+
+.bib--font-arial .bib__title {font-family: Arial, sans-serif;}
+.bib--font-arialblack .bib__title {font-family: Arial Black, sans-serif;}
+.bib--font-comic .bib__title {font-family: "Comic Sans", "Comic Sans MS", sans-serif;}
+.bib--font-courier .bib__title {font-family: "Courier New", serif;}
+.bib--font-georgia .bib__title {font-family: Georgia, serif;}
+.bib--font-palatino .bib__title {font-family: "Palatino Linotype", Palatino, serif;}
+.bib--font-tahoma .bib__title {font-family: Tahoma, sans-serif;}
+.bib--font-times .bib__title {font-family: "Times New Roman", Times, serif;}
+.bib--font-trebuchet .bib__title {font-family: Trebuchet, "Trebuchet MS", sans-serif;}
+.bib--font-verdana .bib__title {font-family: Verdana, sans-serif;}
+
+.bib--size-14 .bib__title {font-size: 14px;}
+.bib--size-14 .bib__info  {font-size: 12px;}
+.bib--size-16 .bib__title {font-size: 16px;}
+.bib--size-18 .bib__title {font-size: 18px;}
+.bib--size-20 .bib__title {font-size: 20px;}
+.bib--size-22 .bib__title {font-size: 22px;}
 
 .bib--shine .bib__link .bib__container:after {
     background: -moz-linear-gradient(-25deg,  rgba(255,255,255,0) 0%, rgba(255,255,255,0) 35%, rgba(255,255,255,0.65) 49%, rgba(255,255,255,0.5) 51%, rgba(255,255,255,0) 65%, rgba(255,255,255,0) 100%);
@@ -526,10 +544,8 @@
 }
 
 @media (max-width: 320px) {
-    /*.bib--wide .bib__tile { padding-bottom: 56% !important; }*/
     .bib--wide.bib--split .bib__tile { padding-bottom: 62% !important; } 
     .bib_pending-recs-text { padding: 75px 20px 0; }
-
 }
 
 /* Visual Styles */
@@ -572,24 +588,6 @@
     margin-left: 5px;
 }
 
-.bib__tile--1 .bib__link {
-    background-color: #27AAE1; }
-
-.bib__tile--2 .bib__link {
-    background-color: #F7941E; }
-
-.bib__tile--3 .bib__link {
-    background-color: #BE1E2D; }
-
-.bib__tile--4 .bib__link {
-    background-color: #644E96; }
-
-.bib__tile--5 .bib__link {
-    background-color: #B3972A; }
-
-.bib__tile--6 .bib__link {
-    background-color: #39B54A; }
-
-.bib__link.bib__link--image {
-    background-color: #EEEEEE !important;
+.bib__link {
+    background-color: #EEEEEE;
 }
