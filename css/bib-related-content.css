@@ -424,7 +424,7 @@
 
 
 /* Larger Titles in Bigger Tiles */
-    .bib--box-4 .bib__tile--1 .bib__title span, .bib--box-5 .bib__tile--1 .bib__title span, .bib--box-5 .bib__tile--2 .bib__title span, .bib--box-6 .bib__tile--1 .bib__title span { font-size: larger; line-height: 1.1em; }
+    .bib--box-3 .bib__tile--1 .bib__title span, .bib--box-4 .bib__tile--1 .bib__title span, .bib--box-5 .bib__tile--1 .bib__title span, .bib--box-5 .bib__tile--2 .bib__title span, .bib--box-6 .bib__tile--1 .bib__title span { font-size: larger; line-height: 1.1em; }
 
 
 /* Split Layout */
