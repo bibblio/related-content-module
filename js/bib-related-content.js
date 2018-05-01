@@ -10,7 +10,7 @@
 
   // Bibblio module
   var Bibblio = {
-    moduleVersion: "3.0.4",
+    moduleVersion: "3.0.5",
     moduleTracking: {},
 
     initRelatedContent: function(options, callbacks) {
