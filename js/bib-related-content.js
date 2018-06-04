@@ -10,7 +10,7 @@
 
   // Bibblio module
   var Bibblio = {
-    moduleVersion: "3.0.5",
+    moduleVersion: "3.0.6",
     moduleTracking: {},
 
     initRelatedContent: function(options, callbacks) {
@@ -730,13 +730,13 @@
     },
 
     filterContentItemImageUrl: function(moduleImageUrl) {
-      var escapeSingleQuotes = moduleImageUrl.replace(/'/g, "\\'");
+      var url = moduleImageUrl.replace(/'/g, "\\'");
 
-      if(escapeSingleQuotes.indexOf("http://") > -1 || escapeSingleQuotes.indexOf("https://") > -1) {
-        return escapeSingleQuotes;
+      if((url.indexOf("http://") === 0) || (url.indexOf("https://") === 0) || (url.indexOf("data:image/") === 0)) {
+        return url;
       } else {
-          var withProtocol = "http://" + escapeSingleQuotes;
-          return withProtocol;
+        var withProtocol = "http://" + url;
+        return withProtocol;
       };
     },
 
