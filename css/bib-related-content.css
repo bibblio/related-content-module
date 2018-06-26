@@ -26,7 +26,7 @@
     background-repeat: no-repeat;
     background-size: 45px auto;
     color: #888888 !important;
-    display: inline-block;
+    display: inline-block !important;
     float: right;
     font-size: 12px !important;
     font-weight: normal !important;
@@ -39,12 +39,12 @@
     max-height: initial;
     min-height: initial;
     height: 25px;
-    margin: 5px 5px 0 0;
-    padding: 0 50px 0 0;
+    margin: 5px 5px 0 0 !important;
+    padding: 0 50px 0 0 !important;
     text-align: right;
     line-height: 1.25 !important;
     opacity: 0.5;
-    text-decoration: none;
+    text-decoration: none !important;
     text-transform: none !important;
     -webkit-transition: opacity 0.5s ease-in-out;
     -moz-transition: opacity 0.5s ease-in-out;
@@ -69,7 +69,7 @@
 }
 
 .bib--white-label .bib__origin {
-    display: none;
+    display: none !important;
 }
 
 .bib_pending-recs {
