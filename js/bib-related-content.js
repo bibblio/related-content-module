@@ -10,7 +10,7 @@
 
   // Bibblio module
   var Bibblio = {
-    moduleVersion: "3.0.6",
+    moduleVersion: "3.0.7",
     moduleTracking: {},
 
     initRelatedContent: function(options, callbacks) {
@@ -676,7 +676,7 @@
   var BibblioTemplates = {
     outerModuleTemplate: '<ul class="bib__module <% classes %>">\
                             <% recommendedContentItems %>\
-                            <a href="http://bibblio.org/about" target="_blank" class="bib__origin">Refined by</a>\
+                            <a href="http://bibblio.org/who-cares" target="_blank" class="bib__origin">Refined by</a>\
                           </ul>',
 
     relatedContentItemTemplate: '<li class="bib__tile bib__tile--<% tileNumber %> ">\
