@@ -10,7 +10,7 @@
 
   // Bibblio module
   var Bibblio = {
-    moduleVersion: "3.0.7",
+    moduleVersion: "3.0.8",
     moduleTracking: {},
 
     initRelatedContent: function(options, callbacks) {
@@ -153,6 +153,7 @@
 
     getRecommendationUrl: function(options, limit, page, fields) {
       var baseUrl = "https://api.bibblio.org/v1";
+      var recommendationType = (options.recommendationType) ? options.recommendationType : null;
       var catalogueIds = options.catalogueIds ? options.catalogueIds : [];
       var userId = options.userId;
       var querystringArgs = [
@@ -177,7 +178,12 @@
           querystringArgs.push("userId=" + userId);
       }
 
-      return baseUrl + "/recommendations?" + querystringArgs.join("&");
+      if (recommendationType === "related") {
+        return baseUrl + "/recommendations/related?" + querystringArgs.join("&");
+      } else {
+        return baseUrl + "/recommendations?" + querystringArgs.join("&");
+      }
+
     },
 
     /// Auto ingestion functions
@@ -676,7 +682,7 @@
   var BibblioTemplates = {
     outerModuleTemplate: '<ul class="bib__module <% classes %>">\
                             <% recommendedContentItems %>\
-                            <a href="http://bibblio.org/who-cares" target="_blank" class="bib__origin">Refined by</a>\
+                            <a href="http://bibblio.org/who-cares" target="_blank" class="bib__origin" rel="nofollow">Refined by</a>\
                           </ul>',
 
     relatedContentItemTemplate: '<li class="bib__tile bib__tile--<% tileNumber %> ">\
