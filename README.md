@@ -33,7 +33,6 @@ Include the files from bower by adding these tags to your page:
 <link rel="stylesheet" type="text/css" href="bower_components/bibblio-related-content-module/css/bib-related-content.css">
 
 <!-- JavaScript -->
-<script src="bower_components/underscore/underscore-min.js"></script>
 <script src="bower_components/bibblio-related-content-module/js/bib-related-content.js"></script>
 ```
 Or, if you're using the npm package:
@@ -43,7 +42,6 @@ Or, if you're using the npm package:
 <link rel="stylesheet" type="text/css" href="node_modules/bibblio-related-content-module/css/bib-related-content.css">
 
 <!-- JavaScript -->
-<script src="node_modules/underscore/underscore-min.js"></script>
 <script src="node_modules/bibblio-related-content-module/js/bib-related-content.js"></script>
 ```
 
@@ -146,7 +144,6 @@ The following snippet shows the initialisation of a related content module. You 
 <div id="bib_related-content"></div>
 
 <!-- * Related Content Javascript -->
-<script src="bower_components/underscore/underscore-min.js"></script>
 <script src="bower_components/bibblio-related-content-module/js/bib-related-content.js"></script>
 <script>
     // Initialise the related content plugin.
