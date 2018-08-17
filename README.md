@@ -99,7 +99,7 @@ Allows you to append additional query string params to the target url of recomme
 Allows you to specify the type of recommendations to serve. Options are 'optimised' or 'related'. _Optimised_ recommendations are rooted in relevance but will also learn from user behaviour and continuously adapt to attain better engagement. _Related_ recommendations ignore user behaviour and are based purely on relatedness. We suggest starting with _optimised_ recommendations and adding an additional, _related_ module elsewhere on the page if desired. Default is 'optimised'.
 
 #### `'styleClasses'` _(optional)_
-Allows you to customise the CSS styles applied to the related content module. An interactive configuration wizard is available in the Demos section of your Bibblio management console, which allows you to generate parameters for this option. If you plan to place the module on an area of your page that has a dark background color you can append 'bib--invert' to your parameters to be sure everything remains legible. If most of your content item images are portrait sized, consider appending 'bib--portrait' to your parameters so the images resize nicely in the tiles. Default is 'bib--box-6 bib--wide'.
+Allows you to customise the CSS styles applied to the related content module. An interactive configuration wizard is available in the Demos section of your Bibblio management console, which allows you to generate parameters for this option. If you plan to place the module on an area of your page that has a dark background color you can append 'bib--invert' to your parameters to be sure everything remains legible. If most of your content item images are portrait sized, consider appending 'bib--portrait' to your parameters so the images resize nicely in the tiles.
 
 #### `'subtitleField'` _(optional)_
 Allows you to specify the content item field to use as subtitles on the recommended content panel. Any [valid content item field](http://docs.bibblio.apiary.io/#reference/storing-data/content-items/retrieve-a-content-item) can be used. Providing a value of _false_ will disable the subtitle. Default is '_headline_'.
@@ -149,17 +149,9 @@ The following snippet shows the initialisation of a related content module. You 
     // Initialise the related content plugin.
     (function() {
         Bibblio.initRelatedContent({
-            targetElementId: 'bib_related-content', // Required
-            recommendationKey: 'YOUR_RECOMMENDATION_KEY', // Required
-            contentItemId: 'YOUR_CONTENT_ITEM_ID', // Required unless customUniqueIdentifier is provided instead
-            // customUniqueIdentifier: 'YOUR_CUSTOM_UNIQUE_IDENTIFIER', // Required if no contentItemId is provided
-            // autoIngestion: true, // Requires a customUniqueIdentifier. Default: false.
-            // catalogueIds: ["a8365ab1-00f9-38f8-af51-4d0ff527856f"], // Default: same as content item
-            // userId: "42", // Default: nil
-            // queryStringParams: { "utm_source" : "BibblioRCM" }, // Appends 'utm_source=BibblioRCM' to recommended urls
-            // recommendationType: "related", // Default: 'optimised'. Valid options: 'related', 'optimised'
-            styleClasses: "bib--grd-4 bib--wide", // Default: 'bib--box-6 bib--wide'
-            subtitleField: 'provider.name'  // Default: headline. passing a value of false will disable the subtitle   completely
+            targetElementId: 'bib_related-content',
+            recommendationKey: 'YOUR_RECOMMENDATION_KEY',
+            contentItemId: 'YOUR_CONTENT_ITEM_ID'
         });
     })();
 </script>
