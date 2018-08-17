@@ -20,7 +20,28 @@ The style and layout is extremely customisable. We've currently implemented 3 pr
 * _Show title only:_ bib--title-only
 * _Reveal secondary text:_ bib--hover
 
+### Headline font family
+* _Arial:_ bib--font-arial _(default)_
+* _Arial Black:_ bib--font-arialblack
+* _Comic Sans:_ bib--font-comic
+* _Courier New:_ bib--font-courier
+* _Georgia:_ bib--font-georgia
+* _Palatino Linotype:_ bib--font-palatino
+* _Tahoma:_ bib--font-tahoma
+* _Times New Roman:_ bib--font-times
+* _Trebuchet MS:_ bib--font-trebuchet
+* _Verdana:_ bib--font-verdana
+
+### Headline text size
+* _14px:_ bib--size-14 
+* _16px:_ bib--size-16 
+* _18px:_ bib--size-18 _(default)_
+* _20px:_ bib--size-20 
+* _22px:_ bib--size-22 
+
 ### Extras
 * _Hover 'shine' effect:_ bib--shine
-* _Retina quality:_ bib--retina
-* _If a tile has a background image, this class is added to the anchor 'bib__link':_ bib__link--image
+* _Using portrait-oriented images:_ bib--portrait
+* _Using Retina-quality images:_ bib--retina
+* _Invert 'Refined by Bibblio' footer color for dark page backgrounds:_ bib--invert
+* _If a tile has a background image, this class is automatically added to the anchor 'bib__link':_ bib__link--image

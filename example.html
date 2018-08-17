@@ -35,8 +35,8 @@
             (function() {
                 Bibblio.initRelatedContent({
                     targetElementId: 'bib_related-content',
-                    recommendationKey: 'YOUR_RECOMMENDATION_KEY',
-                    contentItemId: 'YOUR_CONTENT_ITEM_ID'
+                    recommendationKey: getParameterByName('recommendationKey'),
+                    contentItemId: getParameterByName('contentItemId')
                 });
             })();
         </script>
