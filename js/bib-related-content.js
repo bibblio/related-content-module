@@ -10,7 +10,7 @@
 
   // Bibblio module
   var Bibblio = {
-    moduleVersion: "3.0.8",
+    moduleVersion: "3.0.9",
     moduleTracking: {},
 
     initRelatedContent: function(options, callbacks) {
@@ -98,6 +98,15 @@
       var relatedContentItemContainer = document.getElementById(containerId);
       var moduleHTML = BibblioTemplates.getModuleHTML(relatedContentItems, options, moduleSettings);
       relatedContentItemContainer.innerHTML = moduleHTML;
+
+      if(callbacks.onRecommendationsRendered) {
+        try {
+          callbacks.onRecommendationsRendered(relatedContentItems);
+        }
+        catch(err) {
+          console.error(err);
+        }
+      }
 
       Bibblio.initTracking(options, callbacks, recommendationsResponse);
     },
@@ -881,12 +890,14 @@
       Bibblio: Bibblio,
       BibblioUtils: BibblioUtils,
       BibblioActivity: BibblioActivity,
-      BibblioEvents: BibblioEvents
+      BibblioEvents: BibblioEvents,
+      BibblioTemplates: BibblioTemplates 
     };
   } else {
     window.Bibblio = Bibblio;
     window.BibblioActivity = BibblioActivity;
     window.BibblioUtils = BibblioUtils;
     window.BibblioEvents = BibblioEvents;
+    window.BibblioTemplates = BibblioTemplates;
   }
 })();
