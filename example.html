@@ -32,13 +32,13 @@
         <script src="js/bib-related-content.js"></script>
         <script>
             // Initialise the related content plugin.
-            (function() {
+            window.onload = function() {
                 Bibblio.initRelatedContent({
                     targetElementId: 'bib_related-content',
                     recommendationKey: getParameterByName('recommendationKey'),
                     contentItemId: getParameterByName('contentItemId')
                 });
-            })();
+            };
         </script>
     </body>
 </html>

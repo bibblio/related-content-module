@@ -10,7 +10,7 @@
 
   // Bibblio module
   var Bibblio = {
-    moduleVersion: "3.0.9",
+    moduleVersion: "3.0.10",
     moduleTracking: {},
 
     initRelatedContent: function(options, callbacks) {
@@ -154,7 +154,7 @@
 
     /// Get recommendations functions
     getRecommendationFields: function(subtitleField) {
-      var fields = ["name", "url", "moduleImage"];
+      var fields = ["name", "url", "moduleImage", "datePublished", "author"];
       if(subtitleField)
         fields.push(BibblioUtils.getRootProperty(subtitleField));
       return fields;
@@ -496,6 +496,7 @@
       moduleSettings.stylePreset = options.stylePreset || "default";
       moduleSettings.styleClasses = options.styleClasses || false;
       moduleSettings.subtitleField = (options.subtitleField ? options.subtitleField : "headline");
+      moduleSettings.dateFormat = (options.dateFormat ? options.dateFormat : "DMY");
       return moduleSettings;
     },
 
@@ -618,6 +619,24 @@
       if (callback != null && typeof callback === "function") {
         callback(response, status);
       }
+    },
+
+    monthName: function(monthNum) {
+      var month = [];
+      month[1] = "January";
+      month[2] = "February";
+      month[3] = "March";
+      month[4] = "April";
+      month[5] = "May";
+      month[6] = "June";
+      month[7] = "July";
+      month[8] = "August";
+      month[9] = "September";
+      month[10] = "October";
+      month[11] = "November";
+      month[12] = "December";
+      var monthNum = parseInt(monthNum);
+      return month[monthNum];
     }
   };
 
@@ -700,12 +719,20 @@
                                             <span class="bib__info">\
                                                 <span class="bib__title"><span><% name %></span></span>\
                                                 <% subtitleHTML %>\
+                                                <span class="bib__attributes">\
+                                                  <% authorHTML %>\
+                                                  <% datePublishedHTML %>\
+                                                </span>\
                                             </span>\
                                         </span>\
                                     </a> \
                                 </li>',
 
     subtitleTemplate: '<span class="bib__preview"><% subtitle %></span>',
+
+    authorTemplate: '<span class="bib__author"><% author %></span>',
+
+    datePublishedTemplate: '<span class="bib__recency"><% datePublished %></span>',
 
     comingSoonTemplate: '<div class="bib_pending-recs"> \
                           <div class="bib_pending-recs-text"> \
@@ -744,6 +771,74 @@
       return subtitleHTML;
     },
 
+    getAuthorHTML: function(contentItem, moduleSettings) {
+      var authorHTML = '';
+      try {
+        var authorField = contentItem.fields.author;
+        var moduleOptionsClasses = (moduleSettings.styleClasses) ? String(moduleSettings.styleClasses) : '';
+        var authorClass = "bib--author-show";
+
+        if(moduleOptionsClasses.indexOf(authorClass) !== -1 && authorField){
+          var templateOptions = {
+            author: authorField.name
+          };
+          authorHTML = BibblioTemplates.getTemplate(BibblioTemplates.authorTemplate, templateOptions);
+        }
+      } catch (e) {
+
+      }
+
+      return authorHTML;
+    },
+
+    formatDate: function(value, formatting) {
+      if (value && (value.indexOf('T') === 10)) {
+        var date  = value.split('T')[0];
+        var year  = parseInt(date.split('-')[0]);
+        var month = parseInt(date.split('-')[1]);
+        var day   = parseInt(date.split('-')[2]);
+        var monthName = BibblioUtils.monthName(month);
+
+        switch (formatting) {
+          case "MDY":
+            return monthName + " " + day + ", " + year;
+            break;
+
+          case "YMD":
+            return year + " " + monthName + " " + day;
+            break;
+
+          case "DMY":
+          default:
+            return day + " " + monthName + " " + year;
+            break;
+        }
+      }
+    },
+
+    getDatePublishedHTML: function(contentItem, moduleSettings) {
+      var datePublishedHTML = '';
+
+      try {
+        var datePublishedField = contentItem.fields.datePublished;
+        var moduleOptionsClasses = (moduleSettings.styleClasses) ? String(moduleSettings.styleClasses) : '';
+        var datePublishedClass = "bib--recency-show";
+
+        datePublishedField = BibblioTemplates.formatDate(datePublishedField, moduleSettings.dateFormat);
+
+        if(moduleOptionsClasses.indexOf(datePublishedClass) !== -1 && datePublishedField){
+          var templateOptions = {
+            datePublished: datePublishedField
+          };
+          datePublishedHTML = BibblioTemplates.getTemplate(BibblioTemplates.datePublishedTemplate, templateOptions);
+        }
+      } catch (e) {
+
+      }
+
+      return datePublishedHTML;
+    },
+
     filterContentItemImageUrl: function(moduleImageUrl) {
       var url = moduleImageUrl.replace(/'/g, "\\'");
 
@@ -758,6 +853,10 @@
     getRelatedContentItemHTML: function(contentItem, contentItemIndex, options, moduleSettings) {
       // Create template for subtitle
       var subtitleHTML = BibblioTemplates.getSubtitleHTML(contentItem, moduleSettings);
+      // Create template for author
+      var authorHTML = BibblioTemplates.getAuthorHTML(contentItem, moduleSettings);
+      // Create template for datePublished
+      var datePublishedHTML = BibblioTemplates.getDatePublishedHTML(contentItem, moduleSettings);
 
       // Create template for related content item
       var contentItemUrl = (contentItem.fields.url ? contentItem.fields.url : '');
@@ -769,6 +868,8 @@
       var templateOptions = {
           contentItemId: (contentItem.contentItemId ? contentItem.contentItemId : ''),
           name: (contentItem.fields.name ? contentItem.fields.name   : ''),
+          authorHTML: authorHTML,
+          datePublishedHTML: datePublishedHTML,
           linkHref: BibblioUtils.linkHrefFor(contentItemUrl, options.queryStringParams),
           linkTarget: BibblioUtils.linkTargetFor(contentItemUrl),
           linkRel: BibblioUtils.linkRelFor(contentItemUrl),
@@ -891,7 +992,7 @@
       BibblioUtils: BibblioUtils,
       BibblioActivity: BibblioActivity,
       BibblioEvents: BibblioEvents,
-      BibblioTemplates: BibblioTemplates 
+      BibblioTemplates: BibblioTemplates
     };
   } else {
     window.Bibblio = Bibblio;
