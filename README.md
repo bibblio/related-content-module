@@ -15,11 +15,11 @@ The easiest way to use the module is via our CDN. There is no need to install an
 
 ```html
 <head>
-    <!-- CSS -->.  
-    <link rel="stylesheet" type="text/css" href="https://cdn.bibblio.org/rcm/3.0.10/bib-related-content.min.css">
+    <!-- CSS -->.
+    <link rel="stylesheet" type="text/css" href="https://cdn.bibblio.org/rcm/3.0.11/bib-related-content.min.css">
 
     <!-- JavaScript -->
-    <script src="https://cdn.bibblio.org/rcm/3.0.10/bib-related-content.min.js"></script>
+    <script src="https://cdn.bibblio.org/rcm/3.0.11/bib-related-content.min.js"></script>
 </head>
 ```
 
@@ -160,13 +160,13 @@ The following snippet shows the initialisation of a related content module. You 
 <script src="bower_components/bibblio-related-content-module/js/bib-related-content.js"></script>
 <script>
     // Initialise the related content plugin.
-    (function() {
+    window.addEventListener("load", function() {
         Bibblio.initRelatedContent({
             targetElementId: 'bib_related-content',
             recommendationKey: 'YOUR_RECOMMENDATION_KEY',
             contentItemId: 'YOUR_CONTENT_ITEM_ID'
         });
-    })();
+    });
 </script>
 ```
 

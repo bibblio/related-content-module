@@ -10,7 +10,7 @@
 
   // Bibblio module
   var Bibblio = {
-    moduleVersion: "3.0.10",
+    moduleVersion: "3.0.11",
     moduleTracking: {},
 
     initRelatedContent: function(options, callbacks) {
@@ -68,12 +68,15 @@
       }
 
       var accessToken = options.recommendationKey;
-
       var scrapeRequest = {
         customUniqueIdentifier: options.customUniqueIdentifier,
         url: href
       };
 
+      if (options.ingestionCatalogueId) {
+        scrapeRequest.catalogueId = options.ingestionCatalogueId
+      }
+      
       var url = "https://api.bibblio.org/v1/content-item-url-ingestions/";
 
       BibblioUtils.bibblioHttpPostRequest(url, accessToken, scrapeRequest, true, function(response, status) {
@@ -234,9 +237,10 @@
       var presets = {
           "grid-4": "bib--grd-4 bib--wide",
           "box-5": "bib--box-5 bib--wide",
-          "box-6": "bib--box-6 bib--wide"
+          "box-6": "bib--box-6 bib--wide",
+          "row-3": "bib--row-3"
       };
-      return presets[stylePreset] || presets["box-6"];
+      return presets[stylePreset] || presets["row-3"];
     },
 
     linkRelFor: function(url) {
@@ -292,42 +296,44 @@
     // Click events
     bindContentItemsClickEvents: function(options, callbacks, recommendationsResponse) {
       var containerId = options.targetElementId;
-      var relatedContentItemlinks = document.getElementById(containerId).getElementsByClassName("bib__link");
-      // (options, recommendationsResponse, callback, event)
-      for (var i = 0; i < relatedContentItemlinks.length; i++) {
-        // This event is only here for the callback on left clicks
-        relatedContentItemlinks[i].addEventListener('click', function(event) {
-          var callback = null;
+      if (document.getElementById(containerId)) {
+        var relatedContentItemlinks = document.getElementById(containerId).getElementsByClassName("bib__link");
+        // (options, recommendationsResponse, callback, event)
+        for (var i = 0; i < relatedContentItemlinks.length; i++) {
+          // This event is only here for the callback on left clicks
+          relatedContentItemlinks[i].addEventListener('click', function(event) {
+            var callback = null;
 
-          if (event.which == 1 && callbacks.onRecommendationClick) { // Left click
-            callback = callbacks.onRecommendationClick;
-          }
+            if (event.which == 1 && callbacks.onRecommendationClick) { // Left click
+              callback = callbacks.onRecommendationClick;
+            }
 
-          BibblioEvents.onRecommendationClick(options, recommendationsResponse, event, callback);
-        }, false);
+            BibblioEvents.onRecommendationClick(options, recommendationsResponse, event, callback);
+          }, false);
 
-        relatedContentItemlinks[i].addEventListener('mousedown', function(event) {
-          if (event.which == 3)
-            BibblioEvents.onRecommendationClick(options, recommendationsResponse, event);
-        }, false);
+          relatedContentItemlinks[i].addEventListener('mousedown', function(event) {
+            if (event.which == 3)
+              BibblioEvents.onRecommendationClick(options, recommendationsResponse, event);
+          }, false);
 
-        relatedContentItemlinks[i].addEventListener('mouseup', function(event) {
-        	if (event.which < 4) {
-        		BibblioEvents.onRecommendationClick(options, recommendationsResponse, event);
-        	}
-        }, false);
+          relatedContentItemlinks[i].addEventListener('mouseup', function(event) {
+            if (event.which < 4) {
+              BibblioEvents.onRecommendationClick(options, recommendationsResponse, event);
+            }
+          }, false);
 
-        relatedContentItemlinks[i].addEventListener('auxclick', function(event) {
-          if (event.which < 4) {
-            BibblioEvents.onRecommendationClick(options, recommendationsResponse, event);
-          }
-        }, false);
+          relatedContentItemlinks[i].addEventListener('auxclick', function(event) {
+            if (event.which < 4) {
+              BibblioEvents.onRecommendationClick(options, recommendationsResponse, event);
+            }
+          }, false);
 
-        relatedContentItemlinks[i].addEventListener('keydown', function(event) {
-          if (event.which == 13) {
-            BibblioEvents.onRecommendationClick(options, recommendationsResponse, event);
-          }
-        }, false);
+          relatedContentItemlinks[i].addEventListener('keydown', function(event) {
+            if (event.which == 13) {
+              BibblioEvents.onRecommendationClick(options, recommendationsResponse, event);
+            }
+          }, false);
+        }
       }
     },
 
@@ -380,12 +386,14 @@
     },
 
     isRecommendationTileInView: function(containerId) {
-      var tiles = document.getElementById(containerId).getElementsByClassName("bib__tile");
-      var scrollableParents = BibblioUtils.getScrollableParents(containerId);
-      if(scrollableParents !== false) {
-        for(var i = 0; i < tiles.length; i++) {
-          if(BibblioUtils.isTileVisible(tiles[i], scrollableParents))
-            return true;
+      if (document.getElementById(containerId)) {
+        var tiles = document.getElementById(containerId).getElementsByClassName("bib__tile");
+        var scrollableParents = BibblioUtils.getScrollableParents(containerId);
+        if(scrollableParents !== false) {
+          for(var i = 0; i < tiles.length; i++) {
+            if(BibblioUtils.isTileVisible(tiles[i], scrollableParents))
+              return true;
+          }
         }
       }
       return false;
@@ -718,11 +726,11 @@
                                       <span class="bib__container">\
                                             <span class="bib__info">\
                                                 <span class="bib__title"><span><% name %></span></span>\
-                                                <% subtitleHTML %>\
                                                 <span class="bib__attributes">\
                                                   <% authorHTML %>\
                                                   <% datePublishedHTML %>\
                                                 </span>\
+                                                <% subtitleHTML %>\
                                             </span>\
                                         </span>\
                                     </a> \
@@ -775,15 +783,10 @@
       var authorHTML = '';
       try {
         var authorField = contentItem.fields.author;
-        var moduleOptionsClasses = (moduleSettings.styleClasses) ? String(moduleSettings.styleClasses) : '';
-        var authorClass = "bib--author-show";
-
-        if(moduleOptionsClasses.indexOf(authorClass) !== -1 && authorField){
-          var templateOptions = {
-            author: authorField.name
-          };
-          authorHTML = BibblioTemplates.getTemplate(BibblioTemplates.authorTemplate, templateOptions);
-        }
+        var templateOptions = {
+          author: authorField.name
+        };
+        authorHTML = BibblioTemplates.getTemplate(BibblioTemplates.authorTemplate, templateOptions);
       } catch (e) {
 
       }
@@ -818,20 +821,13 @@
 
     getDatePublishedHTML: function(contentItem, moduleSettings) {
       var datePublishedHTML = '';
-
       try {
         var datePublishedField = contentItem.fields.datePublished;
-        var moduleOptionsClasses = (moduleSettings.styleClasses) ? String(moduleSettings.styleClasses) : '';
-        var datePublishedClass = "bib--recency-show";
-
         datePublishedField = BibblioTemplates.formatDate(datePublishedField, moduleSettings.dateFormat);
-
-        if(moduleOptionsClasses.indexOf(datePublishedClass) !== -1 && datePublishedField){
-          var templateOptions = {
-            datePublished: datePublishedField
-          };
-          datePublishedHTML = BibblioTemplates.getTemplate(BibblioTemplates.datePublishedTemplate, templateOptions);
-        }
+        var templateOptions = {
+          datePublished: datePublishedField
+        };
+        datePublishedHTML = BibblioTemplates.getTemplate(BibblioTemplates.datePublishedTemplate, templateOptions);
       } catch (e) {
 
       }
