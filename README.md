@@ -8,52 +8,65 @@ Get content recommendations quickly and easily with [Bibblio](http://bibblio.org
 
 [Check out the full docs here](http://developer.bibblio.org/docs).
 
-## Installing the module
+## Installing the assets
 
-The module's JavaScript and CSS can be installed with [Bower](https://bower.io/#install-bower) by running:
+### CDN (recommended)
+The easiest way to use the module is via our CDN. There is no need to install anything since the assets can be retrieved directly from Bibblio's servers. Simply include them in your page as follows:
 
+```html
+<head>
+    <!-- CSS -->.
+    <link rel="stylesheet" type="text/css" href="https://cdn.bibblio.org/rcm/3.0.11/bib-related-content.min.css">
+
+    <!-- JavaScript -->
+    <script src="https://cdn.bibblio.org/rcm/3.0.11/bib-related-content.min.js"></script>
+</head>
+```
+
+If you would like to host the assets yourself instead they can be installed via [Bower](https://bower.io/#install-bower) and [npm](https://www.npmjs.com/get-npm).
+
+### Bower
+The Bower package can be installed with the following command:
 ```
 bower install bibblio-related-content-module
 ```
 
-Alternatively, the module's JavaScript and CSS can be installed with [npm](https://www.npmjs.com/get-npm) by running:
+And included like this:
+```html
+<head>
+    <!-- CSS -->
+    <link rel="stylesheet" type="text/css" href="bower_components/bibblio-related-content-module/css/bib-related-content.css">
 
+    <!-- JavaScript -->
+    <script src="bower_components/bibblio-related-content-module/js/bib-related-content.js"></script>
+</head>
+```
+
+### NPM
+The NPM package can be installed with the following command:
 ```
 npm install bibblio-related-content-module
 ```
 
-## Loading the module files
-
-You will need to load the JavaScript and CSS files in order to use the Related Content Module on your page. If you've installed this as a project dependency and are using asset packaging pipelines then you can safely ignore this step and do it your way.
-
-Include the files from bower by adding these tags to your page:
-
+And included like this:
 ```html
-<!-- CSS -->
-<link rel="stylesheet" type="text/css" href="bower_components/bibblio-related-content-module/css/bib-related-content.css">
+<head>
+    <!-- CSS -->
+    <link rel="stylesheet" type="text/css" href="node_modules/bibblio-related-content-module/css/bib-related-content.css">
 
-<!-- JavaScript -->
-<script src="bower_components/bibblio-related-content-module/js/bib-related-content.js"></script>
-```
-Or, if you're using the npm package:
-
-```html
-<!-- CSS -->
-<link rel="stylesheet" type="text/css" href="node_modules/bibblio-related-content-module/css/bib-related-content.css">
-
-<!-- JavaScript -->
-<script src="node_modules/bibblio-related-content-module/js/bib-related-content.js"></script>
+    <!-- JavaScript -->
+    <script src="node_modules/bibblio-related-content-module/js/bib-related-content.js"></script>
+</head>
 ```
 
-The module may also be required using NodeJS's require if installed with npm:
-
+If using NPM you may also want to require the module with NodeJS:
 ```javascript
 var Bibblio = require("bibblio-related-content-module");
 ```
 
 ## Using the module
 
-The module can be added to a page by calling the JavaScript function provided:
+Once the assets are included, the module can be added to a page by calling the JavaScript function provided:
 ```javascript
 Bibblio.initRelatedContent(...)
 ```
@@ -147,13 +160,13 @@ The following snippet shows the initialisation of a related content module. You 
 <script src="bower_components/bibblio-related-content-module/js/bib-related-content.js"></script>
 <script>
     // Initialise the related content plugin.
-    (function() {
+    window.addEventListener("load", function() {
         Bibblio.initRelatedContent({
             targetElementId: 'bib_related-content',
             recommendationKey: 'YOUR_RECOMMENDATION_KEY',
             contentItemId: 'YOUR_CONTENT_ITEM_ID'
         });
-    })();
+    });
 </script>
 ```
 
