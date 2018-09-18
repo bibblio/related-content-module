@@ -16,10 +16,10 @@ The easiest way to use the module is via our CDN. There is no need to install an
 ```html
 <head>
     <!-- CSS -->.
-    <link rel="stylesheet" type="text/css" href="https://cdn.bibblio.org/rcm/3.0.11/bib-related-content.min.css">
+    <link rel="stylesheet" type="text/css" href="https://cdn.bibblio.org/rcm/3.1.0/bib-related-content.min.css">
 
     <!-- JavaScript -->
-    <script src="https://cdn.bibblio.org/rcm/3.0.11/bib-related-content.min.js"></script>
+    <script src="https://cdn.bibblio.org/rcm/3.1.0/bib-related-content.min.js"></script>
 </head>
 ```
 

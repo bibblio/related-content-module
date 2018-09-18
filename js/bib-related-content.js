@@ -10,7 +10,7 @@
 
   // Bibblio module
   var Bibblio = {
-    moduleVersion: "3.0.11",
+    moduleVersion: "3.1.0",
     moduleTracking: {},
 
     initRelatedContent: function(options, callbacks) {
@@ -30,30 +30,25 @@
       var fields = BibblioUtils.getRecommendationFields(subtitleField);
       var url = BibblioUtils.getRecommendationUrl(options, 6, 1, fields);
       BibblioUtils.bibblioHttpGetRequest(url, accessToken, true, function(response, status) {
-        Bibblio.handleAutoIngestion(options, callbacks, response, status);
+        Bibblio.handleRecsResponse(options, callbacks, response, status);
       });
     },
 
-    handleAutoIngestion: function(options, callbacks, recommendationsResponse, status) {
+    handleRecsResponse: function(options, callbacks, recommendationsResponse, status) {
       if(options.autoIngestion) {
-        // Check if results does not exists, or is empty string
-        if(!recommendationsResponse.results) {
-
-          // Create scrape request
+        if(status === 404) { // this will always be returned before a 402 (if the item doesn to exist)
+          // content item has not been ingested yet
           Bibblio.createScrapeRequest(options);
-          // Skip rendering module
-          return;
-        }
-        else if(recommendationsResponse.results.length < 1) {
-          // Display coming soon disclaimer
-          BibblioUtils.displayComingSoonTemplate(options.targetElementId);
-          // Skip rendering module
-          return;
         }
       }
-      // Render module only when recommendations have been retrieved
-      if(status != 404 && recommendationsResponse.results) {
+
+      if(status === 200) {
+        // recommendations have been returned
         Bibblio.renderModule(options, callbacks, recommendationsResponse);
+      }
+      else if(status === 412) {
+        // content item does not have recommendations yet
+        BibblioUtils.displayComingSoonTemplate(options.targetElementId);
       }
     },
 
@@ -76,7 +71,6 @@
       if (options.ingestionCatalogueId) {
         scrapeRequest.catalogueId = options.ingestionCatalogueId
       }
-      
       var url = "https://api.bibblio.org/v1/content-item-url-ingestions/";
 
       BibblioUtils.bibblioHttpPostRequest(url, accessToken, scrapeRequest, true, function(response, status) {
@@ -100,6 +94,7 @@
       var containerId = options.targetElementId;
       var relatedContentItemContainer = document.getElementById(containerId);
       var moduleHTML = BibblioTemplates.getModuleHTML(relatedContentItems, options, moduleSettings);
+
       relatedContentItemContainer.innerHTML = moduleHTML;
 
       if(callbacks.onRecommendationsRendered) {
