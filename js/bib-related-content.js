@@ -10,7 +10,7 @@
 
   // Bibblio module
   var Bibblio = {
-    moduleVersion: "3.1.0",
+    moduleVersion: "3.1.1",
     moduleTracking: {},
 
     initRelatedContent: function(options, callbacks) {
@@ -241,7 +241,7 @@
     linkRelFor: function(url) {
       var currentdomain = window.location.hostname;
       var matches = (BibblioUtils.getDomainName(currentdomain) == BibblioUtils.getDomainName(url));
-      return (matches ? '' : ' rel="noopener noreferrer" ');
+      return (matches ? '' : ' rel="nofollow noopener noreferrer" ');
     },
 
     linkTargetFor: function(url) {
