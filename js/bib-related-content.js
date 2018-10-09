@@ -10,7 +10,7 @@
 
   // Bibblio module
   var Bibblio = {
-    moduleVersion: "3.1.1",
+    moduleVersion: "3.2.0",
     moduleTracking: {},
 
     initRelatedContent: function(options, callbacks) {
@@ -68,8 +68,8 @@
         url: href
       };
 
-      if (options.ingestionCatalogueId) {
-        scrapeRequest.catalogueId = options.ingestionCatalogueId
+      if (options.autoIngestionCatalogueId) {
+        scrapeRequest.catalogueId = options.autoIngestionCatalogueId;
       }
       var url = "https://api.bibblio.org/v1/content-item-url-ingestions/";
 
