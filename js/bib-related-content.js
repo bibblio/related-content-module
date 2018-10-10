@@ -10,7 +10,7 @@
 
   // Bibblio module
   var Bibblio = {
-    moduleVersion: "3.3.0",
+    moduleVersion: "3.3.1",
     moduleTracking: {},
 
     initRelatedContent: function(options, callbacks) {
@@ -151,7 +151,7 @@
       return true;
     },
 
-    prepareModuleOptions(options) {
+    prepareModuleOptions: function(options) {
       if (options.targetElementId && !options.targetElement) {
         options.targetElement = document.getElementById(options.targetElementId);
       }
@@ -159,7 +159,7 @@
       return options;
     },
 
-    autoInit() {
+    autoInit: function() {
       BibblioUtils
         .elementsToInitParams(BibblioUtils.findInitElements())
         .forEach(function(params) {
