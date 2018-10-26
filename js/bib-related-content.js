@@ -10,7 +10,7 @@
 
   // Bibblio module
   var Bibblio = {
-    moduleVersion: "3.3.1",
+    moduleVersion: "3.4.0",
     moduleTracking: {},
 
     initRelatedContent: function(options, callbacks) {
@@ -21,7 +21,8 @@
 
       var moduleOptions = BibblioUtils.prepareModuleOptions(options);
 
-      Bibblio.getRelatedContentItems(moduleOptions, callbacks);
+      if(moduleOptions.contentItemId || moduleOptions.customUniqueIdentifier)
+        Bibblio.getRelatedContentItems(moduleOptions, callbacks)
     },
 
     getRelatedContentItems: function(options, callbacks) {
@@ -57,6 +58,11 @@
     createScrapeRequest: function(options) {
       var href = ((typeof window !== 'undefined') && window.location && window.location.href) ? window.location.href : '';
 
+
+      if(!options.customUniqueIdentifier){
+        return;
+      }
+
       if (!href) {
         console.error("Bibblio related content module: Cannot not determine url to scrape.");
         return false;
@@ -69,6 +75,7 @@
         customUniqueIdentifier: options.customUniqueIdentifier,
         url: href
       };
+
 
       if (options.autoIngestionCatalogueId) {
         scrapeRequest.catalogueId = options.autoIngestionCatalogueId;
@@ -123,8 +130,14 @@
   var BibblioUtils = {
     /// Init module functions
     validateModuleOptions: function(options) {
-      if(options.autoIngestion && !options.customUniqueIdentifier) {
-        console.error("Bibblio related content module: Please provide a customUniqueIdentifier in the options parameter when autoIngestion is set to true.");
+
+      if(!options.recommendationKey) {
+        console.error("Bibblio related content module: Please provide a recommendation key for the recommendationKey value in the options parameter.");
+        return false;
+      }
+
+      if(!options.contentItemId && !options.customUniqueIdentifier && !options.autoIngestion) {
+        console.error("Bibblio related content module: Please provide a contentItemId or a customUniqueIdentifier in the options parameter.");
         return false;
       }
 
@@ -133,18 +146,13 @@
         return false;
       }
 
+      if(options.customUniqueIdentifier && !BibblioUtils.validateCustomUniqueIdentifier(options.customUniqueIdentifier)){
+        console.error("Exception: Cannot supply a URL as a customUniqueIdentifier. Please see https://github.com/bibblio/related-content-module#customuniqueidentifier-required-if-no-contentitemid-is-provided on how to specify a customUniqueIdentifier, or see https://support.google.com/webmasters/answer/139066?hl=en to add a canonical URL tag.");
+        return false;
+      }
+
       if(!options.targetElementId && !options.targetElement) {
         console.error("Bibblio related content module: Please provide a value for targetElementId in the options parameter.");
-        return false;
-      }
-
-      if(!options.recommendationKey) {
-        console.error("Bibblio related content module: Please provide a recommendation key for the recommendationKey value in the options parameter.");
-        return false;
-      }
-
-      if(!options.contentItemId && !options.customUniqueIdentifier) {
-        console.error("Bibblio related content module: Please provide a contentItemId or a customUniqueIdentifier in the options parameter.");
         return false;
       }
 
@@ -152,6 +160,9 @@
     },
 
     prepareModuleOptions: function(options) {
+      if (!options.contentItemId && !options.customUniqueIdentifier && options.autoIngestion)
+        options.customUniqueIdentifier = BibblioUtils.getCustomUniqueIdentifierFromUrl();
+
       if (options.targetElementId && !options.targetElement) {
         options.targetElement = document.getElementById(options.targetElementId);
       }
@@ -188,6 +199,7 @@
 
       // Add identifier query param depending on if they supplied the uniqueCustomIdentifier or contentItemId
       var identifierQueryArg = null;
+
       if(options.contentItemId)
         identifierQueryArg = "contentItemId=" + options.contentItemId;
       else if(options.customUniqueIdentifier)
@@ -253,8 +265,6 @@
 
     /// Auto ingestion functions
     stripUrlTrackingParameters: function(url) {
-      var trackingParameters = ['utm_source', 'utm_medium', 'utm_campaign', 'utm_term', 'utm_content'];
-
       var parser = document.createElement('a');
       parser.href = url;
 
@@ -263,21 +273,68 @@
         params = params.substr(1);
       }
 
+      // remove fragment identifier
+      params = params.split('#')[0];
+
       if (params) {
         params = params.split('&');
+
+        var paramsToRemoveMatch = ['utm', '_utm', '_ga', 'fb_', 'hmb_', 'ref_'];
+        var paramsToRemoveSpecific = ['buffer_share', '_hsenc', '_hsmi', '_openstat', 'action_object_map', 'action_ref_map', 'action_type_map', 'aff_platform', 'aff_trace_key', 'campaignId', 'elqTrack', 'elqTrackId', 'fref', 'gs_l', 'hc_location', 'mkt_tok', 'recipientId', 'ref', 'terminal_id', 'yclid'];
+
         params = params.filter(function(param) {
           var paramName = param.split('=')[0].toLowerCase();
-          return (trackingParameters.indexOf(paramName) === -1);
+
+          // remove specific parameters
+          if (paramsToRemoveSpecific.indexOf(paramName) !== -1) {
+            return false; // remove parameter if it's in paramsToRemoveSpecific array
+          }
+
+          // remove matching parameters
+          for (var i = paramsToRemoveMatch.length - 1; i >= 0; i--) {
+            if (paramName.indexOf(paramsToRemoveMatch[i]) === 0) {
+              return false; // remove parameter if it starts with anything in paramsToRemoveMatch
+            }
+          }
+
+          return true; // keep parameter
         });
       }
 
+      // ensure remaining parameters always appear in a consistent order
+
       if (params.length > 0) {
+        params.sort();
         parser.search = '?' + params.join('&');
       } else {
         parser.search = '';
       }
 
       return parser.href;
+    },
+
+    getCanonicalUrl: function() {
+      var elem = document.querySelector('link[rel="canonical"]');
+      return (elem) ? elem.getAttribute("href") : null;
+    },
+
+    getCustomUniqueIdentifierFromUrl: function() {
+      var url = BibblioUtils.getCanonicalUrl();
+
+      if(!url){
+        console.error("Exception: Unable to determine canonical URL for auto ingestion. Please see https://github.com/bibblio/related-content-module#customuniqueidentifier-required-if-no-contentitemid-is-provided on how to specify a customUniqueIdentifier, or see https://support.google.com/webmasters/answer/139066?hl=en to add a canonical URL tag.");
+        return false;
+      }else{
+        return url;
+      };
+    },
+
+    validateCustomUniqueIdentifier: function(str) {
+      if(str && (str.indexOf('https://') === 0) || (str.indexOf('http://') === 0) || (str.indexOf('//') === 0)){
+        return false;
+      }else{
+        return str;
+      }
     },
 
     displayComingSoonTemplate: function(relatedContentItemCountainer) {
@@ -769,7 +826,7 @@
   var BibblioTemplates = {
     outerModuleTemplate: '<ul class="bib__module <% classes %>">\
                             <% recommendedContentItems %>\
-                            <a href="http://bibblio.org/who-cares" target="_blank" class="bib__origin" rel="nofollow">Refined by</a>\
+                            <a href="https://www.bibblio.org/what" target="_blank" class="bib__origin" rel="nofollow">Refined by</a>\
                           </ul>',
 
     relatedContentItemTemplate: '<li class="bib__tile bib__tile--<% tileNumber %> ">\
