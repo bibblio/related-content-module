@@ -10,7 +10,7 @@
 
   // Bibblio module
   var Bibblio = {
-    moduleVersion: "3.5.0",
+    moduleVersion: "3.5.1",
     moduleTracking: {},
 
     initRelatedContent: function(options, callbacks) {
@@ -761,7 +761,7 @@
       return recsData.find(function(element) { return element["contentItemId"] == contentItemId; });
     },
 
-    getTruncationLengthForStyle(styles) {
+    getTruncationLengthForStyle: function(styles) {
       if (styles.indexOf('bib--square') !== -1) {
         return 110;
       } else if (styles.indexOf('bib--wide') !== -1) {
