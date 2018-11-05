@@ -10,7 +10,7 @@
 
   // Bibblio module
   var Bibblio = {
-    moduleVersion: "3.4.0",
+    moduleVersion: "3.5.0",
     moduleTracking: {},
 
     initRelatedContent: function(options, callbacks) {
@@ -21,8 +21,7 @@
 
       var moduleOptions = BibblioUtils.prepareModuleOptions(options);
 
-      if(moduleOptions.contentItemId || moduleOptions.customUniqueIdentifier)
-        Bibblio.getRelatedContentItems(moduleOptions, callbacks)
+      Bibblio.getRelatedContentItems(moduleOptions, callbacks)
     },
 
     getRelatedContentItems: function(options, callbacks) {
@@ -136,7 +135,7 @@
         return false;
       }
 
-      if(!options.contentItemId && !options.customUniqueIdentifier && !options.autoIngestion) {
+      if(!options.contentItemId && !options.customUniqueIdentifier && !options.autoIngestion && (options.recommendationType != "popular")) {
         console.error("Bibblio related content module: Please provide a contentItemId or a customUniqueIdentifier in the options parameter.");
         return false;
       }
@@ -153,6 +152,11 @@
 
       if(!options.targetElementId && !options.targetElement) {
         console.error("Bibblio related content module: Please provide a value for targetElementId in the options parameter.");
+        return false;
+      }
+
+      if((options.recommendationType === "popular") && (options.contentItemId || options.customUniqueIdentifier)) {
+        console.error("Bibblio related content module: Cannot supply a contentItemId or customUniqueIdentifier when specifying a recommendationType of 'popular'.");
         return false;
       }
 
@@ -201,10 +205,9 @@
       var identifierQueryArg = null;
 
       if(options.contentItemId)
-        identifierQueryArg = "contentItemId=" + options.contentItemId;
+        querystringArgs.push("contentItemId=" + options.contentItemId);
       else if(options.customUniqueIdentifier)
-        identifierQueryArg = "customUniqueIdentifier=" + options.customUniqueIdentifier;
-      querystringArgs.push(identifierQueryArg);
+        querystringArgs.push("customUniqueIdentifier=" + options.customUniqueIdentifier);
 
       if (catalogueIds.length > 0) {
           querystringArgs.push("catalogueIds=" + catalogueIds.join(","));
@@ -214,12 +217,14 @@
           querystringArgs.push("userId=" + userId);
       }
 
-      if (recommendationType === "related") {
-        return baseUrl + "/recommendations/related?" + querystringArgs.join("&");
-      } else {
-        return baseUrl + "/recommendations?" + querystringArgs.join("&");
+      switch (recommendationType) {
+          case "related" :
+              return baseUrl + "/recommendations/related?" + querystringArgs.join("&");
+          case "popular" :
+              return baseUrl + "/recommendations/popular?" + querystringArgs.join("&");
+          default :
+              return baseUrl + "/recommendations?" + querystringArgs.join("&");
       }
-
     },
 
     findInitElements: function() {
@@ -408,38 +413,34 @@
       if (container) {
         var relatedContentItemlinks = container.getElementsByClassName("bib__link");
         // (options, recommendationsResponse, callback, event)
+        var callback = callbacks.onRecommendationClick;
+
         for (var i = 0; i < relatedContentItemlinks.length; i++) {
           // This event is only here for the callback on left clicks
           relatedContentItemlinks[i].addEventListener('click', function(event) {
-            var callback = null;
-
-            if (event.which == 1 && callbacks.onRecommendationClick) { // Left click
-              callback = callbacks.onRecommendationClick;
-            }
-
-            BibblioEvents.onRecommendationClick(options, recommendationsResponse, event, callback);
+              BibblioEvents.onRecommendationClick(options, recommendationsResponse, event, callback);
           }, false);
 
           relatedContentItemlinks[i].addEventListener('mousedown', function(event) {
             if (event.which == 3)
-              BibblioEvents.onRecommendationClick(options, recommendationsResponse, event);
+              BibblioEvents.onRecommendationClick(options, recommendationsResponse, event, callback);
           }, false);
 
           relatedContentItemlinks[i].addEventListener('mouseup', function(event) {
             if (event.which < 4) {
-              BibblioEvents.onRecommendationClick(options, recommendationsResponse, event);
+              BibblioEvents.onRecommendationClick(options, recommendationsResponse, event, callback);
             }
           }, false);
 
           relatedContentItemlinks[i].addEventListener('auxclick', function(event) {
             if (event.which < 4) {
-              BibblioEvents.onRecommendationClick(options, recommendationsResponse, event);
+              BibblioEvents.onRecommendationClick(options, recommendationsResponse, event, callback);
             }
           }, false);
 
           relatedContentItemlinks[i].addEventListener('keydown', function(event) {
             if (event.which == 13) {
-              BibblioEvents.onRecommendationClick(options, recommendationsResponse, event);
+              BibblioEvents.onRecommendationClick(options, recommendationsResponse, event, callback);
             }
           }, false);
         }
@@ -613,6 +614,7 @@
       moduleSettings.styleClasses = options.styleClasses || false;
       moduleSettings.subtitleField = (options.subtitleField ? options.subtitleField : "headline");
       moduleSettings.dateFormat = (options.dateFormat ? options.dateFormat : "DMY");
+      moduleSettings.truncateTitle = (options.truncateTitle ? options.truncateTitle : null);
       return moduleSettings;
     },
 
@@ -753,6 +755,30 @@
       month[12] = "December";
       var monthNum = parseInt(monthNum);
       return month[monthNum];
+    },
+
+    getItemRecData: function(recsData, contentItemId) {
+      return recsData.find(function(element) { return element["contentItemId"] == contentItemId; });
+    },
+
+    getTruncationLengthForStyle(styles) {
+      if (styles.indexOf('bib--square') !== -1) {
+        return 110;
+      } else if (styles.indexOf('bib--wide') !== -1) {
+        return 70;
+      } else {
+        return 90;
+      }
+    },
+
+    truncateTitle: function(name, styles, override) {
+      var truncationLength = override || BibblioUtils.getTruncationLengthForStyle(styles);
+
+      if (name.length > truncationLength) {
+        return name.substring(0, truncationLength) + "...";
+      } else {
+        return name;
+      }
     }
   };
 
@@ -763,7 +789,7 @@
       var moduleSettings = BibblioUtils.getModuleSettings(options);
       var relatedContentItems = recommendationsResponse.results;
       var trackingLink = recommendationsResponse._links.tracking.href;
-      var sourceContentItemId = recommendationsResponse._links.sourceContentItem.id;
+      var sourceContentItemId = (recommendationsResponse._links.sourceContentItem ? recommendationsResponse._links.sourceContentItem.id : null);
       var activityId = BibblioUtils.getActivityId(trackingLink);
 
       var userId = options.userId ? options.userId : null;
@@ -781,13 +807,14 @@
       );
 
       if(!BibblioUtils.hasRecommendationBeenClicked(activityId, clickedContentItemId)) {
-        var response = BibblioActivity.track(trackingLink, activityData);
-        BibblioUtils.addTrackedRecommendation(activityId, clickedContentItemId);
-      }
+          var response = BibblioActivity.track(trackingLink, activityData);
+          BibblioUtils.addTrackedRecommendation(activityId, clickedContentItemId);
 
-      // Call client callback if it exists
-      if (callback != null && typeof callback === "function") {
-          callback(activityData, event);
+        // Call client callback if it exists
+        if (callback != null && typeof callback === "function") {
+            var clickedItemData = BibblioUtils.getItemRecData(relatedContentItems, clickedContentItemId);
+            callback(clickedItemData, event);
+        }
       }
     },
 
@@ -797,7 +824,7 @@
       if(!BibblioUtils.hasModuleBeenViewed(activityId)) {
         var moduleSettings = BibblioUtils.getModuleSettings(options);
         var relatedContentItems = recommendationsResponse.results;
-        var sourceContentItemId = recommendationsResponse._links.sourceContentItem.id;
+        var sourceContentItemId = (recommendationsResponse._links.sourceContentItem ? recommendationsResponse._links.sourceContentItem.id : null);
         BibblioUtils.setModuleViewed(activityId);
         var userId = options.userId ? options.userId : null;
         var activityData = BibblioActivity.constructOnViewedActivityData(
@@ -969,9 +996,11 @@
         var filteredImageUrl = BibblioTemplates.filterContentItemImageUrl(contentItem.fields.moduleImage.contentUrl);
         contentItemImageUrl = filteredImageUrl;
 
+      var classes = (moduleSettings.styleClasses ? moduleSettings.styleClasses : BibblioUtils.getPresetModuleClasses(moduleSettings.stylePreset));
+
       var templateOptions = {
           contentItemId: (contentItem.contentItemId ? contentItem.contentItemId : ''),
-          name: (contentItem.fields.name ? contentItem.fields.name   : ''),
+          name: BibblioUtils.truncateTitle((contentItem.fields.name ? contentItem.fields.name   : ''), classes, moduleSettings.truncateTitle),
           authorHTML: authorHTML,
           datePublishedHTML: datePublishedHTML,
           linkHref: BibblioUtils.linkHrefFor(contentItemUrl, options.queryStringParams),
@@ -1071,7 +1100,9 @@
       var href = ((typeof window !== 'undefined') && window.location && window.location.href) ? window.location.href : '';
 
       context.push(["sourceHref", href]);
-      context.push(["sourceContentItemId", sourceContentItemId]);
+      if (sourceContentItemId) {
+        context.push(["sourceContentItemId", sourceContentItemId]);
+      }
       for(var i = 0; i < relatedContentItems.length; i++)
         context.push(["recommendations.contentItemId", relatedContentItems[i].contentItemId]);
 

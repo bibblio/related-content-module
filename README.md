@@ -16,10 +16,10 @@ The easiest way to use the module is via our CDN. There is no need to install an
 ```html
 <head>
     <!-- CSS -->.
-    <link rel="stylesheet" type="text/css" href="https://cdn.bibblio.org/rcm/3.4/bib-related-content.min.css">
+    <link rel="stylesheet" type="text/css" href="https://cdn.bibblio.org/rcm/3.5/bib-related-content.min.css">
 
     <!-- JavaScript -->
-    <script src="https://cdn.bibblio.org/rcm/3.4/bib-related-content.min.js"></script>
+    <script src="https://cdn.bibblio.org/rcm/3.5/bib-related-content.min.js"></script>
 </head>
 ```
 
@@ -104,20 +104,23 @@ In the event that `autoIngestion` is enabled, this field will specify the catalo
 #### `'catalogueIds'` _(optional)_
 The [catalogues](http://docs.bibblio.apiary.io/#reference/storing-data/catalogues) that recommendations should draw from. The `catalogueId` of [any catalogues you own](http://docs.bibblio.apiary.io/#reference/storing-data/catalogues/list-catalogues) would be valid. Default is the same catalogue as the source content item specified.
 
-#### `'userId'` _(optional)_
-Your own, unique id for the current site visitor. This allows us to apply recommendation personalization. Please do not provide any personally identifiable information for this field.
-
 #### `'queryStringParams'` _(optional)_
 Allows you to append additional query string params to the target url of recommended items. This is particularly useful for specifying analytics params such as _utm_source_. The value should be a JavaScript object. Each property will be added as a param to the url. e.g. `{ "utm_source" : "BibblioRCM", "utm_campaign" : "SiteFooter" }` would append `utm_source=BibblioRCM&utm_campaign=SiteFooter` to the url query string of all recommended items.
 
 #### `'recommendationType'` _(optional)_
-Allows you to specify the type of recommendations to serve. Options are 'optimised' or 'related'. _Optimised_ recommendations are rooted in relevance but will also learn from user behaviour and continuously adapt to attain better engagement. _Related_ recommendations ignore user behaviour and are based purely on relatedness. We suggest starting with _optimised_ recommendations and adding an additional, _related_ module elsewhere on the page if desired. Default is 'optimised'.
+Allows you to specify the type of recommendations to serve. Options are 'optimised', 'related' or 'popular'. _Optimised_ recommendations are rooted in relevance but will also learn from user behaviour and continuously adapt to attain better engagement. _Related_ recommendations ignore user behaviour and are based purely on relatedness. _Popular_ recommendations ignore relatedness and are based purely on user behaviour. We suggest starting with _optimised_ recommendations and adding _related_ or _popular_ modules elsewhere on the page to fit the site experience you desire. Default is 'optimised'.
 
 #### `'styleClasses'` _(optional)_
 Allows you to customise the CSS styles applied to the related content module. An interactive configuration wizard is available in the Demos section of your Bibblio management console, which allows you to generate parameters for this option. If you plan to place the module on an area of your page that has a dark background color you can append 'bib--invert' to your parameters to be sure everything remains legible. If most of your content item images are portrait sized, consider appending 'bib--portrait' to your parameters so the images resize nicely in the tiles.
 
 #### `'subtitleField'` _(optional)_
 Allows you to specify the content item field to use as subtitles on the recommended content panel. Any [valid content item field](http://docs.bibblio.apiary.io/#reference/storing-data/content-items/retrieve-a-content-item) can be used. Providing a value of _false_ will disable the subtitle. Default is '_headline_'.
+
+#### `'truncateTitle'` _(optional)_
+Allows you to specify a character length for truncating recommended titles. If this field is omitted we will automatically truncate titles to fit the style configuration you have specified with `styleClasses`.
+
+#### `'userId'` _(optional)_
+Your own, unique id for the current site visitor. This allows us to apply recommendation personalization. Please do not provide any personally identifiable information for this field.
 
 
 ## Tracking data

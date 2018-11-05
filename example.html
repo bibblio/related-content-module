@@ -33,11 +33,11 @@
         <script>
             // Initialise the related content plugin.
             window.addEventListener("load", function() {
-                Bibblio.initRelatedContent({
-                    targetElementId: 'bib_related-content',
+                Bibblio.initRelatedContent({ targetElementId: 'bib_related-content', 
+                    // autoIngestion: true, 
+                    contentItemId: getParameterByName('contentItemId'),
                     recommendationKey: getParameterByName('recommendationKey'),
-                    contentItemId: getParameterByName('contentItemId')
-                });
+                    styleClasses: "bib--hover bib--box-5" });
             });
         </script>
     </body>
