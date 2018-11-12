@@ -16,10 +16,10 @@ The easiest way to use the module is via our CDN. There is no need to install an
 ```html
 <head>
     <!-- CSS -->.
-    <link rel="stylesheet" type="text/css" href="https://cdn.bibblio.org/rcm/3.5/bib-related-content.min.css">
+    <link rel="stylesheet" type="text/css" href="https://cdn.bibblio.org/rcm/3.6/bib-related-content.min.css">
 
     <!-- JavaScript -->
-    <script src="https://cdn.bibblio.org/rcm/3.5/bib-related-content.min.js"></script>
+    <script src="https://cdn.bibblio.org/rcm/3.6/bib-related-content.min.js"></script>
 </head>
 ```
 
@@ -99,10 +99,16 @@ It is possible to use your own id to retrieve recommendations, thereby avoiding 
 The Related Content Module is able to ingest content automatically. It will attempt to retrieve recommendations for the specified content item. If the item does not exist and `autoIngestion` is set to `true`, the module will attempt to parse the content item from the page. Subsequent page loads will then be able to display recommendations once the item has been ingested and indexed. This saves you the trouble of integrating with Bibblio on your backend systems. There are some things to keep in mind when enabling `autoIngestion`: a `customUniqueIdentifier` must be supplied, the item will be ingested the first time it is viewed in a browser, the domain from which it originates must be [whitelisted](http://docs.bibblio.apiary.io/#reference/related-content-module/auto-ingestion-domains), and future updates to item text will not be considered. If you do require content items to be ingested and synced immediately at the time of publication and update then it would be best to [integrate with the API directly](http://docs.bibblio.apiary.io/#reference/storing-data/content-items/create-a-content-item). Please [contact us](http://www.bibblio.org/contact) if you are uncertain about the choice.
 
 #### `'autoIngestionCatalogueId'` _(optional)_
-In the event that `autoIngestion` is enabled, this field will specify the catalogueId that the ingested content item should be assigned to. A pre-existing Bibblio catalogueId must be supplied.
+When auto-ingesting, this property allows you to specify the catalogueId that a content item should be assigned to. This will only take effect on initial ingestion. Module loads subsequent to ingestion will disregard this property. Cannot be supplied if autoIngestionCustomCatalogueId is present.
+
+#### `'autoIngestionCustomCatalogueId'` _(optional)_
+When auto-ingesting, this property allows you to specify your own label for catalogue assignment. This allows you to avoid storing Bibblio's catalogueId since your own, pre-existing label can be used instead. The specified catalogue will be created if it does not exist. Thereafter it will be reused. Catalogue assignment will only take effect on initial ingestion. Module loads subsequent to ingestion will disregard this property. Cannot be supplied if autoIngestionCatalogueId is present.
 
 #### `'catalogueIds'` _(optional)_
-The [catalogues](http://docs.bibblio.apiary.io/#reference/storing-data/catalogues) that recommendations should draw from. The `catalogueId` of [any catalogues you own](http://docs.bibblio.apiary.io/#reference/storing-data/catalogues/list-catalogues) would be valid. Default is the same catalogue as the source content item specified.
+The [catalogues](http://docs.bibblio.apiary.io/#reference/storing-data/catalogues) that recommendations should draw from. The `catalogueId` of [any catalogues you own](http://docs.bibblio.apiary.io/#reference/storing-data/catalogues/list-catalogues) would be valid. Accepts an array of strings. Default is the same catalogue as the source content item specified. Cannot be supplied if customCatalogueIds is present.
+
+#### `'customCatalogueIds'` _(optional)_
+The customCatalogueIds that a recommendation should draw from. This allows you to retrieve recommendations for a particular [catalogue](http://docs.bibblio.apiary.io/#reference/storing-data/catalogues) without having to store Bibblio's catalogueIds (see `autoIngestionCustomCatalogueId` above). If you have ingested using customCatalogueIds then you can specifies these here. Accepts an array of strings. Default is the same catalogue as the source content item specified. Cannot be supplied if catalogueIds is present.
 
 #### `'queryStringParams'` _(optional)_
 Allows you to append additional query string params to the target url of recommended items. This is particularly useful for specifying analytics params such as _utm_source_. The value should be a JavaScript object. Each property will be added as a param to the url. e.g. `{ "utm_source" : "BibblioRCM", "utm_campaign" : "SiteFooter" }` would append `utm_source=BibblioRCM&utm_campaign=SiteFooter` to the url query string of all recommended items.
