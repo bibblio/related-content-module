@@ -10,7 +10,7 @@
 
   // Bibblio module
   var Bibblio = {
-    moduleVersion: "3.5.1",
+    moduleVersion: "3.5.2",
     moduleTracking: {},
 
     initRelatedContent: function(options, callbacks) {
@@ -857,7 +857,8 @@
                           </ul>',
 
     relatedContentItemTemplate: '<li class="bib__tile bib__tile--<% tileNumber %> ">\
-                                    <a href="<% linkHref %>" target="<% linkTarget %>" <% linkRel %> data="<% contentItemId %>" class="bib__link <% linkImageClass %>" <% linkStyle %> >\
+                                    <a href="<% linkHref %>" target="<% linkTarget %>" <% linkRel %> data="<% contentItemId %>" class="bib__link <% linkImageClass %> CID-<% contentItemId %>" <% linkStyle %> >\
+                                      <style>.bib__link--image.CID-<% contentItemId %>:before {<% linkImageBlur %>}</style>\
                                       <span class="bib__container">\
                                             <span class="bib__info">\
                                                 <span class="bib__title"><span><% name %></span></span>\
@@ -886,7 +887,7 @@
 
     getTemplate: function(template, options) {
       Object.keys(options).forEach(function(key) {
-        template = template.replace("<% " + key + " %>", options[key]);
+        template = template.split("<% " + key + " %>").join(options[key]);
       });
       // Remove any unused placeholders
       var placeHolderStart = template.indexOf("<%");
@@ -1008,6 +1009,7 @@
           linkRel: BibblioUtils.linkRelFor(contentItemUrl),
           linkImageClass: (contentItemImageUrl ? 'bib__link--image' : ''),
           linkStyle: (contentItemImageUrl ? 'style="background-image: url(' + "'"  + contentItemImageUrl + "'" + ')"' : ''),
+          linkImageBlur: (contentItemImageUrl ? 'background-image: url(' + "'"  + contentItemImageUrl + "'" + ')' : ''),
           subtitleHTML: subtitleHTML,
           tileNumber: contentItemIndex + 1
       };
