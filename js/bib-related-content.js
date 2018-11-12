@@ -10,7 +10,7 @@
 
   // Bibblio module
   var Bibblio = {
-    moduleVersion: "3.5.2",
+    moduleVersion: "3.6.0",
     moduleTracking: {},
 
     initRelatedContent: function(options, callbacks) {
@@ -63,7 +63,7 @@
       }
 
       if (!href) {
-        console.error("Bibblio related content module: Cannot not determine url to scrape.");
+        console.error("Bibblio related content module: Cannot determine url to scrape.");
         return false;
       } else {
         href = BibblioUtils.stripUrlTrackingParameters(href);
@@ -75,10 +75,14 @@
         url: href
       };
 
-
       if (options.autoIngestionCatalogueId) {
         scrapeRequest.catalogueId = options.autoIngestionCatalogueId;
       }
+
+      if (options.autoIngestionCustomCatalogueId) {
+        scrapeRequest.customCatalogueId = options.autoIngestionCustomCatalogueId;
+      }
+
       var url = "https://api.bibblio.org/v1/content-item-url-ingestions/";
 
       BibblioUtils.bibblioHttpPostRequest(url, accessToken, scrapeRequest, true, function(response, status) {
@@ -160,6 +164,16 @@
         return false;
       }
 
+      if(options.catalogueIds && options.customCatalogueIds) {
+        console.error("Bibblio related content module: Cannot supply both catalogueIds and customCatalogueIds.");
+        return false;
+      }
+
+      if(options.autoIngestionCatalogueId && options.autoIngestionCustomCatalogueId) {
+        console.error("Bibblio related content module: Cannot supply both autoIngestionCatalogueId and autoIngestionCustomCatalogueId.");
+        return false;
+      }
+
       return true;
     },
 
@@ -194,6 +208,7 @@
       var baseUrl = "https://api.bibblio.org/v1";
       var recommendationType = (options.recommendationType) ? options.recommendationType : null;
       var catalogueIds = options.catalogueIds ? options.catalogueIds : [];
+      var customCatalogueIds = options.customCatalogueIds ? options.customCatalogueIds : [];
       var userId = options.userId;
       var querystringArgs = [
           "limit=" + limit,
@@ -211,6 +226,10 @@
 
       if (catalogueIds.length > 0) {
           querystringArgs.push("catalogueIds=" + catalogueIds.join(","));
+      }
+
+      if (customCatalogueIds.length > 0) {
+        querystringArgs.push("customCatalogueIds=" + customCatalogueIds.join(","));
       }
 
       if (userId) {
@@ -234,7 +253,10 @@
     elementsToInitParams: function(nodeList) {
       var allowedKeys = [
         "autoIngestion",
+        "autoIngestionCatalogueId",
+        "autoIngestionCustomCatalogueId",
         "catalogueIds",
+        "customCatalogueIds",
         "contentItemId",
         "customUniqueIdentifier",
         "dateFormat",
