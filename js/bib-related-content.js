@@ -10,7 +10,7 @@
 
   // Bibblio module
   var Bibblio = {
-    moduleVersion: "3.6.1",
+    moduleVersion: "3.6.2",
     moduleTracking: {},
 
     initRelatedContent: function(options, callbacks) {
@@ -21,7 +21,7 @@
 
       var moduleOptions = BibblioUtils.prepareModuleOptions(options);
 
-      Bibblio.getRelatedContentItems(moduleOptions, callbacks)
+      Bibblio.getRelatedContentItems(moduleOptions, callbacks);
     },
 
     getRelatedContentItems: function(options, callbacks) {
@@ -50,20 +50,19 @@
       }
       else if(status === 412) {
         // content item does not have recommendations yet
-        BibblioUtils.displayComingSoonTemplate(options.targetElement);
+        console.info("Bibblio: Awaiting indexing. This delay will only occur until some click events have been processed. Recommendations will thereafter be available immediately on ingestion.");
       }
     },
 
     createScrapeRequest: function(options) {
       var href = ((typeof window !== 'undefined') && window.location && window.location.href) ? window.location.href : '';
 
-
-      if(!options.customUniqueIdentifier){
+      if(!options.customUniqueIdentifier) {
         return;
       }
 
       if (!href) {
-        console.error("Bibblio related content module: Cannot determine url to scrape.");
+        console.error("Bibblio: Cannot determine url to scrape.");
         return false;
       } else {
         href = BibblioUtils.stripUrlTrackingParameters(href);
@@ -91,12 +90,14 @@
     },
 
     handleCreatedScrapeRequest: function(response, status, options) {
-      // If response is 422 and is a domain whitelist error, don't display coming soon container
-      if(status == 422 && response.errors.url == "domain is not whitelisted") {
-        console.error("Bibblio related content module: Page could not be ingested to Bibblio because domain has not been whitelisted for auto ingestion.");
-      } else {
-        // Display coming soon disclaimer
-        BibblioUtils.displayComingSoonTemplate(options.targetElement);
+      if (status == 422 && response.errors.url == "domain is not whitelisted") {
+        console.error("Bibblio: This page could not be ingested because the domain has not been whitelisted for auto ingestion.");
+      } 
+      else if (status == 422 && response.errors.customUniqueIdentifier == "customUniqueIdentifier must be unique or null") {
+        console.info("Bibblio: This page has been queued for ingestion. Please note that a 404 response to GET /recommendations is normal. This tells us that the item does not exist and should be ingested. The 422 on POST /url-ingestions is also normal. It tells us that the item has already been queued for ingestion by a prior page load.");
+      }
+      else if (status == 201) {
+        console.info("Bibblio: This page has been queued for ingestion. Please note that a 404 response to GET /recommendations is normal. This tells us that the item does not exist and should be ingested.");
       }
     },
 
@@ -135,17 +136,22 @@
     validateModuleOptions: function(options) {
 
       if(!options.recommendationKey) {
-        console.error("Bibblio related content module: Please provide a recommendation key for the recommendationKey value in the options parameter.");
+        console.error("Bibblio: Please provide a recommendation key for the recommendationKey value in the options parameter.");
         return false;
       }
 
-      if(!options.contentItemId && !options.customUniqueIdentifier && !options.autoIngestion && (options.recommendationType != "popular")) {
-        console.error("Bibblio related content module: Please provide a contentItemId or a customUniqueIdentifier in the options parameter.");
+       if(options.autoIngestion && options.recommendationType === "popular") {
+        console.error("Bibblio: auto-ingestion cannot be enabled on a module serving popular recommendations. Please auto-ingest with a module serving 'optimised' or 'related' recommendations instead.");
+        return false;
+       }
+
+      if(!options.contentItemId && !options.customUniqueIdentifier && !options.autoIngestion  && options.recommendationType != "popular") {
+        console.error("Bibblio: Please provide a contentItemId or a customUniqueIdentifier in the options parameter.");
         return false;
       }
 
       if(options.contentItemId && options.customUniqueIdentifier) {
-        console.error("Bibblio related content module: Cannot supply both contentItemId and customUniqueIdentifier.");
+        console.error("Bibblio: Cannot supply both contentItemId and customUniqueIdentifier.");
         return false;
       }
 
@@ -155,22 +161,22 @@
       }
 
       if(!options.targetElementId && !options.targetElement) {
-        console.error("Bibblio related content module: Please provide a value for targetElementId in the options parameter.");
+        console.error("Bibblio: Please provide a value for targetElementId in the options parameter.");
         return false;
       }
 
       if((options.recommendationType === "popular") && (options.contentItemId || options.customUniqueIdentifier)) {
-        console.error("Bibblio related content module: Cannot supply a contentItemId or customUniqueIdentifier when specifying a recommendationType of 'popular'.");
+        console.error("Bibblio: Cannot supply a contentItemId or customUniqueIdentifier when specifying a recommendationType of 'popular'.");
         return false;
       }
 
       if(options.catalogueIds && options.customCatalogueIds) {
-        console.error("Bibblio related content module: Cannot supply both catalogueIds and customCatalogueIds.");
+        console.error("Bibblio: Cannot supply both catalogueIds and customCatalogueIds.");
         return false;
       }
 
       if(options.autoIngestionCatalogueId && options.autoIngestionCustomCatalogueId) {
-        console.error("Bibblio related content module: Cannot supply both autoIngestionCatalogueId and autoIngestionCustomCatalogueId.");
+        console.error("Bibblio: Cannot supply both autoIngestionCatalogueId and autoIngestionCustomCatalogueId.");
         return false;
       }
 
@@ -178,7 +184,7 @@
     },
 
     prepareModuleOptions: function(options) {
-      if (!options.contentItemId && !options.customUniqueIdentifier && options.autoIngestion)
+      if (!options.contentItemId && !options.customUniqueIdentifier && options.autoIngestion && options.recommendationType !== "popular")
         options.customUniqueIdentifier = BibblioUtils.getCustomUniqueIdentifierFromUrl();
 
       if (options.targetElementId && !options.targetElement) {
@@ -362,10 +368,6 @@
       }else{
         return str;
       }
-    },
-
-    displayComingSoonTemplate: function(relatedContentItemCountainer) {
-      relatedContentItemCountainer.innerHTML = BibblioTemplates.getComingSoonHTML();
     },
 
     /// Render module functions
@@ -900,13 +902,6 @@
 
     datePublishedTemplate: '<span class="bib__recency"><% datePublished %></span>',
 
-    comingSoonTemplate: '<div class="bib_pending-recs"> \
-                          <div class="bib_pending-recs-text"> \
-                            <div class="bib_pending-recs-header">Bibblio is busy indexing this content</div> \
-                            <div class="bib_pending-recs-subheader">Relevant recommendations are on their way!</div> \
-                          </div> \
-                        </div>',
-
     getTemplate: function(template, options) {
       Object.keys(options).forEach(function(key) {
         template = template.split("<% " + key + " %>").join(options[key]);
@@ -1059,11 +1054,8 @@
       // Create module HTML
       var moduleHTML = BibblioTemplates.getOuterModuleHTML(moduleSettings, contentItemsHTML);
       return moduleHTML;
-    },
-
-    getComingSoonHTML: function() {
-      return BibblioTemplates.comingSoonTemplate;
     }
+
   }
 
   // BibblioActivity module
