@@ -16,10 +16,10 @@ The easiest way to use the module is via our CDN. There is no need to install an
 ```html
 <head>
     <!-- CSS -->.
-    <link rel="stylesheet" type="text/css" href="https://cdn.bibblio.org/rcm/3.6/bib-related-content.min.css">
+    <link rel="stylesheet" type="text/css" href="https://cdn.bibblio.org/rcm/3.7/bib-related-content.min.css">
 
     <!-- JavaScript -->
-    <script src="https://cdn.bibblio.org/rcm/3.6/bib-related-content.min.js"></script>
+    <script src="https://cdn.bibblio.org/rcm/3.7/bib-related-content.min.js"></script>
 </head>
 ```
 
@@ -147,7 +147,7 @@ Here is a sample of the tracking data submitted from within the Related Content 
   "instrument": {
     "type": "BibblioRelatedContent",
     "version": "1.1.0",
-    "config": {'styleClasses': 'bib--grd-4 bib--wide'}}
+    "config": {'styleClasses': 'bib--row-3 bib--hover bib--recency-show'}}
   "actor": {
     "userId": "42"}} // optional
 ```
