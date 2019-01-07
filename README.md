@@ -16,10 +16,10 @@ The easiest way to use the module is via our CDN. There is no need to install an
 ```html
 <head>
     <!-- CSS -->.
-    <link rel="stylesheet" type="text/css" href="https://cdn.bibblio.org/rcm/3.7/bib-related-content.min.css">
+    <link rel="stylesheet" type="text/css" href="https://cdn.bibblio.org/rcm/3.8/bib-related-content.min.css">
 
     <!-- JavaScript -->
-    <script src="https://cdn.bibblio.org/rcm/3.7/bib-related-content.min.js"></script>
+    <script src="https://cdn.bibblio.org/rcm/3.8/bib-related-content.min.js"></script>
 </head>
 ```
 
@@ -109,6 +109,9 @@ The [catalogues](http://docs.bibblio.apiary.io/#reference/storing-data/catalogue
 
 #### `'customCatalogueIds'` _(optional)_
 The customCatalogueIds that a recommendation should draw from. This allows you to retrieve recommendations for a particular [catalogue](http://docs.bibblio.apiary.io/#reference/storing-data/catalogues) without having to store Bibblio's catalogueIds (see `autoIngestionCustomCatalogueId` above). If you have ingested using customCatalogueIds then you can specifies these here. Accepts an array of strings. Default is the same catalogue as the source content item specified. Cannot be supplied if catalogueIds is present.
+
+#### `'hidden'` _(optional)_
+Allows you to perform a full integration without visually displaying the module. This is useful for testing and during initial auto-ingestion, before items have been indexed for the first time. Entering `Bibblio.showModules();` in the developer console will show all hidden modules on the page. Default is `false`.
 
 #### `'queryStringParams'` _(optional)_
 Allows you to append additional query string params to the target url of recommended items. This is particularly useful for specifying analytics params such as _utm_source_. The value should be a JavaScript object. Each property will be added as a param to the url. e.g. `{ "utm_source" : "BibblioRCM", "utm_campaign" : "SiteFooter" }` would append `utm_source=BibblioRCM&utm_campaign=SiteFooter` to the url query string of all recommended items.

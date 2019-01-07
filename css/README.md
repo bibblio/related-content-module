@@ -44,3 +44,4 @@ The style and layout is extremely customisable. We've currently implemented 3 pr
 * _Using portrait-oriented images:_ bib--portrait
 * _Invert 'About these recommendations' footer color for dark page backgrounds:_ bib--invert
 * _If a tile has a background image, this class is automatically added to the anchor 'bib__link':_ bib__link--image
+* _Hide module for testing:_ bib--hide

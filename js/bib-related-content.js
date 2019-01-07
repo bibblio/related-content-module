@@ -10,8 +10,15 @@
 
   // Bibblio module
   var Bibblio = {
-    moduleVersion: "3.7.0",
+    moduleVersion: "3.8.0",
     moduleTracking: {},
+
+    showModules: function() {
+      var modules = document.getElementsByClassName("bib__module");
+      [].forEach.call(modules, function(element) {
+        element.classList.remove("bib--hide");
+      });
+    },
 
     initRelatedContent: function(options, callbacks) {
       var callbacks = callbacks || {};
@@ -273,7 +280,8 @@
         "stylePreset",
         "subtitleField",
         "targetElementId",
-        "userId"
+        "userId",
+        "hidden"
       ];
 
       // Construct new objects with only the allowed keys from each node's dataset
@@ -639,6 +647,7 @@
       moduleSettings.subtitleField = (options.subtitleField ? options.subtitleField : "headline");
       moduleSettings.dateFormat = (options.dateFormat ? options.dateFormat : "DMY");
       moduleSettings.truncateTitle = (options.truncateTitle ? options.truncateTitle : null);
+      moduleSettings.hidden = (options.hidden || false);
       return moduleSettings;
     },
 
@@ -881,8 +890,7 @@
                           </ul>',
 
     relatedContentItemTemplate: '<li class="bib__tile bib__tile--<% tileNumber %> ">\
-                                    <a href="<% linkHref %>" target="<% linkTarget %>" <% linkRel %> data="<% contentItemId %>" class="bib__link <% linkImageClass %> CID-<% contentItemId %>" <% linkStyle %> >\
-                                      <style>.bib__link--image.CID-<% contentItemId %>:before {<% linkImageBlur %>}</style>\
+                                    <a href="<% linkHref %>" target="<% linkTarget %>" <% linkRel %> data="<% contentItemId %>" class="bib__link <% linkImageClass %>" <% linkStyle %> >\
                                       <span class="bib__container">\
                                             <span class="bib__info">\
                                                 <span class="bib__title"><span><% name %></span></span>\
@@ -1026,7 +1034,6 @@
           linkRel: BibblioUtils.linkRelFor(contentItemUrl),
           linkImageClass: (contentItemImageUrl ? 'bib__link--image' : ''),
           linkStyle: (contentItemImageUrl ? 'style="background-image: url(' + "'"  + contentItemImageUrl + "'" + ')"' : ''),
-          linkImageBlur: (contentItemImageUrl ? 'background-image: url(' + "'"  + contentItemImageUrl + "'" + ')' : ''),
           subtitleHTML: subtitleHTML,
           tileNumber: contentItemIndex + 1
       };
@@ -1036,6 +1043,10 @@
 
     getOuterModuleHTML: function(moduleSettings, relatedContentItemsHTML) {
       var classes = moduleSettings.styleClasses ? moduleSettings.styleClasses : BibblioUtils.getPresetModuleClasses(moduleSettings.stylePreset);
+      if (moduleSettings.hidden) {
+        classes += " bib--hide";
+      }
+
       var templateOptions = {
           classes: classes,
           recommendedContentItems: relatedContentItemsHTML

@@ -95,6 +95,10 @@
     outline: 0;
 }
 
+.bib--hide {
+    display: none !important;
+}
+
 .bib--invert .bib__origin {
     background-color: rgba(255,255,255,1);
     color: #666666 !important;
@@ -278,6 +282,7 @@
     margin: 0 !important;
     border: 0 !important;
     outline: 0 !important;
+    opacity: 1 !important;
     -moz-box-shadow: 0 0 0 !important;
     -webkit-box-shadow: 0 0 0 !important;
     box-shadow: 0 0 0 !important;
@@ -286,7 +291,7 @@
     min-height: initial;
     line-height: normal;
     text-decoration: none;
-    background-size: auto 102%;
+    background-size: cover;
     background-repeat: no-repeat;
     background-position: center center;
     background-image: url('//images.bibblio.org/bkgds/holders/incas-positive.png');
@@ -300,14 +305,6 @@
 .bib--split .bib__link,
 .bib--portrait .bib__link {
     background-position: top center;
-}
-
-.bib--box-3 .bib__link,
-.bib--box-4 .bib__link,
-.bib--box-6 .bib__link,
-.bib--wide .bib__link,
-.bib--portrait .bib__link {
-    background-size: 102% auto;
 }
 
 .bib__container {
@@ -330,31 +327,11 @@
     border: 0 !important;
     margin: 0 !important;
     outline: 0 !important;
+    opacity: 1 !important;
 }
 
 .bib__link:hover .bib__container {
     background-color: rgba(0,0,0,0.25);
-}
-
-.bib__link--image:before {
-    content: "";
-    position: relative;
-    top: -10%;
-    left: -10%;
-    z-index: -1;
-    display: block;
-    background-size: 100% 100%;
-    width: 120%;
-    height: 120%;
-    -webkit-filter: blur(15px);
-    -moz-filter: blur(15px);
-    -o-filter: blur(15px);
-    -ms-filter: blur(15px);
-    filter: blur(15px);
-}
-
-.bib__link.bib__link--image {
-    background-color: transparent !important;
 }
 
 .bib__info {
@@ -465,12 +442,17 @@
     left: 90%;
     top: 0;
     opacity: 0;
+    z-index: 0;
 }
 
 .bib--shine .bib__link:hover .bib__container:after {
     opacity: 0.6;
     left: 0%;
 }
+
+.bib--shine .bib__info {
+    z-index: 1;
+} 
 
 
 /* Larger Titles in Bigger Tiles */
@@ -540,8 +522,6 @@
         padding-top: 5% !important;
     }
 
-    .bib--box-3 .bib__link, .bib--box-4 .bib__link, .bib--box-6 .bib__link, .bib--square.bib--split .bib__link { background-size: auto 102%; }
-    .bib--wide .bib__link, .bib--portrait .bib__link, .bib--portrait.bib--square.bib--split .bib__link { background-size: 102% auto; }
     .bib--box-6 .bib__tile--4 { clear: none; }
 
 }
