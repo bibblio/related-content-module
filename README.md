@@ -193,17 +193,20 @@ Bibblio's Related Content Module can be implemented on Google AMP using an `amp-
 </amp-iframe>
 ```
 
-All the usual parameters are supported and can be passed in as querystring parameters to the amp-iframe `src` as above.
+All the usual parameters are supported and can be passed in as querystring parameters to the amp-iframe `src` as above. The format of some parameters will vary due to the constraint of passing data through an iframe url. These variances are described below.
 
 Some things to note:
 
 * Providing an `<amp-img layout="fill" src="" placeholder></amp-img>` within the amp-iframe tag is necessary [to avoid restrictions on module placement](https://www.ampproject.org/docs/reference/components/amp-iframe#iframe-with-placeholder).
 * `width` and `height` properties are required by AMP. It's safe to use placeholder values of `1` as long as `layout="responsive"` is also included since the iframe will then scale to the module once rendered.
 * `sandbox="allow-scripts allow-popups"` is required. This enables Bibblio's JavaScript within the iframe and allows recommendation clicks to open.
-* `queryStringParams` take a different format when supplied to the iframe. They can be supplied directly in the `src` property without an enclosing `queryStringParams=__` container. For example, if you would like to add `utm_source=Bibblio` and `utm_campaign=related` to your recommendation links, simply add these parameters directly to the iframe `src` as follows: 
+* `styleClasses` are comma-separated when supplied to the iframe.
+* `queryStringParams` take a different format when supplied to the iframe. They can be supplied directly in the `src` property without an enclosing `queryStringParams=__` container.
+
+The following example includes all format variances. It will add `utm_source=Bibblio` and `utm_campaign=related` to your recommendation links and include the `bib--row-3` and `bib--hover` styleClasses.
 
 ```html
-<amp-iframe width="1" height="1" layout="responsive" sandbox="allow-scripts allow-popups" src="https://cdn.bibblio.org/rcm/3.9/amp.html?recommendationKey=YOUR_RECOMMENDATION_KEY&contentItemId=YOUR_CONTENT_ITEM_ID&utm_source=Bibblio&utm_campaign=related">
+<amp-iframe width="1" height="1" layout="responsive" sandbox="allow-scripts allow-popups" src="https://cdn.bibblio.org/rcm/3.9/amp.html?recommendationKey=YOUR_RECOMMENDATION_KEY&contentItemId=YOUR_CONTENT_ITEM_ID&utm_source=Bibblio&utm_campaign=related&styleClasses=bib--row-3,bib--hover">
     <amp-img layout="fill" src="" placeholder></amp-img>
 </amp-iframe>
 ```
