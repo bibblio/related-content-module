@@ -33,11 +33,11 @@ The style and layout is extremely customisable. We've currently implemented 3 pr
 * _Verdana:_ bib--font-verdana
 
 ### Headline text size
-* _14px:_ bib--size-14 
-* _16px:_ bib--size-16 
+* _14px:_ bib--size-14
+* _16px:_ bib--size-16
 * _18px:_ bib--size-18 _(default)_
-* _20px:_ bib--size-20 
-* _22px:_ bib--size-22 
+* _20px:_ bib--size-20
+* _22px:_ bib--size-22
 
 ### Extras
 * _Hover 'shine' effect:_ bib--shine

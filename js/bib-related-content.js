@@ -10,7 +10,7 @@
 
   // Bibblio module
   var Bibblio = {
-    moduleVersion: "3.8.0",
+    moduleVersion: "3.9.0",
     moduleTracking: {},
 
     showModules: function() {
@@ -22,12 +22,9 @@
 
     initRelatedContent: function(options, callbacks) {
       var callbacks = callbacks || {};
-
       // Validate the values of the related content module options
       if (!BibblioUtils.validateModuleOptions(options)) return;
-
-      var moduleOptions = BibblioUtils.prepareModuleOptions(options);
-
+      var moduleOptions = BibblioUtils.prepareModuleOptions(options)
       Bibblio.getRelatedContentItems(moduleOptions, callbacks);
     },
 
@@ -62,7 +59,13 @@
     },
 
     createScrapeRequest: function(options) {
-      var href = ((typeof window !== 'undefined') && window.location && window.location.href) ? window.location.href : '';
+      var href;
+
+      if(options.autoIngestionUrl) {
+        href = options.autoIngestionUrl;
+      } else {
+        href = ((typeof window !== 'undefined') && window.location && window.location.href) ? window.location.href : '';
+      }
 
       if(!options.customUniqueIdentifier) {
         return;
@@ -99,7 +102,7 @@
     handleCreatedScrapeRequest: function(response, status, options) {
       if (status == 422 && response.errors.url == "domain is not whitelisted") {
         console.error("Bibblio: This page could not be ingested because the domain has not been whitelisted for auto ingestion.");
-      } 
+      }
       else if (status == 422 && response.errors.customUniqueIdentifier == "customUniqueIdentifier must be unique or null") {
         console.info("Bibblio: This page has been queued for ingestion. Please note that a 404 response to GET /recommendations is normal. This tells us that the item does not exist and should be ingested. The 422 on POST /url-ingestions is also normal. It tells us that the item has already been queued for ingestion by a prior page load.");
       }
@@ -113,7 +116,6 @@
       var moduleSettings = BibblioUtils.getModuleSettings(options);
       var relatedContentItemContainer = options.targetElement;
       var moduleHTML = BibblioTemplates.getModuleHTML(relatedContentItems, options, moduleSettings);
-
       relatedContentItemContainer.innerHTML = moduleHTML;
 
       if(callbacks.onRecommendationsRendered) {
@@ -190,23 +192,88 @@
       return true;
     },
 
+    getParameterByName: function(name, url) {
+        if (!url) url = window.location.href;
+        name = name.replace(/[\[\]]/g, "\\$&");
+        var regex = new RegExp("[?&]" + name + "(=([^&#]*)|&|#|$)"),
+            results = regex.exec(url);
+        if (!results) return null;
+        if (!results[2]) return '';
+        return decodeURIComponent(results[2].replace(/\+/g, " "));
+    },
+
+    convertCommasToSpaces: function(str) {
+      if (!str) return null;
+      var styleClasses = str.replace(/,/g, " ");
+      return styleClasses;
+    },
+
+    createParamsObj: function(url) {
+      var queryStringParams = url.split('?')[1];
+      var cleanParams = queryStringParams.split(/&/g);
+      var params = {};
+
+      for(param in cleanParams) {
+        var param = cleanParams[param];
+        var key = param.split('=')[0];
+        var value = param.split('=')[1];
+
+        if(value.indexOf('#') > -1){
+          var cleanedValue = value.split('#')[0];
+          params[key] = cleanedValue;
+        }else{
+          params[key] = value;
+        };
+      };
+
+      return params;
+    },
+
+    createQueryStringObj: function(params, options) {
+      var diffArray = Object.keys(params).filter(k => params[k] !== options[k]);
+      var diffObject = Object.assign({}, diffArray);
+      var queryStringObj = {};
+
+      if(Object.keys(diffObject).length > -1) {
+        for(var key = 0; key < Object.keys(diffObject).length; key++) {
+          var param = diffObject[key];
+          queryStringObj[param] = params[param]
+        }
+      };
+      return queryStringObj;
+    },
+
     prepareModuleOptions: function(options) {
       if (!options.contentItemId && !options.customUniqueIdentifier && options.autoIngestion && options.recommendationType !== "popular")
         options.customUniqueIdentifier = BibblioUtils.getCustomUniqueIdentifierFromUrl();
 
-      if (options.targetElementId && !options.targetElement) {
+      if (options.targetElementId && !options.targetElement)
         options.targetElement = document.getElementById(options.targetElementId);
-      }
 
       return options;
     },
 
+    getParams: function(url) {
+      var params = [];
+      var isAmp = BibblioUtils.isInUrl(url, '#amp=1');
+      if(isAmp) {
+        var ampOptions = BibblioUtils.getAmpOptions(url);
+            ampOptions.autoIngestionUrl = document.referrer;
+        params.push(ampOptions);
+      } else {
+        var elements = BibblioUtils.findInitElements();
+        var elementParams = BibblioUtils.elementsToInitParams(elements);
+        params = elementParams;
+      }
+      return params;
+    },
+
     autoInit: function() {
-      BibblioUtils
-        .elementsToInitParams(BibblioUtils.findInitElements())
-        .forEach(function(params) {
-          Bibblio.initRelatedContent(params);
-        });
+      var url = window.location.href;
+      var params = BibblioUtils.getParams(url)
+      params.forEach(function(options) {
+        Bibblio.initRelatedContent(options);
+      });
     },
 
     /// Get recommendations functions
@@ -263,8 +330,9 @@
       return document.getElementsByClassName("bib--rcm-init");
     },
 
-    elementsToInitParams: function(nodeList) {
-      var allowedKeys = [
+    getAllowedKeys: function() {
+      return [
+        "amp",
         "autoIngestion",
         "autoIngestionCatalogueId",
         "autoIngestionCustomCatalogueId",
@@ -283,6 +351,10 @@
         "userId",
         "hidden"
       ];
+    },
+
+    elementsToInitParams: function(nodeList) {
+      var allowedKeys = BibblioUtils.getAllowedKeys();
 
       // Construct new objects with only the allowed keys from each node's dataset
       var initParams = [];
@@ -302,6 +374,92 @@
       }
 
       return initParams;
+    },
+
+    getParameterByName: function(name, url) {
+        if (!url) url = window.location.href;
+        name = name.replace(/[\[\]]/g, "\\$&");
+        var regex = new RegExp("[?&]" + name + "(=([^&#]*)|&|#|$)"),
+            results = regex.exec(url);
+        if (!results) return null;
+        if (!results[2]) return '';
+        return decodeURIComponent(results[2].replace(/\+/g, " "));
+    },
+
+    createParamsObj: function(url) {
+      var queryStringParams = url.split('?')[1];
+      var cleanParams = queryStringParams.split(/&/g);
+      var params = {};
+
+      for (param in cleanParams) {
+        var param = cleanParams[param];
+        var key = param.split('=')[0];
+        var value = param.split('=')[1];
+
+        if (value.indexOf('#') > -1) {
+          var cleanedValue = value.split('#')[0];
+          params[key] = cleanedValue;
+        } else {
+          params[key] = value;
+        };
+      };
+
+      return params;
+    },
+
+
+    createQueryStringObj: function(params, options) {
+      var diffArray = Object.keys(params).filter(function(k) { return params[k] !== options[k] }) ;
+      var queryStringObj = {};
+      if (diffArray.length > 0) {
+        for (var key = 0; key < diffArray.length; key++) {
+          var param = diffArray[key];
+          queryStringObj[param] = params[param]
+        }
+      };
+      return queryStringObj;
+    },
+
+    getQueryStringParams: function(options, url) {
+      if (url.indexOf("?") !== -1) {
+        var params = BibblioUtils.createParamsObj(url);
+        params.styleClasses = options.styleClasses;
+        params.stylePreset = options.stylePreset;
+        return BibblioUtils.createQueryStringObj(params, options);
+      } else {
+        return {};
+      }
+    },
+
+    isInUrl: function(url, string) {
+      var hasString = url.includes(string);
+      return hasString;
+    },
+
+    getAmpOptions: function(url) {
+      var allowedKeys = BibblioUtils.getAllowedKeys();
+      var options = {};
+
+      //create options object from amp query string
+      for (var index in allowedKeys) {
+        var name = allowedKeys[index]
+        var queryParam = BibblioUtils.getParameterByName(name, url);
+        //If style related param, replace commas with spaces
+        if (name == 'styleClasses' || name == 'stylePreset') {
+          queryParam = BibblioUtils.convertCommasToSpaces(queryParam);
+        }
+        //Append query param to options
+        if (queryParam != null) {
+          options[name] = queryParam;
+        }
+      }
+
+      //set query string params
+      options["queryStringParams"] = BibblioUtils.getQueryStringParams(options, url);
+      //set target element
+      options["targetElementId"] = "bibRelatedContentModule";
+
+      return options;
     },
 
     /// Auto ingestion functions
@@ -354,14 +512,18 @@
       return parser.href;
     },
 
-    getCanonicalUrl: function() {
-      var elem = document.querySelector('link[rel="canonical"]');
-      return (elem) ? elem.getAttribute("href") : null;
+    getCanonicalUrl: function(options) {
+      if (options.canonical !== undefined) {
+        var url = options.canonical;
+        return url;
+      } else {
+        var elem = document.querySelector('link[rel="canonical"]');
+        return (elem) ? elem.getAttribute("href") : null;
+      };
     },
 
-    getCustomUniqueIdentifierFromUrl: function() {
-      var url = BibblioUtils.getCanonicalUrl();
-
+    getCustomUniqueIdentifierFromUrl: function(options) {
+      var url = BibblioUtils.getCanonicalUrl(options);
       if(!url){
         console.error("Exception: Unable to determine canonical URL for auto ingestion. Please see https://github.com/bibblio/related-content-module#customuniqueidentifier-required-if-no-contentitemid-is-provided on how to specify a customUniqueIdentifier, or see https://support.google.com/webmasters/answer/139066?hl=en to add a canonical URL tag.");
         return false;
@@ -411,7 +573,6 @@
         param = encodeURIComponent(key) + "=" + encodeURIComponent(queryStringParams[key]);
         queryStringParamsList.push(param);
       });
-
       // Check if the url already has query params attached
       var urlSegments = url.split("#");
       if(urlSegments[0].indexOf('?') == -1)
@@ -752,7 +913,7 @@
             }
           }
         };
-        xmlhttp.open(method, url, isAsync);
+        xmlhttp.open(method, url, true);
         xmlhttp.setRequestHeader('Content-Type', 'application/json');
         if(accessToken)
           xmlhttp.setRequestHeader("Authorization", "Bearer " + accessToken);
@@ -1008,6 +1169,7 @@
     },
 
     getRelatedContentItemHTML: function(contentItem, contentItemIndex, options, moduleSettings) {
+
       // Create template for subtitle
       var subtitleHTML = BibblioTemplates.getSubtitleHTML(contentItem, moduleSettings);
       // Create template for author
@@ -1056,12 +1218,12 @@
     },
 
     getModuleHTML: function(relatedContentItems, options, moduleSettings) {
-      // Create content items HTML
       var contentItemsHTML = "";
-      for(var i = 0; i < relatedContentItems.length; i++) {
-        contentItemsHTML += BibblioTemplates.getRelatedContentItemHTML(relatedContentItems[i], i, options, moduleSettings) + "\n";
+      if (relatedContentItems) {
+        for(var i = 0; i < relatedContentItems.length; i++) {
+          contentItemsHTML += BibblioTemplates.getRelatedContentItemHTML(relatedContentItems[i], i, options, moduleSettings) + "\n";
+        }
       }
-
       // Create module HTML
       var moduleHTML = BibblioTemplates.getOuterModuleHTML(moduleSettings, contentItemsHTML);
       return moduleHTML;
@@ -1144,7 +1306,7 @@
         }
       }
 
-      return context;
+      return context
     }
   };
 
@@ -1166,8 +1328,10 @@
     // `DOMContentLoaded` may fire before your script has a chance to run,
     // so check before adding a listener
     if (document.readyState === "loading") {
+
       document.addEventListener("DOMContentLoaded", BibblioUtils.autoInit);
     } else {  // `DOMContentLoaded` already fired
+
       BibblioUtils.autoInit();
     }
   }

@@ -16,10 +16,10 @@ The easiest way to use the module is via our CDN. There is no need to install an
 ```html
 <head>
     <!-- CSS -->.
-    <link rel="stylesheet" type="text/css" href="https://cdn.bibblio.org/rcm/3.8/bib-related-content.min.css">
+    <link rel="stylesheet" type="text/css" href="https://cdn.bibblio.org/rcm/3.9/bib-related-content.min.css">
 
     <!-- JavaScript -->
-    <script src="https://cdn.bibblio.org/rcm/3.8/bib-related-content.min.js"></script>
+    <script src="https://cdn.bibblio.org/rcm/3.9/bib-related-content.min.js"></script>
 </head>
 ```
 
@@ -155,7 +155,6 @@ Here is a sample of the tracking data submitted from within the Related Content 
     "userId": "42"}} // optional
 ```
 
-
 ## An example
 
 The following snippet shows the initialisation of a related content module. You will need to replace `YOUR_RECOMMENDATION_KEY` and `YOUR_CONTENT_ITEM_ID` with [a recommendation key](http://docs.bibblio.apiary.io/#reference/authorization/recommendation-keys/list-recommendation-keys) and the `contentItemId` returned when [creating a content item](http://docs.bibblio.apiary.io/#reference/storing-data/content-items/create-a-content-item) or [listing your content items](http://docs.bibblio.apiary.io/#reference/storing-data/content-items/list-content-items).
@@ -182,6 +181,39 @@ The following snippet shows the initialisation of a related content module. You 
         });
     });
 </script>
+```
+
+## Google AMP (Accelerated Mobile Pages)
+
+Bibblio's Related Content Module can be implemented on Google AMP using an `amp-iframe`. The html page that will render inside the iframe is hosted on our servers so all you would need to do is place the following snippet in your AMP template instead of the example above.
+
+```html
+<head>
+    <!-- * Related Content Styles -->
+    <link rel="stylesheet" type="text/css" href="bower_components/bibblio-related-content-module/css/bib-related-content.css">
+</head>
+
+<!-- * Related Content Javascript -->
+<script src="bower_components/bibblio-related-content-module/js/bib-related-content.js"></script>
+
+<amp-iframe width="1" height="1" layout="responsive" sandbox="allow-scripts allow-popups" src="https://amp.bibblio.org/rcm/3.html?recommendationKey=YOUR_RECOMMENDATION_KEY&contentItemId=YOUR_CONTENT_ITEM_ID">
+    <amp-img layout="fill" src="" placeholder></amp-img>
+</amp-iframe>
+```
+
+All the usual parameters are supported and can be passed in as querystring parameters to the amp-iframe `src` as above.
+
+Some things to note:
+
+* Providing an `<amp-img layout="fill" src="" placeholder></amp-img>` within the amp-iframe tag is necessary [to avoid restrictions on module placement](https://www.ampproject.org/docs/reference/components/amp-iframe#iframe-with-placeholder).
+* `width` and `height` properties are required by AMP. It's safe to use placeholder values of `1` as long as `layout="responsive"` is also included since the iframe will then scale to the module once rendered.
+* `sandbox="allow-scripts allow-popups"` is required. This enables Bibblio's JavaScript within the iframe and allows recommendation clicks to open.
+* `queryStringParams` take a different format when supplied to the iframe. They can be supplied directly in the `src` property without an enclosing `queryStringParams=__` container. For example, if you would like to add `utm_source=Bibblio` and `utm_campaign=related` to your recommendation links, simply add these parameters directly to the iframe `src` as follows: 
+
+```html
+<amp-iframe width="1" height="1" layout="responsive" sandbox="allow-scripts allow-popups" src="https://amp.bibblio.org/rcm/3.html?recommendationKey=YOUR_RECOMMENDATION_KEY&contentItemId=YOUR_CONTENT_ITEM_ID&utm_source=Bibblio&utm_campaign=related">
+    <amp-img layout="fill" src="" placeholder></amp-img>
+</amp-iframe>
 ```
 
 ## Trying it out
