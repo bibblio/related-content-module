@@ -10,7 +10,7 @@
 
   // Bibblio module
   var Bibblio = {
-    moduleVersion: "3.9.0",
+    moduleVersion: "3.9.1",
     moduleTracking: {},
 
     showModules: function() {
@@ -230,10 +230,13 @@
     },
 
     createQueryStringObj: function(params, options) {
-      var diffArray = Object.keys(params).filter(k => params[k] !== options[k]);
-      var diffObject = Object.assign({}, diffArray);
-      var queryStringObj = {};
+      var diffArray = Object.keys(params).filter(function (k) {
+        return params[k] !== options[k]
+      });
 
+      var diffObject = Object.assign({}, diffArray);
+
+      var queryStringObj = {};
       if(Object.keys(diffObject).length > -1) {
         for(var key = 0; key < Object.keys(diffObject).length; key++) {
           var param = diffObject[key];
