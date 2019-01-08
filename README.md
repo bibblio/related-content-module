@@ -188,15 +188,7 @@ The following snippet shows the initialisation of a related content module. You 
 Bibblio's Related Content Module can be implemented on Google AMP using an `amp-iframe`. The html page that will render inside the iframe is hosted on our servers so all you would need to do is place the following snippet in your AMP template instead of the example above.
 
 ```html
-<head>
-    <!-- * Related Content Styles -->
-    <link rel="stylesheet" type="text/css" href="bower_components/bibblio-related-content-module/css/bib-related-content.css">
-</head>
-
-<!-- * Related Content Javascript -->
-<script src="bower_components/bibblio-related-content-module/js/bib-related-content.js"></script>
-
-<amp-iframe width="1" height="1" layout="responsive" sandbox="allow-scripts allow-popups" src="https://amp.bibblio.org/rcm/3.html?recommendationKey=YOUR_RECOMMENDATION_KEY&contentItemId=YOUR_CONTENT_ITEM_ID">
+<amp-iframe width="1" height="1" layout="responsive" sandbox="allow-scripts allow-popups" src="https://cdn.bibblio.org/rcm/3.9/amp.html?recommendationKey=YOUR_RECOMMENDATION_KEY&contentItemId=YOUR_CONTENT_ITEM_ID">
     <amp-img layout="fill" src="" placeholder></amp-img>
 </amp-iframe>
 ```
@@ -211,7 +203,7 @@ Some things to note:
 * `queryStringParams` take a different format when supplied to the iframe. They can be supplied directly in the `src` property without an enclosing `queryStringParams=__` container. For example, if you would like to add `utm_source=Bibblio` and `utm_campaign=related` to your recommendation links, simply add these parameters directly to the iframe `src` as follows: 
 
 ```html
-<amp-iframe width="1" height="1" layout="responsive" sandbox="allow-scripts allow-popups" src="https://amp.bibblio.org/rcm/3.html?recommendationKey=YOUR_RECOMMENDATION_KEY&contentItemId=YOUR_CONTENT_ITEM_ID&utm_source=Bibblio&utm_campaign=related">
+<amp-iframe width="1" height="1" layout="responsive" sandbox="allow-scripts allow-popups" src="https://cdn.bibblio.org/rcm/3.9/amp.html?recommendationKey=YOUR_RECOMMENDATION_KEY&contentItemId=YOUR_CONTENT_ITEM_ID&utm_source=Bibblio&utm_campaign=related">
     <amp-img layout="fill" src="" placeholder></amp-img>
 </amp-iframe>
 ```
