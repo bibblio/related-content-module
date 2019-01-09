@@ -10,7 +10,7 @@
 
   // Bibblio module
   var Bibblio = {
-    moduleVersion: "3.9.1",
+    moduleVersion: "3.10.1",
     moduleTracking: {},
 
     showModules: function() {
@@ -808,7 +808,7 @@
       var moduleSettings = {};
       moduleSettings.stylePreset = options.stylePreset || "default";
       moduleSettings.styleClasses = options.styleClasses || false;
-      moduleSettings.subtitleField = (options.subtitleField ? options.subtitleField : "headline");
+      moduleSettings.subtitleField = (options.subtitleField ? options.subtitleField : "description");
       moduleSettings.dateFormat = (options.dateFormat ? options.dateFormat : "DMY");
       moduleSettings.truncateTitle = (options.truncateTitle ? options.truncateTitle : null);
       moduleSettings.hidden = (options.hidden || false);
@@ -972,7 +972,7 @@
       var truncationLength = override || BibblioUtils.getTruncationLengthForStyle(styles);
 
       if (name.length > truncationLength) {
-        return name.substring(0, truncationLength) + "...";
+        return name.substring(0, truncationLength) + "…";
       } else {
         return name;
       }
