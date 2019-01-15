@@ -10,8 +10,9 @@
 
   // Bibblio module
   var Bibblio = {
-    moduleVersion: "3.10.1",
+    moduleVersion: "3.10.2",
     moduleTracking: {},
+    isAmp: false,
 
     showModules: function() {
       var modules = document.getElementsByClassName("bib__module");
@@ -256,27 +257,171 @@
       return options;
     },
 
-    getParams: function(url) {
-      var params = [];
-      var isAmp = BibblioUtils.isInUrl(url, '#amp=1');
-      if(isAmp) {
-        var ampOptions = BibblioUtils.getAmpOptions(url);
-            ampOptions.autoIngestionUrl = document.referrer;
-        params.push(ampOptions);
-      } else {
-        var elements = BibblioUtils.findInitElements();
-        var elementParams = BibblioUtils.elementsToInitParams(elements);
-        params = elementParams;
-      }
-      return params;
+    /// Auto initialise params functions
+
+    getAllowedKeys: function() {
+      return [
+        "amp",
+        "autoIngestion",
+        "autoIngestionCatalogueId",
+        "autoIngestionCustomCatalogueId",
+        "catalogueIds",
+        "customCatalogueIds",
+        "contentItemId",
+        "customUniqueIdentifier",
+        "dateFormat",
+        "hidden",
+        "queryStringParams",
+        "recommendationKey",
+        "recommendationType",
+        "styleClasses",
+        "stylePreset",
+        "subtitleField",
+        "targetElementId",
+        "truncateTitle",
+        "userId"
+      ];
     },
 
     autoInit: function() {
       var url = window.location.href;
-      var params = BibblioUtils.getParams(url)
+      Bibblio.isAmp = BibblioUtils.isInUrl(url, '#amp=1');
+      var params = [];
+      var callbacks = {};
+    
+      if(Bibblio.isAmp) {
+        params = BibblioUtils.getAmpParams(url)
+        callbacks = BibblioUtils.getAmpCallbacks();
+      } else {
+        params = BibblioUtils.getParams();
+      }
+      
       params.forEach(function(options) {
-        Bibblio.initRelatedContent(options);
+        Bibblio.initRelatedContent(options, callbacks);
       });
+    },
+
+    getAmpParams: function(url) {
+      var params = [];
+      var ampOptions = BibblioUtils.getAmpOptions(url);
+      ampOptions.autoIngestionUrl = document.referrer;
+      params.push(ampOptions);
+      return params;
+    },
+
+    getParams: function() {
+      var params = [];
+      var elements = BibblioUtils.findInitElements();
+      var elementParams = BibblioUtils.elementsToInitParams(elements);
+      params = elementParams;
+      return params;
+    },
+
+    findInitElements: function() {
+      return document.getElementsByClassName("bib--rcm-init");
+    },
+
+    handleNodeData: function(key, value) {
+      // Transform queryStringParameters into object
+      if(key == "queryStringParams") {
+        var queryStringParameters = {};
+        var pairs = value.split("&");
+
+        // Append each key value pair to queryStringParameters object
+        pairs.forEach(function(pair) {
+          var keyValueTuple = pair.split("=");
+          queryStringParameters[keyValueTuple[0]] = keyValueTuple[1];
+        })
+
+        // Return custom object value for query string parameters
+        return queryStringParameters;
+      }
+
+      // Handle booleans
+      if(value === "true")  return true;
+      if(value === "false") return false;
+
+      return value;
+    },
+
+    elementsToInitParams: function(nodeList) {
+      var allowedKeys = BibblioUtils.getAllowedKeys();
+
+      // Construct new objects with only the allowed keys from each node's dataset
+      var initParams = [];
+      for (var i = 0, len = nodeList.length; i < len; i++) {
+        var node = nodeList[i];
+        var dataset = node.dataset;
+        initParams.push(
+          allowedKeys.reduce(function(acc, key) {
+            if (dataset[key]) {
+              acc[key] = BibblioUtils.handleNodeData(key, dataset[key]);
+            }
+
+            return acc;
+          }, {targetElement: node})
+        );
+      }
+
+      return initParams;
+    },
+
+    getAmpOptions: function(url) {
+      var allowedKeys = BibblioUtils.getAllowedKeys();
+      var options = {};
+
+      //create options object from amp query string
+      for (var index in allowedKeys) {
+        var name = allowedKeys[index]
+        var queryParam = BibblioUtils.getParameterByName(name, url);
+        //Change boolean string to booleans
+        queryParam = queryParam === "false" ? false : queryParam;
+        queryParam = queryParam === "true" ? true : queryParam;
+        //If style related param, replace commas with spaces
+        if (name == 'styleClasses' || name == 'stylePreset') {
+          queryParam = BibblioUtils.convertCommasToSpaces(queryParam);
+        }
+        //Append query param to options
+        if (queryParam != null) {
+          options[name] = queryParam;
+        }
+      }
+
+      //set query string params
+      options["queryStringParams"] = BibblioUtils.getQueryStringParams(options, url);
+      //set target element
+      options["targetElementId"] = "bibRelatedContentModule";
+
+      return options;
+    },
+
+    submitAmpEmbedSize: function(h, w) {
+      window.parent.postMessage({
+        sentinel: 'amp',
+        type: 'embed-size',
+        height: h,
+        width: w
+      }, '*');
+    },
+
+    getAmpCallbacks: function() {
+      var callbacks = {
+        onRecommendationsRendered: function(recsData) {
+          BibblioUtils.submitAmpEmbedSize(document.body.scrollHeight, document.body.scrollWidth);
+
+          window.parent.postMessage({
+            sentinel: 'amp',
+            type: 'embed-ready'
+          }, '*');
+
+          // this event is currently not being issued by the browser. This code is left here in hope that it will one day
+          window.addEventListener("orientationchange", function() {
+            BibblioUtils.submitAmpEmbedSize(document.body.scrollHeight, document.body.scrollWidth);
+          }, false);
+        }
+      };
+
+      return callbacks;
     },
 
     /// Get recommendations functions
@@ -329,56 +474,6 @@
       }
     },
 
-    findInitElements: function() {
-      return document.getElementsByClassName("bib--rcm-init");
-    },
-
-    getAllowedKeys: function() {
-      return [
-        "amp",
-        "autoIngestion",
-        "autoIngestionCatalogueId",
-        "autoIngestionCustomCatalogueId",
-        "catalogueIds",
-        "customCatalogueIds",
-        "contentItemId",
-        "customUniqueIdentifier",
-        "dateFormat",
-        "queryStringParams",
-        "recommendationKey",
-        "recommendationType",
-        "styleClasses",
-        "stylePreset",
-        "subtitleField",
-        "targetElementId",
-        "userId",
-        "hidden"
-      ];
-    },
-
-    elementsToInitParams: function(nodeList) {
-      var allowedKeys = BibblioUtils.getAllowedKeys();
-
-      // Construct new objects with only the allowed keys from each node's dataset
-      var initParams = [];
-      for (var i = 0, len = nodeList.length; i < len; i++) {
-        var node = nodeList[i];
-        var dataset = node.dataset;
-
-        initParams.push(
-          allowedKeys.reduce(function(acc, key) {
-            if (dataset[key]) {
-              acc[key] = dataset[key];
-            }
-
-            return acc;
-          }, {targetElement: node})
-        );
-      }
-
-      return initParams;
-    },
-
     getParameterByName: function(name, url) {
         if (!url) url = window.location.href;
         name = name.replace(/[\[\]]/g, "\\$&");
@@ -410,7 +505,6 @@
       return params;
     },
 
-
     createQueryStringObj: function(params, options) {
       var diffArray = Object.keys(params).filter(function(k) { return params[k] !== options[k] }) ;
       var queryStringObj = {};
@@ -437,32 +531,6 @@
     isInUrl: function(url, string) {
       var hasString = url.includes(string);
       return hasString;
-    },
-
-    getAmpOptions: function(url) {
-      var allowedKeys = BibblioUtils.getAllowedKeys();
-      var options = {};
-
-      //create options object from amp query string
-      for (var index in allowedKeys) {
-        var name = allowedKeys[index]
-        var queryParam = BibblioUtils.getParameterByName(name, url);
-        //If style related param, replace commas with spaces
-        if (name == 'styleClasses' || name == 'stylePreset') {
-          queryParam = BibblioUtils.convertCommasToSpaces(queryParam);
-        }
-        //Append query param to options
-        if (queryParam != null) {
-          options[name] = queryParam;
-        }
-      }
-
-      //set query string params
-      options["queryStringParams"] = BibblioUtils.getQueryStringParams(options, url);
-      //set target element
-      options["targetElementId"] = "bibRelatedContentModule";
-
-      return options;
     },
 
     /// Auto ingestion functions
@@ -561,9 +629,13 @@
     },
 
     linkTargetFor: function(url) {
-      var currentdomain = window.location.hostname;
-      var matches = (BibblioUtils.getDomainName(currentdomain) == BibblioUtils.getDomainName(url));
-      return (matches ? '_self' : '_blank');
+      if (Bibblio.isAmp) {
+        return '_parent';
+      } else {
+        var currentdomain = window.location.hostname;
+        var matches = (BibblioUtils.getDomainName(currentdomain) == BibblioUtils.getDomainName(url));
+        return (matches ? '_self' : '_blank');
+      }
     },
 
     linkHrefFor: function(url, queryStringParams) {
