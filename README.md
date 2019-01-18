@@ -188,7 +188,8 @@ The following snippet shows the initialisation of a related content module. You 
 Bibblio's Related Content Module can be implemented on Google AMP using an `amp-iframe`. The html page that will render inside the iframe is hosted on our servers so all you would need to do is place the following snippet in your AMP template instead of the example above.
 
 ```html
-<amp-iframe width="1" height="1" layout="responsive" sandbox="allow-scripts allow-top-navigation" src="https://cdn.bibblio.org/rcm/3.10/amp.html?recommendationKey=YOUR_RECOMMENDATION_KEY&contentItemId=YOUR_CONTENT_ITEM_ID">
+<amp-iframe width="1" height="1" layout="responsive" resizable sandbox="allow-scripts allow-top-navigation allow-same-origin" src="https://cdn.bibblio.org/rcm/3.10/amp.html?recommendationKey=YOUR_RECOMMENDATION_KEY&contentItemId=YOUR_CONTENT_ITEM_ID">
+    <div overflow tabindex=0 role=button aria-label="See more">See more!</div>
     <amp-img layout="fill" src="" placeholder></amp-img>
 </amp-iframe>
 ```
@@ -198,15 +199,17 @@ All the usual parameters are supported and can be passed in as querystring param
 Some things to note:
 
 * Providing an `<amp-img layout="fill" src="" placeholder></amp-img>` within the amp-iframe tag is necessary [to avoid restrictions on module placement](https://www.ampproject.org/docs/reference/components/amp-iframe#iframe-with-placeholder).
-* `width` and `height` properties are required by AMP. It's safe to use placeholder values of `1` as long as `layout="responsive"` is also included since the iframe will then scale to the module once rendered.
-* `sandbox="allow-scripts allow-top-navigation"` is required. This enables Bibblio's JavaScript within the iframe and allows recommendation clicks to open.
+* Providing a `<div overflow ...>` child element is necessary to [allow resizing](https://www.ampproject.org/docs/reference/components/amp-iframe#iframe-resizing).
+* `width` and `height` properties are required by AMP. It's safe to use placeholder values of `1` as long as `layout="responsive" resizable` is also included since the iframe will then scale to the module once rendered.
+* `sandbox="allow-scripts allow-top-navigation allow-same-origin"` is required. This enables Bibblio's JavaScript within the iframe, allows recommendation clicks to open, and let's the iframe update its size in the parent window.
 * `styleClasses` are comma-separated when supplied to the iframe.
 * `queryStringParams` take a different format when supplied to the iframe. They can be supplied directly in the `src` property without an enclosing `queryStringParams=__` container.
 
 The following example includes all format variances. It will add `utm_source=Bibblio` and `utm_campaign=related` to your recommendation links and include the `bib--row-3` and `bib--hover` styleClasses.
 
 ```html
-<amp-iframe width="1" height="1" layout="responsive" sandbox="allow-scripts allow-top-navigation" src="https://cdn.bibblio.org/rcm/3.10/amp.html?recommendationKey=YOUR_RECOMMENDATION_KEY&contentItemId=YOUR_CONTENT_ITEM_ID&utm_source=Bibblio&utm_campaign=related&styleClasses=bib--row-3,bib--hover">
+<amp-iframe width="1" height="1" layout="responsive" resizable sandbox="allow-scripts allow-top-navigation allow-same-origin" src="https://cdn.bibblio.org/rcm/3.10/amp.html?recommendationKey=YOUR_RECOMMENDATION_KEY&contentItemId=YOUR_CONTENT_ITEM_ID&utm_source=Bibblio&utm_campaign=related&styleClasses=bib--row-3,bib--hover">
+    <div overflow tabindex=0 role=button aria-label="See more">See more!</div>
     <amp-img layout="fill" src="" placeholder></amp-img>
 </amp-iframe>
 ```

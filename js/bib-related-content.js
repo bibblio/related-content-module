@@ -10,7 +10,7 @@
 
   // Bibblio module
   var Bibblio = {
-    moduleVersion: "3.10.2",
+    moduleVersion: "3.10.3",
     moduleTracking: {},
     isAmp: false,
 
@@ -290,7 +290,7 @@
       var callbacks = {};
     
       if(Bibblio.isAmp) {
-        params = BibblioUtils.getAmpParams(url)
+        params = BibblioUtils.getAmpAutoInitParams(url)
         callbacks = BibblioUtils.getAmpCallbacks();
       } else {
         params = BibblioUtils.getParams();
@@ -301,19 +301,21 @@
       });
     },
 
-    getAmpParams: function(url) {
+    getAmpAutoInitParams: function(url) {
       var params = [];
-      var ampOptions = BibblioUtils.getAmpOptions(url);
-      ampOptions.autoIngestionUrl = document.referrer;
-      params.push(ampOptions);
+      var targetElement = BibblioUtils.findInitElements()[0];
+      if (targetElement) {
+        var ampOptions = BibblioUtils.getAmpOptions(url);
+        ampOptions.autoIngestionUrl = document.referrer;
+        ampOptions.targetElement = targetElement;
+        params.push(ampOptions);
+      }
       return params;
     },
 
     getParams: function() {
-      var params = [];
       var elements = BibblioUtils.findInitElements();
-      var elementParams = BibblioUtils.elementsToInitParams(elements);
-      params = elementParams;
+      var params = BibblioUtils.elementsToInitParams(elements);
       return params;
     },
 
@@ -1403,10 +1405,8 @@
     // `DOMContentLoaded` may fire before your script has a chance to run,
     // so check before adding a listener
     if (document.readyState === "loading") {
-
       document.addEventListener("DOMContentLoaded", BibblioUtils.autoInit);
     } else {  // `DOMContentLoaded` already fired
-
       BibblioUtils.autoInit();
     }
   }
