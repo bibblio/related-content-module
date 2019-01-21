@@ -10,7 +10,7 @@
 
   // Bibblio module
   var Bibblio = {
-    moduleVersion: "3.10.3",
+    moduleVersion: "3.10.4",
     moduleTracking: {},
     isAmp: false,
 
@@ -241,17 +241,17 @@
       if(Object.keys(diffObject).length > -1) {
         for(var key = 0; key < Object.keys(diffObject).length; key++) {
           var param = diffObject[key];
-          queryStringObj[param] = params[param]
+          queryStringObj[param] = params[param];
         }
       };
       return queryStringObj;
     },
 
     prepareModuleOptions: function(options) {
-      if (!options.contentItemId && !options.customUniqueIdentifier && options.autoIngestion && options.recommendationType !== "popular")
-        options.customUniqueIdentifier = BibblioUtils.getCustomUniqueIdentifierFromUrl();
+      if (options && !options.contentItemId && !options.customUniqueIdentifier && options.autoIngestion && options.recommendationType !== "popular")
+        options.customUniqueIdentifier = BibblioUtils.getCustomUniqueIdentifierFromUrl(options);
 
-      if (options.targetElementId && !options.targetElement)
+      if (options && options.targetElementId && !options.targetElement)
         options.targetElement = document.getElementById(options.targetElementId);
 
       return options;
@@ -586,7 +586,7 @@
     },
 
     getCanonicalUrl: function(options) {
-      if (options.canonical !== undefined) {
+      if (options && options.canonical !== undefined) {
         var url = options.canonical;
         return url;
       } else {
