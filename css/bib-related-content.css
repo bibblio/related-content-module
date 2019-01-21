@@ -487,13 +487,14 @@
 @media (max-width: 1024px) {
     .bib--row-4.bib--wide .bib__title span { font-size: smaller !important; line-height: 1em !important; }
 }
-@media (max-width: 767px) {
+@media (max-width: 739px) {
     .bib__tile { width: 50% !important; }
     .bib__link .bib__attributes,
     .bib__link:hover .bib__attributes { display: block; margin: 5px 0; max-height: 10em; padding: 0; }
     .bib--title-only .bib__link .bib__attributes,
     .bib__link .bib__preview,
     .bib__link:hover .bib__preview { display: none !important; }
+    .bib__info { padding: 30px 15px 10px; }
     .bib__title span { font-size: large !important; }
 
     .bib__tile,
@@ -515,18 +516,9 @@
         padding-bottom: 50% !important; }
 
     /* Edge cases */
-    [class*="bib--col"] .bib__tile {
-        width: 100% !important; }
-
-    .bib--split .bib__tile {
-        padding-top: 5% !important;
-    }
-
+    [class*="bib--col"] .bib__tile { width: 100% !important; }
+    .bib--split .bib__tile { padding-top: 5% !important; }
     .bib--box-6 .bib__tile--4 { clear: none; }
-
-}
-@media (max-width: 568px) {
-    .bib__info { padding: 30px 15px 10px; }
 }
 @media (max-width: 414px) {
 
@@ -555,6 +547,7 @@
     .bib--wide.bib--split .bib__tile { padding-bottom: 62% !important; }
     .bib_pending-recs-text { padding: 75px 20px 0; }
 }
+
 
 /* Visual Styles */
 

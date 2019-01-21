@@ -10,7 +10,7 @@
 
   // Bibblio module
   var Bibblio = {
-    moduleVersion: "3.10.4",
+    moduleVersion: "3.10.5",
     moduleTracking: {},
     isAmp: false,
 
