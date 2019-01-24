@@ -10,7 +10,7 @@
 
   // Bibblio module
   var Bibblio = {
-    moduleVersion: "3.10.5",
+    moduleVersion: "4.0.0",
     moduleTracking: {},
     isAmp: false,
 
@@ -767,7 +767,7 @@
 
     isRecommendationTileInView: function(container) {
       if (container) {
-        var tiles = container.getElementsByClassName("bib__tile");
+        var tiles = container.getElementsByClassName("bib__link");
         var scrollableParents = BibblioUtils.getScrollableParents(container);
         if(scrollableParents !== false) {
           for(var i = 0; i < tiles.length; i++) {
@@ -1122,27 +1122,30 @@
 
   // Bibblio template module
   var BibblioTemplates = {
-    outerModuleTemplate: '<ul class="bib__module <% classes %>">\
+    outerModuleTemplate: '<div class="bib__module <% classes %>">\
                             <% recommendedContentItems %>\
-                            <a href="https://www.bibblio.org/what" target="_blank" class="bib__origin" rel="nofollow"><span class="bib__origin--icon">i</span><span class="bib__origin--label">About these recommendations</span></a>\
-                          </ul>',
+                            <div class="bib__origin"><a href="https://www.bibblio.org/what" target="_blank" rel="nofollow"><span class="bib__origin--icon">i</span><span class="bib__origin--label">About these recommendations</span></a></div>\
+                          </div>',
 
-    relatedContentItemTemplate: '<li class="bib__tile bib__tile--<% tileNumber %> ">\
-                                    <a href="<% linkHref %>" target="<% linkTarget %>" <% linkRel %> data="<% contentItemId %>" class="bib__link <% linkImageClass %>" <% linkStyle %> >\
-                                      <span class="bib__container">\
-                                            <span class="bib__info">\
-                                                <span class="bib__title"><span><% name %></span></span>\
-                                                <span class="bib__attributes">\
-                                                  <% authorHTML %>\
-                                                  <% datePublishedHTML %>\
-                                                </span>\
-                                                <% subtitleHTML %>\
-                                            </span>\
+    relatedContentItemTemplate: '<a href="<% linkHref %>" target="<% linkTarget %>" <% linkRel %> data="<% contentItemId %>" class="bib__link bib__link--<% linkNumber %> <% linkImageClass %>">\
+                                    <span class="bib__image" <% linkImageStyle %> >\
+                                    </span>\
+                                    <span class="bib__info">\
+                                        <span class="bib__title">\
+                                          <span class="bib__name"><% name %></span>\
                                         </span>\
-                                    </a> \
-                                </li>',
+                                        <span class="bib__properties">\
+                                          <% authorHTML %>\
+                                          <% datePublishedHTML %>\
+                                          <span class="bib__site"></span>\
+                                        </span>\
+                                        <span class="bib__preview">\
+                                          <% subtitleHTML %>\
+                                        </span>\
+                                    </span>\
+                                    </a>',
 
-    subtitleTemplate: '<span class="bib__preview"><% subtitle %></span>',
+    subtitleTemplate: '<span class="bib__description"><% subtitle %></span>',
 
     authorTemplate: '<span class="bib__author"><% author %></span>',
 
@@ -1272,9 +1275,9 @@
           linkTarget: BibblioUtils.linkTargetFor(contentItemUrl),
           linkRel: BibblioUtils.linkRelFor(contentItemUrl),
           linkImageClass: (contentItemImageUrl ? 'bib__link--image' : ''),
-          linkStyle: (contentItemImageUrl ? 'style="background-image: url(' + "'"  + contentItemImageUrl + "'" + ')"' : ''),
+          linkImageStyle: (contentItemImageUrl ? 'style="background-image: url(' + "'"  + contentItemImageUrl + "'" + ')"' : ''),
           subtitleHTML: subtitleHTML,
-          tileNumber: contentItemIndex + 1
+          linkNumber: contentItemIndex + 1
       };
 
       return BibblioTemplates.getTemplate(BibblioTemplates.relatedContentItemTemplate, templateOptions);
