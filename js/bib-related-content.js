@@ -10,7 +10,7 @@
 
   // Bibblio module
   var Bibblio = {
-    moduleVersion: "4.0.1",
+    moduleVersion: "4.0.2",
     moduleTracking: {},
     isAmp: false,
 
@@ -288,14 +288,14 @@
       Bibblio.isAmp = BibblioUtils.isInUrl(url, '#amp=1');
       var params = [];
       var callbacks = {};
-    
+
       if(Bibblio.isAmp) {
         params = BibblioUtils.getAmpAutoInitParams(url)
         callbacks = BibblioUtils.getAmpCallbacks();
       } else {
         params = BibblioUtils.getParams();
       }
-      
+
       params.forEach(function(options) {
         Bibblio.initRelatedContent(options, callbacks);
       });
@@ -337,6 +337,10 @@
 
         // Return custom object value for query string parameters
         return queryStringParameters;
+      }
+
+      if (key == "customCatalogueIds") {
+        return value.split(",");
       }
 
       // Handle booleans
