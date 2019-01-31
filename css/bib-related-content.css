@@ -20,6 +20,12 @@
     font-family: Arial, sans-serif;
 }
 
+.bib__module::after {
+    content: "";
+    clear: both;
+    display: table;
+}
+
 /* Links */
 
 .bib__link {
@@ -163,12 +169,12 @@
 .bib__info {
     display: block;
     position: absolute;
-    left: 0;
-    right: 0;
+    left: -1px;
+    right: -1px;
     bottom: -1px;
     color: #FFFFFF;
     font-size: 14px;
-    padding: 60px 15px 10px;
+    padding: 60px 16px 10px;
     background: -moz-linear-gradient(top,  rgba(0,0,0,0) 0%, rgba(0,0,0,0.7) 100%);
     background: -webkit-linear-gradient(top,  rgba(0,0,0,0) 0%,rgba(0,0,0,0.7) 100%);
     background: linear-gradient(to bottom,  rgba(0,0,0,0) 0%,rgba(0,0,0,0.7) 100%);
@@ -357,6 +363,12 @@
 
 .bib--split .bib__description {
     border-top: 0;
+    padding-bottom: 0;
+    -webkit-transition: all 0.5s linear;
+    -moz-transition: all 0.5s linear;
+    -ms-transition: all 0.5s linear;
+    -o-transition: all 0.5s linear;
+    transition: all 0.5s linear;
 }
 
 .bib--split.bib--invert .bib__link .bib__info {
@@ -372,7 +384,7 @@
 }
 
 .bib--split.bib--hover .bib__link:hover .bib__preview {
-    padding: 0 15px 10px;
+    padding: 0 15px;
     margin: 0;
     max-height: 10em;
     border-bottom: 1px solid rgba(0,0,0,0.1);
@@ -381,6 +393,10 @@
     -ms-transition: all 0.5s linear;
     -o-transition: all 0.5s linear;
     transition: all 0.5s linear;
+}
+
+.bib--split.bib--hover .bib__link:hover .bib__preview .bib__description {
+    padding-bottom: 10px;
 }
 
 .bib--txt-3 .bib__image,
