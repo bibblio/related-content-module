@@ -10,7 +10,7 @@
 
   // Bibblio module
   var Bibblio = {
-    moduleVersion: "4.0.2",
+    moduleVersion: "4.0.3",
     moduleTracking: {},
     isAmp: false,
 
@@ -1141,7 +1141,7 @@
                                         <span class="bib__properties">\
                                           <% authorHTML %>\
                                           <% datePublishedHTML %>\
-                                          <span class="bib__site"></span>\
+                                          <% syndicationHTML %>\
                                         </span>\
                                         <span class="bib__preview">\
                                           <% subtitleHTML %>\
@@ -1152,6 +1152,8 @@
     subtitleTemplate: '<span class="bib__description"><% subtitle %></span>',
 
     authorTemplate: '<span class="bib__author"><% author %></span>',
+
+    syndicationTemplate: '<span class="bib__site"><% domain %></span>',
 
     datePublishedTemplate: '<span class="bib__recency"><% datePublished %></span>',
 
@@ -1198,6 +1200,21 @@
       }
 
       return authorHTML;
+    },
+
+    getSyndicationHTML: function(contentItem) {
+      var syndicationHTML = '';
+      try {
+        var syndicationField = BibblioUtils.getDomainName(contentItem.fields.url);
+        var templateOptions = {
+          domain: syndicationField
+        };
+        syndicationHTML = BibblioTemplates.getTemplate(BibblioTemplates.syndicationTemplate, templateOptions);
+      } catch (e) {
+
+      }
+
+      return syndicationHTML;
     },
 
     formatDate: function(value, formatting) {
@@ -1260,6 +1277,11 @@
       var authorHTML = BibblioTemplates.getAuthorHTML(contentItem, moduleSettings);
       // Create template for datePublished
       var datePublishedHTML = BibblioTemplates.getDatePublishedHTML(contentItem, moduleSettings);
+      // Create template for syndication domain
+      var syndicationHTML = '';
+      if(options.recommendationType == 'syndicated'){
+        syndicationHTML = BibblioTemplates.getSyndicationHTML(contentItem);
+      };
 
       // Create template for related content item
       var contentItemUrl = (contentItem.fields.url ? contentItem.fields.url : '');
@@ -1274,6 +1296,7 @@
           contentItemId: (contentItem.contentItemId ? contentItem.contentItemId : ''),
           name: BibblioUtils.truncateTitle((contentItem.fields.name ? contentItem.fields.name   : ''), classes, moduleSettings.truncateTitle),
           authorHTML: authorHTML,
+          syndicationHTML: syndicationHTML,
           datePublishedHTML: datePublishedHTML,
           linkHref: BibblioUtils.linkHrefFor(contentItemUrl, options.queryStringParams),
           linkTarget: BibblioUtils.linkTargetFor(contentItemUrl),
