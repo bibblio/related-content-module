@@ -10,7 +10,7 @@
 
   // Bibblio module
   var Bibblio = {
-    moduleVersion: "4.0.4",
+    moduleVersion: "4.0.5",
     moduleTracking: {},
     isAmp: false,
 
@@ -324,23 +324,29 @@
     },
 
     handleNodeData: function(key, value) {
-      // Transform queryStringParameters into object
-      if(key == "queryStringParams") {
-        var queryStringParameters = {};
-        var pairs = value.split("&");
 
-        // Append each key value pair to queryStringParameters object
-        pairs.forEach(function(pair) {
-          var keyValueTuple = pair.split("=");
-          queryStringParameters[keyValueTuple[0]] = keyValueTuple[1];
-        })
+      switch (key) {
+        // Transform queryStringParameters into object
+        case "queryStringParams":
+          var queryStringParameters = {};
+          var pairs = value.split("&");
 
-        // Return custom object value for query string parameters
-        return queryStringParameters;
-      }
+          // Append each key value pair to queryStringParameters object
+          pairs.forEach(function(pair) {
+            var keyValueTuple = pair.split("=");
+            queryStringParameters[keyValueTuple[0]] = keyValueTuple[1];
+          })
 
-      if (key == "customCatalogueIds") {
-        return value.split(",");
+          // Return custom object value for query string parameters
+          return queryStringParameters;
+
+        // Transform comma separated strings into array
+        case "customCatalogueIds":
+        case "catalogueIds":
+          return value.split(",");
+
+        default:
+          break;
       }
 
       // Handle booleans
@@ -994,7 +1000,7 @@
             }
           }
         };
-        xmlhttp.open(method, url, true);
+        xmlhttp.open(method, url, isAsync);
         xmlhttp.setRequestHeader('Content-Type', 'application/json');
         if(accessToken)
           xmlhttp.setRequestHeader("Authorization", "Bearer " + accessToken);

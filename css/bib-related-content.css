@@ -105,11 +105,13 @@
 .bib--box-3 .bib__link--1 .bib__image { padding-top: 75% !important; }
 
 .bib--box-6 .bib__link--1 { width: 66%; }
-.bib--box-6 .bib__link--4 { clear: left; }
 .bib--box-6 .bib__image { padding-top: 75% !important; }
 .bib--box-6 .bib__link--1 .bib__image,
 .bib--split.bib--box-6 .bib__link--1 .bib__image { padding-top: 75.75% !important; }
 
+.bib--box-5 .bib__link--3,
+.bib--box-6 .bib__link--4,
+.bib--grd-6 .bib__link--4 { clear: left; }
 
 .bib--box-3 .bib__link.bib__link--1 .bib__title .bib__name,
 .bib--box-5 .bib__link.bib__link--1 .bib__title .bib__name,
