@@ -8,9 +8,21 @@
     isNodeJS = true;
   }
 
+  function limitExecutionRate(func, delay) {
+    var timer;
+    var context = this;
+    return function () {
+      var args = arguments;
+      clearTimeout(timer);
+      timer = setTimeout(function () {
+        return func.apply(context, args)
+      }, delay);
+    }
+  }
+
   // Bibblio module
   var Bibblio = {
-    moduleVersion: "4.0.5",
+    moduleVersion: "4.0.6",
     moduleTracking: {},
     isAmp: false,
 
@@ -258,30 +270,27 @@
     },
 
     /// Auto initialise params functions
-
-    getAllowedKeys: function() {
-      return [
-        "amp",
-        "autoIngestion",
-        "autoIngestionCatalogueId",
-        "autoIngestionCustomCatalogueId",
-        "catalogueIds",
-        "customCatalogueIds",
-        "contentItemId",
-        "customUniqueIdentifier",
-        "dateFormat",
-        "hidden",
-        "queryStringParams",
-        "recommendationKey",
-        "recommendationType",
-        "styleClasses",
-        "stylePreset",
-        "subtitleField",
-        "targetElementId",
-        "truncateTitle",
-        "userId"
-      ];
-    },
+    allowedKeys: [
+      "amp",
+      "autoIngestion",
+      "autoIngestionCatalogueId",
+      "autoIngestionCustomCatalogueId",
+      "catalogueIds",
+      "customCatalogueIds",
+      "contentItemId",
+      "customUniqueIdentifier",
+      "dateFormat",
+      "hidden",
+      "queryStringParams",
+      "recommendationKey",
+      "recommendationType",
+      "styleClasses",
+      "stylePreset",
+      "subtitleField",
+      "targetElementId",
+      "truncateTitle",
+      "userId"
+    ],
 
     autoInit: function() {
       var url = window.location.href;
@@ -291,7 +300,7 @@
 
       if(Bibblio.isAmp) {
         params = BibblioUtils.getAmpAutoInitParams(url)
-        callbacks = BibblioUtils.getAmpCallbacks();
+        callbacks = BibblioUtils.ampCallbacks;
       } else {
         params = BibblioUtils.getParams();
       }
@@ -305,12 +314,16 @@
       var params = [];
       var targetElement = BibblioUtils.findInitElements()[0];
       if (targetElement) {
-        var ampOptions = BibblioUtils.getAmpOptions(url);
-        ampOptions.autoIngestionUrl = document.referrer;
-        ampOptions.targetElement = targetElement;
-        params.push(ampOptions);
+        params = BibblioUtils.getAmpParams(url, targetElement);
       }
       return params;
+    },
+
+    getAmpParams: function(url, targetElement) {
+      var ampParams = BibblioUtils.getAmpOptions(url);
+      ampParams.autoIngestionUrl = document.referrer;
+      ampParams.targetElement = targetElement;
+      return [ampParams];
     },
 
     getParams: function() {
@@ -324,7 +337,6 @@
     },
 
     handleNodeData: function(key, value) {
-
       switch (key) {
         // Transform queryStringParameters into object
         case "queryStringParams":
@@ -357,7 +369,7 @@
     },
 
     elementsToInitParams: function(nodeList) {
-      var allowedKeys = BibblioUtils.getAllowedKeys();
+      var allowedKeys = BibblioUtils.allowedKeys;
 
       // Construct new objects with only the allowed keys from each node's dataset
       var initParams = [];
@@ -379,7 +391,7 @@
     },
 
     getAmpOptions: function(url) {
-      var allowedKeys = BibblioUtils.getAllowedKeys();
+      var allowedKeys = BibblioUtils.allowedKeys;
       var options = {};
 
       //create options object from amp query string
@@ -416,24 +428,20 @@
       }, '*');
     },
 
-    getAmpCallbacks: function() {
-      var callbacks = {
-        onRecommendationsRendered: function(recsData) {
+    ampCallbacks: {
+      onRecommendationsRendered: function (recsData) {
+        BibblioUtils.submitAmpEmbedSize(document.body.scrollHeight, document.body.scrollWidth);
+
+        window.parent.postMessage({
+          sentinel: 'amp',
+          type: 'embed-ready'
+        }, '*');
+
+        // this event is currently not being issued by the browser. This code is left here in hope that it will one day
+        window.addEventListener("orientationchange", function () {
           BibblioUtils.submitAmpEmbedSize(document.body.scrollHeight, document.body.scrollWidth);
-
-          window.parent.postMessage({
-            sentinel: 'amp',
-            type: 'embed-ready'
-          }, '*');
-
-          // this event is currently not being issued by the browser. This code is left here in hope that it will one day
-          window.addEventListener("orientationchange", function() {
-            BibblioUtils.submitAmpEmbedSize(document.body.scrollHeight, document.body.scrollWidth);
-          }, false);
-        }
-      };
-
-      return callbacks;
+        }, false);
+      }
     },
 
     /// Get recommendations functions
@@ -739,49 +747,75 @@
 
     // Viewed event
     setOnViewedListeners: function(options, callbacks, recommendationsResponse) {
-      // old (options, submitViewedActivityData, activityId, callbacks)
-      // (options, recommendationsResponse, callback)
       var callback = null;
-      var container = options.targetElement;
+      var moduleElement = options.targetElement;
       var trackingLink = recommendationsResponse._links.tracking.href;
       var activityId = BibblioUtils.getActivityId(trackingLink);
-      if(callbacks.onRecommendationViewed) {
+      if (callbacks.onRecommendationViewed) {
         callback = callbacks.onRecommendationViewed;
       }
 
-      // Check if the module is in view immeditally after rendered
-      if(BibblioUtils.isRecommendationTileInView(container)) {
-        BibblioEvents.onRecommendationViewed(options, recommendationsResponse, callback);
-      }
-      else {
-        var ticking = false;
-        var visiblityCheckDelay = 50;
-        // Scroll event
-        var eventListener = function(event) {
-          if(BibblioUtils.hasModuleBeenViewed(activityId)){
-            window.removeEventListener("scroll", eventListener, true);
-            return;
+      var visibilityTimeout = 5;
+
+      if (Bibblio.isAmp) {
+        var handleMessage = limitExecutionRate(function (message) {
+          // https://www.ampproject.org/docs/reference/components/amp-iframe
+          // Message structure that comes back from AMP when you ask for 'send-intersections'
+          var messageType = [message.data.sentinel, message.data.type].join(':');
+
+          if (messageType == "amp:intersection") {
+            if (BibblioUtils.hasModuleBeenViewed(activityId)) {
+              window.removeEventListener("message", handleMessage, true);
+              return;
+            }
+
+            // Check if tile is in view. For amp we supply the intersection ratio between
+            // the parent viewport and the iframe. This is multipled by the iframe window
+            // size (currently only height) to determine effective visible viewport in the iframe
+            if (BibblioUtils.isRecommendationTileInView(moduleElement, 
+                                                        message.data.changes[0].boundingClientRect, 
+                                                        message.data.changes[0].intersectionRatio)) {
+              BibblioEvents.onRecommendationViewed(options, recommendationsResponse, callback);
+            }
+
+
           }
-          if(!ticking) {
-            window.setTimeout(function() {
-              if(BibblioUtils.isRecommendationTileInView(container))
-                BibblioEvents.onRecommendationViewed(options, recommendationsResponse, callback);
-              ticking = false;
-            }, visiblityCheckDelay);
-          }
-          ticking = true;
+        }, visibilityTimeout);
+
+        window.parent.postMessage({
+          sentinel: 'amp',
+          type: 'send-intersections'
+        }, '*');
+
+        window.addEventListener('message', handleMessage, true);
+      } else {
+        // Check if the module is in view immediately after rendered
+        if (BibblioUtils.isRecommendationTileInView(moduleElement, moduleElement.getBoundingClientRect())) {
+          BibblioEvents.onRecommendationViewed(options, recommendationsResponse, callback);
+        } else {
+          var handleScroll = limitExecutionRate(function () {
+            if (BibblioUtils.hasModuleBeenViewed(activityId)) {
+              window.removeEventListener("scroll", handleScroll, true);
+              return;
+            }
+
+            if (BibblioUtils.isRecommendationTileInView(moduleElement, moduleElement.getBoundingClientRect())) {
+              BibblioEvents.onRecommendationViewed(options, recommendationsResponse, callback);
+            }
+          }, visibilityTimeout);
+
+          window.addEventListener('scroll', handleScroll, true);
         }
-        window.addEventListener('scroll', eventListener, true);
       }
     },
 
-    isRecommendationTileInView: function(container) {
+    isRecommendationTileInView: function(container, boundingClientRect, visibleRatio) {
       if (container) {
         var tiles = container.getElementsByClassName("bib__link");
-        var scrollableParents = BibblioUtils.getScrollableParents(container);
+        var scrollableParents = BibblioUtils.getScrollableParents(container, boundingClientRect);
         if(scrollableParents !== false) {
           for(var i = 0; i < tiles.length; i++) {
-            if(BibblioUtils.isTileVisible(tiles[i], scrollableParents))
+            if(BibblioUtils.isTileVisible(tiles[i], scrollableParents, visibleRatio))
               return true;
           }
         }
@@ -789,9 +823,7 @@
       return false;
     },
 
-    getScrollableParents: function(moduleElement) {
-      var moduleRect = moduleElement.getBoundingClientRect();
-
+    getScrollableParents: function(moduleElement, moduleRect) {
       // is module displayed
       if(moduleRect.top == 0 && moduleRect.bottom == 0)
         return false;
@@ -831,7 +863,8 @@
       return scrollableParents;
     },
 
-    isTileVisible: function(tile, scrollableParents) {
+    isTileVisible: function(tile, scrollableParents, visibleRatio) {
+      if (typeof visibleRatio === 'undefined') { visibleRatio = 1.0; }
       var tileRect = tile.getBoundingClientRect();
       var tileWidth = tileRect.right - tileRect.left;
       var tileHeight = tileRect.bottom - tileRect.top;
@@ -842,10 +875,10 @@
 
       // is tile in window's current viewport
       var isInVerticleView, isInHorizontalView;
-      isInVerticleView  = tileHeight <= window.innerHeight &&     // isn't higher than viewport
-                          tileRect.bottom <= window.innerHeight;  // whole tile height is within viewport
-      isInHorizontalView  = tileWidth <= window.innerWidth &&     // isn't wider than viewport
-                            tileRect.right <= window.innerWidth;  // whole tile width in within viewport
+      isInVerticleView  = tileHeight <= (window.innerHeight * visibleRatio) &&    // isn't higher than viewport. adjust to visible ratio if supplied for AMP
+                          tileRect.bottom <= window.innerHeight;                  // whole tile height is within viewport
+      isInHorizontalView  = tileWidth <= window.innerWidth &&                     // isn't wider than viewport
+                            tileRect.right <= window.innerWidth;                  // whole tile width in within viewport
       if(!isInVerticleView || !isInHorizontalView)
         return false;
 
@@ -992,7 +1025,10 @@
         xmlhttp.onreadystatechange = function () {
           if (xmlhttp.readyState === 4) {
             try {
-              var response = JSON.parse(xmlhttp.responseText);
+              var response;
+              if (xmlhttp.getResponseHeader('content-type') == "application/json") {
+                response = JSON.parse(xmlhttp.responseText);
+              }
               BibblioUtils.httpCallback(callback, response, xmlhttp.status);
             }
             catch (err) {
