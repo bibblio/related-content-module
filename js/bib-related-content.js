@@ -22,7 +22,7 @@
 
   // Bibblio module
   var Bibblio = {
-    moduleVersion: "4.0.6",
+    moduleVersion: "4.0.7",
     moduleTracking: {},
     isAmp: false,
 
@@ -650,7 +650,7 @@
 
     linkTargetFor: function(url) {
       if (Bibblio.isAmp) {
-        return '_parent';
+        return '_top';
       } else {
         var currentdomain = window.location.hostname;
         var matches = (BibblioUtils.getDomainName(currentdomain) == BibblioUtils.getDomainName(url));
