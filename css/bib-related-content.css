@@ -74,6 +74,7 @@
 .bib--box-6 .bib__link--1, .bib--box-6 .bib__link--2, .bib--box-6 .bib__link--3, .bib--box-6 .bib__link--4, .bib--box-6 .bib__link--5, .bib--box-6 .bib__link--6,
 .bib--grd-4 .bib__link--1, .bib--grd-4 .bib__link--2, .bib--grd-4 .bib__link--3, .bib--grd-4 .bib__link--4,
 .bib--grd-6 .bib__link--1, .bib--grd-6 .bib__link--2, .bib--grd-6 .bib__link--3, .bib--grd-6 .bib__link--4, .bib--grd-6 .bib__link--5, .bib--grd-6 .bib__link--6,
+.bib--txt-1 .bib__link--1,
 .bib--txt-3 .bib__link--1, .bib--txt-3 .bib__link--2, .bib--txt-3 .bib__link--3,
 .bib--txt-6 .bib__link--1, .bib--txt-6 .bib__link--2, .bib--txt-6 .bib__link--3, .bib--txt-6 .bib__link--4, .bib--txt-6 .bib__link--5, .bib--txt-6 .bib__link--6,
 [class*="bib--nxt"] .bib__link--1
@@ -274,8 +275,15 @@
 .bib--title-only.bib--split .bib__link .bib__properties,
 .bib--image-only.bib--split .bib__link .bib__title,
 .bib--image-only.bib--split .bib__link .bib__properties,
+.bib--txt-1.bib--image-only .bib__link .bib__title,
+.bib--txt-1.bib--image-only .bib__link .bib__properties,
+.bib--txt-1.bib--title-only .bib__link .bib__properties,
 .bib--txt-3.bib--image-only .bib__link .bib__title,
-.bib--txt-3.bib--image-only .bib__link .bib__properties {
+.bib--txt-3.bib--image-only .bib__link .bib__properties,
+.bib--txt-3.bib--title-only .bib__link .bib__properties,
+.bib--txt-6.bib--image-only .bib__link .bib__title,
+.bib--txt-6.bib--image-only .bib__link .bib__properties,
+.bib--txt-6.bib--title-only .bib__link .bib__properties {
     max-height: 10em;
     -webkit-transition: all 0.5s ease;
     -moz-transition: all 0.5s ease;
