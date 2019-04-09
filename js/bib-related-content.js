@@ -22,7 +22,7 @@
 
   // Bibblio module
   var Bibblio = {
-    moduleVersion: "4.0.8",
+    moduleVersion: "4.1.0",
     moduleTracking: {},
     isAmp: false,
 
@@ -200,6 +200,16 @@
       if(options.autoIngestionCatalogueId && options.autoIngestionCustomCatalogueId) {
         console.error("Bibblio: Cannot supply both autoIngestionCatalogueId and autoIngestionCustomCatalogueId.");
         return false;
+      }
+
+      if(options.corpusType === "syndicated" && options.catalogueIds) {
+        console.error("Bibblio: catalogueIds cannot be supplied when serving syndicated recommendations.")
+        return false
+      }
+
+      if(options.corpusType === "syndicated" && options.customCatalogueIds) {
+        console.error("Bibblio: customCatalogueIds cannot be supplied when serving syndicated recommendations.")
+        return false
       }
 
       return true;
@@ -455,6 +465,7 @@
     getRecommendationUrl: function(options, limit, page, fields) {
       var baseUrl = "https://api.bibblio.org/v1";
       var recommendationType = (options.recommendationType) ? options.recommendationType : null;
+      var corpusType = options.corpusType ? options.corpusType : null;
       var catalogueIds = options.catalogueIds ? options.catalogueIds : [];
       var customCatalogueIds = options.customCatalogueIds ? options.customCatalogueIds : [];
       var userId = options.userId;
@@ -482,6 +493,13 @@
 
       if (userId) {
           querystringArgs.push("userId=" + userId);
+      }
+
+      if (corpusType === "syndicated") {
+          querystringArgs.push("corpusType=" + corpusType);
+          
+          // Hardcode recommendation type for now when using syndication
+          recommendationType = "optimised";
       }
 
       switch (recommendationType) {
@@ -1110,18 +1128,19 @@
       var activityId = BibblioUtils.getActivityId(trackingLink);
 
       var userId = options.userId ? options.userId : null;
-      var activityData = BibblioActivity.constructOnClickedActivityData(
-          sourceContentItemId,
-          clickedContentItemId,
-          options.catalogueIds,
-          relatedContentItems,
-          {
-              type: "BibblioRelatedContent",
-              version: Bibblio.moduleVersion,
-              config: moduleSettings
+      var activityData = BibblioActivity.constructOnClickedActivityData({
+          sourceContentItemId: sourceContentItemId,
+          clickedContentItemId: clickedContentItemId,
+          clickedContentItemHref: event.currentTarget.getAttribute("href"),
+          catalogueIds: options.catalogueIds,
+          relatedContentItems: relatedContentItems,
+          instrument: {
+            type: "BibblioRelatedContent",
+            version: Bibblio.moduleVersion,
+            config: moduleSettings
           },
-          userId
-      );
+          userId: userId
+        });
 
       if(!BibblioUtils.hasRecommendationBeenClicked(activityId, clickedContentItemId)) {
           var response = BibblioActivity.track(trackingLink, activityData);
@@ -1144,17 +1163,17 @@
         var sourceContentItemId = (recommendationsResponse._links.sourceContentItem ? recommendationsResponse._links.sourceContentItem.id : null);
         BibblioUtils.setModuleViewed(activityId);
         var userId = options.userId ? options.userId : null;
-        var activityData = BibblioActivity.constructOnViewedActivityData(
-            sourceContentItemId,
-            options.catalogueIds,
-            relatedContentItems,
-            {
-                type: "BibblioRelatedContent",
-                version: Bibblio.moduleVersion,
-                config: moduleSettings
+        var activityData = BibblioActivity.constructOnViewedActivityData({
+            sourceContentItemId: sourceContentItemId,
+            catalogueIds: options.catalogueIds,
+            relatedContentItems: relatedContentItems,
+            instrument: {
+              type: "BibblioRelatedContent",
+              version: Bibblio.moduleVersion,
+              config: moduleSettings
             },
-            userId
-        );
+            userId: userId
+          });
 
         var response = BibblioActivity.trackAsync(trackingLink, activityData);
 
@@ -1394,29 +1413,29 @@
       }
     },
 
-    constructOnClickedActivityData: function(sourceContentItemId, clickedContentItemId, catalogueIds, relatedContentItems, instrument, userId) {
+    constructOnClickedActivityData: function(options) {
       var activityData = {
         "type": "Clicked",
-        "object": BibblioActivity.constructActivityObject(clickedContentItemId),
-        "context": BibblioActivity.constructActivityContext(sourceContentItemId, catalogueIds, relatedContentItems),
-        "instrument": BibblioActivity.constructActivityInstrument(instrument)
+        "object": BibblioActivity.constructActivityObject(options.clickedContentItemId, options.clickedContentItemHref),
+        "context": BibblioActivity.constructActivityContext(options.sourceContentItemId, options.catalogueIds, options.relatedContentItems),
+        "instrument": BibblioActivity.constructActivityInstrument(options.instrument)
       };
 
-      if(userId != null)
-        activityData["actor"] = {"userId": userId};
+      if(options.userId != null)
+        activityData["actor"] = {"userId": options.userId};
 
       return activityData;
     },
 
-    constructOnViewedActivityData: function(sourceContentItemId, catalogueIds, relatedContentItems, instrument, userId) {
+    constructOnViewedActivityData: function(options) {
       var activityData = {
         "type": "Viewed",
-        "context": BibblioActivity.constructActivityContext(sourceContentItemId, catalogueIds, relatedContentItems),
-        "instrument": BibblioActivity.constructActivityInstrument(instrument)
+        "context": BibblioActivity.constructActivityContext(options.sourceContentItemId, options.catalogueIds, options.relatedContentItems),
+        "instrument": BibblioActivity.constructActivityInstrument(options.instrument)
       };
 
-      if(userId != null)
-        activityData["actor"] = {"userId": userId};
+      if(options.userId != null)
+        activityData["actor"] = {"userId": options.userId};
 
       return activityData;
     },
@@ -1429,8 +1448,9 @@
       };
     },
 
-    constructActivityObject: function(clickedContentItemId) {
-      return [["contentItemId", clickedContentItemId]];
+    constructActivityObject: function(clickedContentItemId, clickedContentItemHref) {
+      return [["contentItemId", clickedContentItemId],
+              ["href", clickedContentItemHref]];
     },
 
     constructActivityContext: function(sourceContentItemId, catalogueIds, relatedContentItems) {
