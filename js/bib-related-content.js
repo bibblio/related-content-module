@@ -22,7 +22,7 @@
 
   // Bibblio module
   var Bibblio = {
-    moduleVersion: "4.1.0",
+    moduleVersion: "4.1.1",
     moduleTracking: {},
     isAmp: false,
 
@@ -288,6 +288,7 @@
       "catalogueIds",
       "customCatalogueIds",
       "contentItemId",
+      "corpusType",
       "customUniqueIdentifier",
       "dateFormat",
       "hidden",
