@@ -22,7 +22,7 @@
 
   // Bibblio module
   var Bibblio = {
-    moduleVersion: "4.2.0",
+    moduleVersion: "4.2.1",
     moduleTracking: {},
     isAmp: false,
 
@@ -293,7 +293,7 @@
 
     prepareModuleOptions: function(options) {
       if (options && !options.contentItemId && !options.customUniqueIdentifier && options.recommendationType !== "popular") {
-        let canonicalUrl = BibblioUtils.getCustomUniqueIdentifierFromUrl(options);
+        var canonicalUrl = BibblioUtils.getCustomUniqueIdentifierFromUrl(options);
         if (canonicalUrl) {
           options.customUniqueIdentifier = BibblioUtils.getCustomUniqueIdentifierFromUrl(options);
         }
