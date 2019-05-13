@@ -18,6 +18,7 @@
     min-height: initial;
     width: 100%;
     font-family: Arial, sans-serif;
+    clear: both;
 }
 
 .bib__module::after {
@@ -314,7 +315,7 @@
 /* Headline Style */
 
 .bib--font-arial .bib__title {font-family: Arial, sans-serif;}
-.bib--font-arialblack .bib__title {font-family: Arial Black, sans-serif;}
+.bib--font-arialblack .bib__title {font-family: "Arial Black", sans-serif;}
 .bib--font-comic .bib__title {font-family: "Comic Sans", "Comic Sans MS", sans-serif;}
 .bib--font-courier .bib__title {font-family: "Courier New", serif;}
 .bib--font-georgia .bib__title {font-family: Georgia, serif;}
