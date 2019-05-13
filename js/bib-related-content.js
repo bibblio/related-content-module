@@ -22,7 +22,7 @@
 
   // Bibblio module
   var Bibblio = {
-    moduleVersion: "4.1.2",
+    moduleVersion: "4.2.0",
     moduleTracking: {},
     isAmp: false,
 
@@ -50,14 +50,38 @@
       var url = BibblioUtils.getRecommendationUrl(options, 6, 1, fields);
       BibblioUtils.bibblioHttpGetRequest(url, accessToken, true, function(response, status) {
         Bibblio.handleRecsResponse(options, callbacks, response, status);
+
+        // fall back to Global Popularity recommendations if no recommendations could be fetched yet
+        if ((status === 404) || (status === 412) || (status === 422)) {
+          console.log('Bibblio: Fetching Global Popularity Recs after receiving HTTP status ' + status);
+
+          // copy and modify the previous options
+          var popularOptions = Object.assign({}, options);
+          popularOptions.recommendationType = "popular";
+          delete popularOptions.contentItemId;
+          delete popularOptions.customUniqueIdentifier;
+
+          var popularUrl = BibblioUtils.getRecommendationUrl(popularOptions, 6, 1, fields);
+          BibblioUtils.bibblioHttpGetRequest(popularUrl, accessToken, true, function(response, status) {
+            Bibblio.handleRecsResponse(popularOptions, callbacks, response, status);
+          });
+        }
       });
     },
 
     handleRecsResponse: function(options, callbacks, recommendationsResponse, status) {
       if(options.autoIngestion) {
-        if(status === 404) { // this will always be returned before a 402 (if the item doesn to exist)
-          // content item has not been ingested yet
-          Bibblio.createScrapeRequest(options);
+        // if content item has not been ingested yet
+        if(status === 404) { // this will always be returned before a 402 (if the item doesn't exist)
+
+          // delay the call(s) to createScrapeRequest
+          var timeout = Math.floor(Math.random() * 500);
+          setTimeout(function() {
+            // then make sure it hasn't been called yet (so only one module on a page gets to ingest)
+            if (!Bibblio.createScrapeRequestCalled) {
+              Bibblio.createScrapeRequest(options);
+            }
+          }, timeout);
         }
       }
 
@@ -69,9 +93,12 @@
         // content item does not have recommendations yet
         console.info("Bibblio: Awaiting indexing. This delay will only occur until some click events have been processed. Recommendations will thereafter be available immediately on ingestion.");
       }
+
+      return status;
     },
 
     createScrapeRequest: function(options) {
+      Bibblio.createScrapeRequestCalled = true;
       var href;
 
       if(options.autoIngestionUrl) {
@@ -166,11 +193,6 @@
         console.error("Bibblio: auto-ingestion cannot be enabled on a module serving popular recommendations. Please auto-ingest with a module serving 'optimised' or 'related' recommendations instead.");
         return false;
        }
-
-      if(!options.contentItemId && !options.customUniqueIdentifier && !options.autoIngestion  && options.recommendationType != "popular") {
-        console.error("Bibblio: Please provide a contentItemId or a customUniqueIdentifier in the options parameter.");
-        return false;
-      }
 
       if(options.contentItemId && options.customUniqueIdentifier) {
         console.error("Bibblio: Cannot supply both contentItemId and customUniqueIdentifier.");
@@ -270,11 +292,16 @@
     },
 
     prepareModuleOptions: function(options) {
-      if (options && !options.contentItemId && !options.customUniqueIdentifier && options.autoIngestion && options.recommendationType !== "popular")
-        options.customUniqueIdentifier = BibblioUtils.getCustomUniqueIdentifierFromUrl(options);
+      if (options && !options.contentItemId && !options.customUniqueIdentifier && options.recommendationType !== "popular") {
+        let canonicalUrl = BibblioUtils.getCustomUniqueIdentifierFromUrl(options);
+        if (canonicalUrl) {
+          options.customUniqueIdentifier = BibblioUtils.getCustomUniqueIdentifierFromUrl(options);
+        }
+      }
 
-      if (options && options.targetElementId && !options.targetElement)
+      if (options && options.targetElementId && !options.targetElement) {
         options.targetElement = document.getElementById(options.targetElementId);
+      }
 
       return options;
     },
@@ -498,7 +525,7 @@
 
       if (corpusType === "syndicated") {
           querystringArgs.push("corpusType=" + corpusType);
-          
+
           // Hardcode recommendation type for now when using syndication
           recommendationType = "optimised";
       }
@@ -635,7 +662,7 @@
     getCustomUniqueIdentifierFromUrl: function(options) {
       var url = BibblioUtils.getCanonicalUrl(options);
       if(!url){
-        console.error("Exception: Unable to determine canonical URL for auto ingestion. Please see https://github.com/bibblio/related-content-module#customuniqueidentifier-required-if-no-contentitemid-is-provided on how to specify a customUniqueIdentifier, or see https://support.google.com/webmasters/answer/139066?hl=en to add a canonical URL tag.");
+        console.error("Exception: Unable to determine canonical URL for retrieving recommendations or auto ingestion. Please see https://github.com/bibblio/related-content-module#customuniqueidentifier-required-if-no-contentitemid-is-provided on how to specify a customUniqueIdentifier, or see https://support.google.com/webmasters/answer/139066?hl=en to add a canonical URL tag.");
         return false;
       }else{
         return url;
@@ -791,8 +818,8 @@
             // Check if tile is in view. For amp we supply the intersection ratio between
             // the parent viewport and the iframe. This is multipled by the iframe window
             // size (currently only height) to determine effective visible viewport in the iframe
-            if (BibblioUtils.isRecommendationTileInView(moduleElement, 
-                                                        message.data.changes[0].boundingClientRect, 
+            if (BibblioUtils.isRecommendationTileInView(moduleElement,
+                                                        message.data.changes[0].boundingClientRect,
                                                         message.data.changes[0].intersectionRatio)) {
               BibblioEvents.onRecommendationViewed(options, recommendationsResponse, callback);
             }
