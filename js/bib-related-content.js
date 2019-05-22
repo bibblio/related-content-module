@@ -8,21 +8,9 @@
     isNodeJS = true;
   }
 
-  function limitExecutionRate(func, delay) {
-    var timer;
-    var context = this;
-    return function () {
-      var args = arguments;
-      clearTimeout(timer);
-      timer = setTimeout(function () {
-        return func.apply(context, args)
-      }, delay);
-    }
-  }
-
   // Bibblio module
   var Bibblio = {
-    moduleVersion: "4.2.1",
+    moduleVersion: "4.0.5",
     moduleTracking: {},
     isAmp: false,
 
@@ -50,38 +38,14 @@
       var url = BibblioUtils.getRecommendationUrl(options, 6, 1, fields);
       BibblioUtils.bibblioHttpGetRequest(url, accessToken, true, function(response, status) {
         Bibblio.handleRecsResponse(options, callbacks, response, status);
-
-        // fall back to Global Popularity recommendations if no recommendations could be fetched yet
-        if ((status === 404) || (status === 412) || (status === 422)) {
-          console.log('Bibblio: Fetching Global Popularity Recs after receiving HTTP status ' + status);
-
-          // copy and modify the previous options
-          var popularOptions = Object.assign({}, options);
-          popularOptions.recommendationType = "popular";
-          delete popularOptions.contentItemId;
-          delete popularOptions.customUniqueIdentifier;
-
-          var popularUrl = BibblioUtils.getRecommendationUrl(popularOptions, 6, 1, fields);
-          BibblioUtils.bibblioHttpGetRequest(popularUrl, accessToken, true, function(response, status) {
-            Bibblio.handleRecsResponse(popularOptions, callbacks, response, status);
-          });
-        }
       });
     },
 
     handleRecsResponse: function(options, callbacks, recommendationsResponse, status) {
       if(options.autoIngestion) {
-        // if content item has not been ingested yet
-        if(status === 404) { // this will always be returned before a 402 (if the item doesn't exist)
-
-          // delay the call(s) to createScrapeRequest
-          var timeout = Math.floor(Math.random() * 500);
-          setTimeout(function() {
-            // then make sure it hasn't been called yet (so only one module on a page gets to ingest)
-            if (!Bibblio.createScrapeRequestCalled) {
-              Bibblio.createScrapeRequest(options);
-            }
-          }, timeout);
+        if(status === 404) { // this will always be returned before a 402 (if the item doesn to exist)
+          // content item has not been ingested yet
+          Bibblio.createScrapeRequest(options);
         }
       }
 
@@ -93,12 +57,9 @@
         // content item does not have recommendations yet
         console.info("Bibblio: Awaiting indexing. This delay will only occur until some click events have been processed. Recommendations will thereafter be available immediately on ingestion.");
       }
-
-      return status;
     },
 
     createScrapeRequest: function(options) {
-      Bibblio.createScrapeRequestCalled = true;
       var href;
 
       if(options.autoIngestionUrl) {
@@ -155,6 +116,7 @@
       var relatedContentItems = recommendationsResponse.results;
       var moduleSettings = BibblioUtils.getModuleSettings(options);
       var relatedContentItemContainer = options.targetElement;
+      //console.log('relatedContentItems', relatedContentItems.length)
       var moduleHTML = BibblioTemplates.getModuleHTML(relatedContentItems, options, moduleSettings);
       relatedContentItemContainer.innerHTML = moduleHTML;
 
@@ -194,6 +156,11 @@
         return false;
        }
 
+      if(!options.contentItemId && !options.customUniqueIdentifier && !options.autoIngestion  && options.recommendationType != "popular") {
+        console.error("Bibblio: Please provide a contentItemId or a customUniqueIdentifier in the options parameter.");
+        return false;
+      }
+
       if(options.contentItemId && options.customUniqueIdentifier) {
         console.error("Bibblio: Cannot supply both contentItemId and customUniqueIdentifier.");
         return false;
@@ -222,16 +189,6 @@
       if(options.autoIngestionCatalogueId && options.autoIngestionCustomCatalogueId) {
         console.error("Bibblio: Cannot supply both autoIngestionCatalogueId and autoIngestionCustomCatalogueId.");
         return false;
-      }
-
-      if(options.corpusType === "syndicated" && options.catalogueIds) {
-        console.error("Bibblio: catalogueIds cannot be supplied when serving syndicated recommendations.")
-        return false
-      }
-
-      if(options.corpusType === "syndicated" && options.customCatalogueIds) {
-        console.error("Bibblio: customCatalogueIds cannot be supplied when serving syndicated recommendations.")
-        return false
       }
 
       return true;
@@ -274,61 +231,41 @@
       return params;
     },
 
-    createQueryStringObj: function(params, options) {
-      var diffArray = Object.keys(params).filter(function (k) {
-        return params[k] !== options[k]
-      });
-
-      var diffObject = Object.assign({}, diffArray);
-
-      var queryStringObj = {};
-      if(Object.keys(diffObject).length > -1) {
-        for(var key = 0; key < Object.keys(diffObject).length; key++) {
-          var param = diffObject[key];
-          queryStringObj[param] = params[param];
-        }
-      };
-      return queryStringObj;
-    },
-
     prepareModuleOptions: function(options) {
-      if (options && !options.contentItemId && !options.customUniqueIdentifier && options.recommendationType !== "popular") {
-        var canonicalUrl = BibblioUtils.getCustomUniqueIdentifierFromUrl(options);
-        if (canonicalUrl) {
-          options.customUniqueIdentifier = BibblioUtils.getCustomUniqueIdentifierFromUrl(options);
-        }
-      }
+      if (options && !options.contentItemId && !options.customUniqueIdentifier && options.autoIngestion && options.recommendationType !== "popular")
+        options.customUniqueIdentifier = BibblioUtils.getCustomUniqueIdentifierFromUrl(options);
 
-      if (options && options.targetElementId && !options.targetElement) {
+      if (options && options.targetElementId && !options.targetElement)
         options.targetElement = document.getElementById(options.targetElementId);
-      }
 
       return options;
     },
 
     /// Auto initialise params functions
-    allowedKeys: [
-      "amp",
-      "autoIngestion",
-      "autoIngestionCatalogueId",
-      "autoIngestionCustomCatalogueId",
-      "catalogueIds",
-      "customCatalogueIds",
-      "contentItemId",
-      "corpusType",
-      "customUniqueIdentifier",
-      "dateFormat",
-      "hidden",
-      "queryStringParams",
-      "recommendationKey",
-      "recommendationType",
-      "styleClasses",
-      "stylePreset",
-      "subtitleField",
-      "targetElementId",
-      "truncateTitle",
-      "userId"
-    ],
+
+    getAllowedKeys: function() {
+      return [
+        "amp",
+        "autoIngestion",
+        "autoIngestionCatalogueId",
+        "autoIngestionCustomCatalogueId",
+        "catalogueIds",
+        "customCatalogueIds",
+        "contentItemId",
+        "customUniqueIdentifier",
+        "dateFormat",
+        "hidden",
+        "queryStringParams",
+        "recommendationKey",
+        "recommendationType",
+        "styleClasses",
+        "stylePreset",
+        "subtitleField",
+        "targetElementId",
+        "truncateTitle",
+        "userId"
+      ];
+    },
 
     autoInit: function() {
       var url = window.location.href;
@@ -338,7 +275,7 @@
 
       if(Bibblio.isAmp) {
         params = BibblioUtils.getAmpAutoInitParams(url)
-        callbacks = BibblioUtils.ampCallbacks;
+        callbacks = BibblioUtils.getAmpCallbacks();
       } else {
         params = BibblioUtils.getParams();
       }
@@ -352,16 +289,12 @@
       var params = [];
       var targetElement = BibblioUtils.findInitElements()[0];
       if (targetElement) {
-        params = BibblioUtils.getAmpParams(url, targetElement);
+        var ampOptions = BibblioUtils.getAmpOptions(url);
+        ampOptions.autoIngestionUrl = document.referrer;
+        ampOptions.targetElement = targetElement;
+        params.push(ampOptions);
       }
       return params;
-    },
-
-    getAmpParams: function(url, targetElement) {
-      var ampParams = BibblioUtils.getAmpOptions(url);
-      ampParams.autoIngestionUrl = document.referrer;
-      ampParams.targetElement = targetElement;
-      return [ampParams];
     },
 
     getParams: function() {
@@ -375,6 +308,7 @@
     },
 
     handleNodeData: function(key, value) {
+
       switch (key) {
         // Transform queryStringParameters into object
         case "queryStringParams":
@@ -407,7 +341,7 @@
     },
 
     elementsToInitParams: function(nodeList) {
-      var allowedKeys = BibblioUtils.allowedKeys;
+      var allowedKeys = BibblioUtils.getAllowedKeys();
 
       // Construct new objects with only the allowed keys from each node's dataset
       var initParams = [];
@@ -429,7 +363,7 @@
     },
 
     getAmpOptions: function(url) {
-      var allowedKeys = BibblioUtils.allowedKeys;
+      var allowedKeys = BibblioUtils.getAllowedKeys();
       var options = {};
 
       //create options object from amp query string
@@ -466,20 +400,24 @@
       }, '*');
     },
 
-    ampCallbacks: {
-      onRecommendationsRendered: function (recsData) {
-        BibblioUtils.submitAmpEmbedSize(document.body.scrollHeight, document.body.scrollWidth);
-
-        window.parent.postMessage({
-          sentinel: 'amp',
-          type: 'embed-ready'
-        }, '*');
-
-        // this event is currently not being issued by the browser. This code is left here in hope that it will one day
-        window.addEventListener("orientationchange", function () {
+    getAmpCallbacks: function() {
+      var callbacks = {
+        onRecommendationsRendered: function(recsData) {
           BibblioUtils.submitAmpEmbedSize(document.body.scrollHeight, document.body.scrollWidth);
-        }, false);
-      }
+
+          window.parent.postMessage({
+            sentinel: 'amp',
+            type: 'embed-ready'
+          }, '*');
+
+          // this event is currently not being issued by the browser. This code is left here in hope that it will one day
+          window.addEventListener("orientationchange", function() {
+            BibblioUtils.submitAmpEmbedSize(document.body.scrollHeight, document.body.scrollWidth);
+          }, false);
+        }
+      };
+
+      return callbacks;
     },
 
     /// Get recommendations functions
@@ -493,7 +431,6 @@
     getRecommendationUrl: function(options, limit, page, fields) {
       var baseUrl = "https://api.bibblio.org/v1";
       var recommendationType = (options.recommendationType) ? options.recommendationType : null;
-      var corpusType = options.corpusType ? options.corpusType : null;
       var catalogueIds = options.catalogueIds ? options.catalogueIds : [];
       var customCatalogueIds = options.customCatalogueIds ? options.customCatalogueIds : [];
       var userId = options.userId;
@@ -523,13 +460,6 @@
           querystringArgs.push("userId=" + userId);
       }
 
-      if (corpusType === "syndicated") {
-          querystringArgs.push("corpusType=" + corpusType);
-
-          // Hardcode recommendation type for now when using syndication
-          recommendationType = "optimised";
-      }
-
       switch (recommendationType) {
           case "related" :
               return baseUrl + "/recommendations/related?" + querystringArgs.join("&");
@@ -538,37 +468,6 @@
           default :
               return baseUrl + "/recommendations?" + querystringArgs.join("&");
       }
-    },
-
-    getParameterByName: function(name, url) {
-        if (!url) url = window.location.href;
-        name = name.replace(/[\[\]]/g, "\\$&");
-        var regex = new RegExp("[?&]" + name + "(=([^&#]*)|&|#|$)"),
-            results = regex.exec(url);
-        if (!results) return null;
-        if (!results[2]) return '';
-        return decodeURIComponent(results[2].replace(/\+/g, " "));
-    },
-
-    createParamsObj: function(url) {
-      var queryStringParams = url.split('?')[1];
-      var cleanParams = queryStringParams.split(/&/g);
-      var params = {};
-
-      for (param in cleanParams) {
-        var param = cleanParams[param];
-        var key = param.split('=')[0];
-        var value = param.split('=')[1];
-
-        if (value.indexOf('#') > -1) {
-          var cleanedValue = value.split('#')[0];
-          params[key] = cleanedValue;
-        } else {
-          params[key] = value;
-        };
-      };
-
-      return params;
     },
 
     createQueryStringObj: function(params, options) {
@@ -662,7 +561,7 @@
     getCustomUniqueIdentifierFromUrl: function(options) {
       var url = BibblioUtils.getCanonicalUrl(options);
       if(!url){
-        console.error("Exception: Unable to determine canonical URL for retrieving recommendations or auto ingestion. Please see https://github.com/bibblio/related-content-module#customuniqueidentifier-required-if-no-contentitemid-is-provided on how to specify a customUniqueIdentifier, or see https://support.google.com/webmasters/answer/139066?hl=en to add a canonical URL tag.");
+        console.error("Exception: Unable to determine canonical URL for auto ingestion. Please see https://github.com/bibblio/related-content-module#customuniqueidentifier-required-if-no-contentitemid-is-provided on how to specify a customUniqueIdentifier, or see https://support.google.com/webmasters/answer/139066?hl=en to add a canonical URL tag.");
         return false;
       }else{
         return url;
@@ -696,7 +595,7 @@
 
     linkTargetFor: function(url) {
       if (Bibblio.isAmp) {
-        return '_top';
+        return '_parent';
       } else {
         var currentdomain = window.location.hostname;
         var matches = (BibblioUtils.getDomainName(currentdomain) == BibblioUtils.getDomainName(url));
@@ -793,75 +692,49 @@
 
     // Viewed event
     setOnViewedListeners: function(options, callbacks, recommendationsResponse) {
+      // old (options, submitViewedActivityData, activityId, callbacks)
+      // (options, recommendationsResponse, callback)
       var callback = null;
-      var moduleElement = options.targetElement;
+      var container = options.targetElement;
       var trackingLink = recommendationsResponse._links.tracking.href;
       var activityId = BibblioUtils.getActivityId(trackingLink);
-      if (callbacks.onRecommendationViewed) {
+      if(callbacks.onRecommendationViewed) {
         callback = callbacks.onRecommendationViewed;
       }
 
-      var visibilityTimeout = 5;
-
-      if (Bibblio.isAmp) {
-        var handleMessage = limitExecutionRate(function (message) {
-          // https://www.ampproject.org/docs/reference/components/amp-iframe
-          // Message structure that comes back from AMP when you ask for 'send-intersections'
-          var messageType = [message.data.sentinel, message.data.type].join(':');
-
-          if (messageType == "amp:intersection") {
-            if (BibblioUtils.hasModuleBeenViewed(activityId)) {
-              window.removeEventListener("message", handleMessage, true);
-              return;
-            }
-
-            // Check if tile is in view. For amp we supply the intersection ratio between
-            // the parent viewport and the iframe. This is multipled by the iframe window
-            // size (currently only height) to determine effective visible viewport in the iframe
-            if (BibblioUtils.isRecommendationTileInView(moduleElement,
-                                                        message.data.changes[0].boundingClientRect,
-                                                        message.data.changes[0].intersectionRatio)) {
-              BibblioEvents.onRecommendationViewed(options, recommendationsResponse, callback);
-            }
-
-
+      // Check if the module is in view immeditally after rendered
+      if(BibblioUtils.isRecommendationTileInView(container)) {
+        BibblioEvents.onRecommendationViewed(options, recommendationsResponse, callback);
+      }
+      else {
+        var ticking = false;
+        var visiblityCheckDelay = 50;
+        // Scroll event
+        var eventListener = function(event) {
+          if(BibblioUtils.hasModuleBeenViewed(activityId)){
+            window.removeEventListener("scroll", eventListener, true);
+            return;
           }
-        }, visibilityTimeout);
-
-        window.parent.postMessage({
-          sentinel: 'amp',
-          type: 'send-intersections'
-        }, '*');
-
-        window.addEventListener('message', handleMessage, true);
-      } else {
-        // Check if the module is in view immediately after rendered
-        if (BibblioUtils.isRecommendationTileInView(moduleElement, moduleElement.getBoundingClientRect())) {
-          BibblioEvents.onRecommendationViewed(options, recommendationsResponse, callback);
-        } else {
-          var handleScroll = limitExecutionRate(function () {
-            if (BibblioUtils.hasModuleBeenViewed(activityId)) {
-              window.removeEventListener("scroll", handleScroll, true);
-              return;
-            }
-
-            if (BibblioUtils.isRecommendationTileInView(moduleElement, moduleElement.getBoundingClientRect())) {
-              BibblioEvents.onRecommendationViewed(options, recommendationsResponse, callback);
-            }
-          }, visibilityTimeout);
-
-          window.addEventListener('scroll', handleScroll, true);
+          if(!ticking) {
+            window.setTimeout(function() {
+              if(BibblioUtils.isRecommendationTileInView(container))
+                BibblioEvents.onRecommendationViewed(options, recommendationsResponse, callback);
+              ticking = false;
+            }, visiblityCheckDelay);
+          }
+          ticking = true;
         }
+        window.addEventListener('scroll', eventListener, true);
       }
     },
 
-    isRecommendationTileInView: function(container, boundingClientRect, visibleRatio) {
+    isRecommendationTileInView: function(container) {
       if (container) {
         var tiles = container.getElementsByClassName("bib__link");
-        var scrollableParents = BibblioUtils.getScrollableParents(container, boundingClientRect);
+        var scrollableParents = BibblioUtils.getScrollableParents(container);
         if(scrollableParents !== false) {
           for(var i = 0; i < tiles.length; i++) {
-            if(BibblioUtils.isTileVisible(tiles[i], scrollableParents, visibleRatio))
+            if(BibblioUtils.isTileVisible(tiles[i], scrollableParents))
               return true;
           }
         }
@@ -869,7 +742,9 @@
       return false;
     },
 
-    getScrollableParents: function(moduleElement, moduleRect) {
+    getScrollableParents: function(moduleElement) {
+      var moduleRect = moduleElement.getBoundingClientRect();
+
       // is module displayed
       if(moduleRect.top == 0 && moduleRect.bottom == 0)
         return false;
@@ -909,8 +784,7 @@
       return scrollableParents;
     },
 
-    isTileVisible: function(tile, scrollableParents, visibleRatio) {
-      if (typeof visibleRatio === 'undefined') { visibleRatio = 1.0; }
+    isTileVisible: function(tile, scrollableParents) {
       var tileRect = tile.getBoundingClientRect();
       var tileWidth = tileRect.right - tileRect.left;
       var tileHeight = tileRect.bottom - tileRect.top;
@@ -921,10 +795,10 @@
 
       // is tile in window's current viewport
       var isInVerticleView, isInHorizontalView;
-      isInVerticleView  = tileHeight <= (window.innerHeight * visibleRatio) &&    // isn't higher than viewport. adjust to visible ratio if supplied for AMP
-                          tileRect.bottom <= window.innerHeight;                  // whole tile height is within viewport
-      isInHorizontalView  = tileWidth <= window.innerWidth &&                     // isn't wider than viewport
-                            tileRect.right <= window.innerWidth;                  // whole tile width in within viewport
+      isInVerticleView  = tileHeight <= window.innerHeight &&     // isn't higher than viewport
+                          tileRect.bottom <= window.innerHeight;  // whole tile height is within viewport
+      isInHorizontalView  = tileWidth <= window.innerWidth &&     // isn't wider than viewport
+                            tileRect.right <= window.innerWidth;  // whole tile width in within viewport
       if(!isInVerticleView || !isInHorizontalView)
         return false;
 
@@ -1071,10 +945,7 @@
         xmlhttp.onreadystatechange = function () {
           if (xmlhttp.readyState === 4) {
             try {
-              var response;
-              if (xmlhttp.getResponseHeader('content-type') == "application/json") {
-                response = JSON.parse(xmlhttp.responseText);
-              }
+              var response = JSON.parse(xmlhttp.responseText);
               BibblioUtils.httpCallback(callback, response, xmlhttp.status);
             }
             catch (err) {
@@ -1156,19 +1027,18 @@
       var activityId = BibblioUtils.getActivityId(trackingLink);
 
       var userId = options.userId ? options.userId : null;
-      var activityData = BibblioActivity.constructOnClickedActivityData({
-          sourceContentItemId: sourceContentItemId,
-          clickedContentItemId: clickedContentItemId,
-          clickedContentItemHref: event.currentTarget.getAttribute("href"),
-          catalogueIds: options.catalogueIds,
-          relatedContentItems: relatedContentItems,
-          instrument: {
-            type: "BibblioRelatedContent",
-            version: Bibblio.moduleVersion,
-            config: moduleSettings
+      var activityData = BibblioActivity.constructOnClickedActivityData(
+          sourceContentItemId,
+          clickedContentItemId,
+          options.catalogueIds,
+          relatedContentItems,
+          {
+              type: "BibblioRelatedContent",
+              version: Bibblio.moduleVersion,
+              config: moduleSettings
           },
-          userId: userId
-        });
+          userId
+      );
 
       if(!BibblioUtils.hasRecommendationBeenClicked(activityId, clickedContentItemId)) {
           var response = BibblioActivity.track(trackingLink, activityData);
@@ -1191,17 +1061,17 @@
         var sourceContentItemId = (recommendationsResponse._links.sourceContentItem ? recommendationsResponse._links.sourceContentItem.id : null);
         BibblioUtils.setModuleViewed(activityId);
         var userId = options.userId ? options.userId : null;
-        var activityData = BibblioActivity.constructOnViewedActivityData({
-            sourceContentItemId: sourceContentItemId,
-            catalogueIds: options.catalogueIds,
-            relatedContentItems: relatedContentItems,
-            instrument: {
-              type: "BibblioRelatedContent",
-              version: Bibblio.moduleVersion,
-              config: moduleSettings
+        var activityData = BibblioActivity.constructOnViewedActivityData(
+            sourceContentItemId,
+            options.catalogueIds,
+            relatedContentItems,
+            {
+                type: "BibblioRelatedContent",
+                version: Bibblio.moduleVersion,
+                config: moduleSettings
             },
-            userId: userId
-          });
+            userId
+        );
 
         var response = BibblioActivity.trackAsync(trackingLink, activityData);
 
@@ -1441,29 +1311,29 @@
       }
     },
 
-    constructOnClickedActivityData: function(options) {
+    constructOnClickedActivityData: function(sourceContentItemId, clickedContentItemId, catalogueIds, relatedContentItems, instrument, userId) {
       var activityData = {
         "type": "Clicked",
-        "object": BibblioActivity.constructActivityObject(options.clickedContentItemId, options.clickedContentItemHref),
-        "context": BibblioActivity.constructActivityContext(options.sourceContentItemId, options.catalogueIds, options.relatedContentItems),
-        "instrument": BibblioActivity.constructActivityInstrument(options.instrument)
+        "object": BibblioActivity.constructActivityObject(clickedContentItemId),
+        "context": BibblioActivity.constructActivityContext(sourceContentItemId, catalogueIds, relatedContentItems),
+        "instrument": BibblioActivity.constructActivityInstrument(instrument)
       };
 
-      if(options.userId != null)
-        activityData["actor"] = {"userId": options.userId};
+      if(userId != null)
+        activityData["actor"] = {"userId": userId};
 
       return activityData;
     },
 
-    constructOnViewedActivityData: function(options) {
+    constructOnViewedActivityData: function(sourceContentItemId, catalogueIds, relatedContentItems, instrument, userId) {
       var activityData = {
         "type": "Viewed",
-        "context": BibblioActivity.constructActivityContext(options.sourceContentItemId, options.catalogueIds, options.relatedContentItems),
-        "instrument": BibblioActivity.constructActivityInstrument(options.instrument)
+        "context": BibblioActivity.constructActivityContext(sourceContentItemId, catalogueIds, relatedContentItems),
+        "instrument": BibblioActivity.constructActivityInstrument(instrument)
       };
 
-      if(options.userId != null)
-        activityData["actor"] = {"userId": options.userId};
+      if(userId != null)
+        activityData["actor"] = {"userId": userId};
 
       return activityData;
     },
@@ -1476,9 +1346,8 @@
       };
     },
 
-    constructActivityObject: function(clickedContentItemId, clickedContentItemHref) {
-      return [["contentItemId", clickedContentItemId],
-              ["href", clickedContentItemHref]];
+    constructActivityObject: function(clickedContentItemId) {
+      return [["contentItemId", clickedContentItemId]];
     },
 
     constructActivityContext: function(sourceContentItemId, catalogueIds, relatedContentItems) {
