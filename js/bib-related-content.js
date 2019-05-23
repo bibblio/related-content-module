@@ -22,7 +22,7 @@
 
   // Bibblio module
   var Bibblio = {
-    moduleVersion: "4.2.1",
+    moduleVersion: "4.2.2",
     moduleTracking: {},
     isAmp: false,
 
@@ -100,11 +100,12 @@
     createScrapeRequest: function(options) {
       Bibblio.createScrapeRequestCalled = true;
       var href;
+      var canonical = BibblioUtils.getCanonicalUrl(options);
 
       if(options.autoIngestionUrl) {
         href = options.autoIngestionUrl;
       } else {
-        href = ((typeof window !== 'undefined') && window.location && window.location.href) ? window.location.href : '';
+        href = (canonical) ? canonical : BibblioUtils.getWindowLocation();
       }
 
       if(!options.customUniqueIdentifier) {
@@ -235,6 +236,10 @@
       }
 
       return true;
+    },
+
+    getWindowLocation: function() {
+      return ((typeof window !== 'undefined') && window.location && window.location.href) ? window.location.href : '';
     },
 
     getParameterByName: function(name, url) {
@@ -538,49 +543,6 @@
           default :
               return baseUrl + "/recommendations?" + querystringArgs.join("&");
       }
-    },
-
-    getParameterByName: function(name, url) {
-        if (!url) url = window.location.href;
-        name = name.replace(/[\[\]]/g, "\\$&");
-        var regex = new RegExp("[?&]" + name + "(=([^&#]*)|&|#|$)"),
-            results = regex.exec(url);
-        if (!results) return null;
-        if (!results[2]) return '';
-        return decodeURIComponent(results[2].replace(/\+/g, " "));
-    },
-
-    createParamsObj: function(url) {
-      var queryStringParams = url.split('?')[1];
-      var cleanParams = queryStringParams.split(/&/g);
-      var params = {};
-
-      for (param in cleanParams) {
-        var param = cleanParams[param];
-        var key = param.split('=')[0];
-        var value = param.split('=')[1];
-
-        if (value.indexOf('#') > -1) {
-          var cleanedValue = value.split('#')[0];
-          params[key] = cleanedValue;
-        } else {
-          params[key] = value;
-        };
-      };
-
-      return params;
-    },
-
-    createQueryStringObj: function(params, options) {
-      var diffArray = Object.keys(params).filter(function(k) { return params[k] !== options[k] }) ;
-      var queryStringObj = {};
-      if (diffArray.length > 0) {
-        for (var key = 0; key < diffArray.length; key++) {
-          var param = diffArray[key];
-          queryStringObj[param] = params[param]
-        }
-      };
-      return queryStringObj;
     },
 
     getQueryStringParams: function(options, url) {
