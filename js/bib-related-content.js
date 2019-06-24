@@ -22,7 +22,7 @@
 
   // Bibblio module
   var Bibblio = {
-    moduleVersion: "4.2.2",
+    moduleVersion: "4.3.0",
     moduleTracking: {},
     isAmp: false,
 
@@ -205,9 +205,11 @@
         return false;
       }
 
-      if(!options.targetElementId && !options.targetElement) {
-        console.error("Bibblio: Please provide a value for targetElementId in the options parameter.");
-        return false;
+      if(!options.urlParamIngestion) {
+        if(!options.targetElementId && !options.targetElement) {
+          console.error("Bibblio: Please provide a value for targetElementId in the options parameter.");
+          return false;
+        }
       }
 
       if((options.recommendationType === "popular") && (options.contentItemId || options.customUniqueIdentifier)) {
@@ -317,6 +319,7 @@
       "autoIngestion",
       "autoIngestionCatalogueId",
       "autoIngestionCustomCatalogueId",
+      "urlParamIngestion",
       "catalogueIds",
       "customCatalogueIds",
       "contentItemId",
@@ -484,6 +487,65 @@
         window.addEventListener("orientationchange", function () {
           BibblioUtils.submitAmpEmbedSize(document.body.scrollHeight, document.body.scrollWidth);
         }, false);
+      }
+    },
+
+    getSrcParams: function(srcParams) {
+      var params = {};
+      var splitParams = srcParams.split("&")
+
+      for(param in splitParams) {
+        var param = splitParams[param];
+        var key = param.split('=')[0];
+        var value = param.split('=')[1];
+        params[key] = value;
+      }
+
+      return params;
+    },
+
+    getAndFilterSrcParams: function(scriptSrc) {
+      var urlQueryParams = {};
+      var allowedKeys = BibblioUtils.allowedKeys;
+
+      var splitSrc = scriptSrc.split('?');
+      var srcParams = splitSrc[1];
+      var queryParams = BibblioUtils.getSrcParams(srcParams);
+      urlQueryParams = queryParams;
+
+      var filtered = Object.keys(urlQueryParams)
+        .filter(function(key) {return allowedKeys.includes(key)})
+        .reduce(function(obj, key) {
+          obj[key] = urlQueryParams[key];
+          return obj;
+        }, {});
+
+      return filtered;
+    },
+
+    getSrcAutoIngestParams: function() {
+      if(document.getElementById('bibblio-rcm-src')) {
+        var scriptSrc = document.getElementById('bibblio-rcm-src').getAttribute('src')
+        BibblioUtils.checkSrcAutoIngestParams(scriptSrc);
+      }else{
+        return;
+      }
+    },
+
+    checkSrcAutoIngestParams: function(scriptSrc) {
+      var urlQueryParams = BibblioUtils.getAndFilterSrcParams(scriptSrc);
+
+      if(urlQueryParams.recommendationKey && urlQueryParams.autoIngestion) {
+        urlQueryParams.urlParamIngestion = true;
+      } else {
+        return;
+      }
+
+      if(!BibblioUtils.validateModuleOptions(urlQueryParams)) {
+        return;
+      } else {
+        urlQueryParams.customUniqueIdentifier = (urlQueryParams.customUniqueIdentifier) ? urlQueryParams.customUniqueIdentifier : BibblioUtils.getCustomUniqueIdentifierFromUrl(urlQueryParams);
+        Bibblio.createScrapeRequest(urlQueryParams);
       }
     },
 
@@ -1488,8 +1550,10 @@
     // so check before adding a listener
     if (document.readyState === "loading") {
       document.addEventListener("DOMContentLoaded", BibblioUtils.autoInit);
+      document.addEventListener("DOMContentLoaded", BibblioUtils.getSrcAutoIngestParams);
     } else {  // `DOMContentLoaded` already fired
       BibblioUtils.autoInit();
+      BibblioUtils.getSrcAutoIngestParams();
     }
   }
 })();
