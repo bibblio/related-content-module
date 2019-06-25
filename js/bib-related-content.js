@@ -22,7 +22,7 @@
 
   // Bibblio module
   var Bibblio = {
-    moduleVersion: "4.3.0",
+    moduleVersion: "4.4.0",
     moduleTracking: {},
     isAmp: false,
 
@@ -270,13 +270,13 @@
         var key = param.split('=')[0];
         var value = param.split('=')[1];
 
-        if(value.indexOf('#') > -1){
+        if (value.indexOf('#') > -1) {
           var cleanedValue = value.split('#')[0];
           params[key] = cleanedValue;
-        }else{
+        } else {
           params[key] = value;
-        };
-      };
+        }
+      }
 
       return params;
     },
@@ -289,12 +289,13 @@
       var diffObject = Object.assign({}, diffArray);
 
       var queryStringObj = {};
-      if(Object.keys(diffObject).length > -1) {
+      if (Object.keys(diffObject).length > -1) {
         for(var key = 0; key < Object.keys(diffObject).length; key++) {
           var param = diffObject[key];
           queryStringObj[param] = params[param];
         }
-      };
+      }
+
       return queryStringObj;
     },
 
@@ -490,62 +491,37 @@
       }
     },
 
-    getSrcParams: function(srcParams) {
-      var params = {};
-      var splitParams = srcParams.split("&")
-
-      for(param in splitParams) {
-        var param = splitParams[param];
-        var key = param.split('=')[0];
-        var value = param.split('=')[1];
-        params[key] = value;
-      }
-
-      return params;
-    },
-
-    getAndFilterSrcParams: function(scriptSrc) {
-      var urlQueryParams = {};
-      var allowedKeys = BibblioUtils.allowedKeys;
-
-      var splitSrc = scriptSrc.split('?');
-      var srcParams = splitSrc[1];
-      var queryParams = BibblioUtils.getSrcParams(srcParams);
-      urlQueryParams = queryParams;
-
-      var filtered = Object.keys(urlQueryParams)
-        .filter(function(key) {return allowedKeys.includes(key)})
+    filterOptions: function(options) {
+      return Object.keys(options)
+        .filter(function(key) {return BibblioUtils.allowedKeys.includes(key)})
         .reduce(function(obj, key) {
-          obj[key] = urlQueryParams[key];
+          obj[key] = options[key];
           return obj;
         }, {});
-
-      return filtered;
     },
 
-    getSrcAutoIngestParams: function() {
-      if(document.getElementById('bibblio-rcm-src')) {
-        var scriptSrc = document.getElementById('bibblio-rcm-src').getAttribute('src')
-        BibblioUtils.checkSrcAutoIngestParams(scriptSrc);
-      }else{
-        return;
-      }
-    },
-
-    checkSrcAutoIngestParams: function(scriptSrc) {
-      var urlQueryParams = BibblioUtils.getAndFilterSrcParams(scriptSrc);
-
-      if(urlQueryParams.recommendationKey && urlQueryParams.autoIngestion) {
-        urlQueryParams.urlParamIngestion = true;
+    // TODO: might be unnecessarily specific to script param ingestion? could generify
+    ingestFromScriptParam: function(options) {
+      if(options.recommendationKey && options.autoIngestion) {
+        options.urlParamIngestion = true;
       } else {
         return;
       }
 
-      if(!BibblioUtils.validateModuleOptions(urlQueryParams)) {
+      if(!BibblioUtils.validateModuleOptions(options)) {
         return;
       } else {
-        urlQueryParams.customUniqueIdentifier = (urlQueryParams.customUniqueIdentifier) ? urlQueryParams.customUniqueIdentifier : BibblioUtils.getCustomUniqueIdentifierFromUrl(urlQueryParams);
-        Bibblio.createScrapeRequest(urlQueryParams);
+        options.customUniqueIdentifier = (options.customUniqueIdentifier ? options.customUniqueIdentifier : BibblioUtils.getCustomUniqueIdentifierFromUrl(options));
+        Bibblio.createScrapeRequest(options);
+      }
+    },
+
+    initScriptParamIngestion: function() {
+      if(document.getElementById('bib--rcm-src')) {
+        var options = BibblioUtils.filterOptions(document.getElementById('bib--rcm-src').dataset);
+        BibblioUtils.ingestFromScriptParam(options);
+      } else {
+        return;
       }
     },
 
@@ -569,9 +545,6 @@
           "page=" + page,
           "fields=" + fields.join(",")
       ];
-
-      // Add identifier query param depending on if they supplied the uniqueCustomIdentifier or contentItemId
-      var identifierQueryArg = null;
 
       if(options.contentItemId)
         querystringArgs.push("contentItemId=" + options.contentItemId);
@@ -680,17 +653,17 @@
       } else {
         var elem = document.querySelector('link[rel="canonical"]');
         return (elem) ? elem.getAttribute("href") : null;
-      };
+      }
     },
 
     getCustomUniqueIdentifierFromUrl: function(options) {
       var url = BibblioUtils.getCanonicalUrl(options);
-      if(!url){
+      if (!url) {
         console.error("Exception: Unable to determine canonical URL for retrieving recommendations or auto ingestion. Please see https://github.com/bibblio/related-content-module#customuniqueidentifier-required-if-no-contentitemid-is-provided on how to specify a customUniqueIdentifier, or see https://support.google.com/webmasters/answer/139066?hl=en to add a canonical URL tag.");
         return false;
-      }else{
+      } else {
         return url;
-      };
+      }
     },
 
     validateCustomUniqueIdentifier: function(str) {
@@ -1374,12 +1347,12 @@
     filterContentItemImageUrl: function(moduleImageUrl) {
       var url = moduleImageUrl.replace(/'/g, "\\'");
 
-      if((url.indexOf("http://") === 0) || (url.indexOf("https://") === 0) || (url.indexOf("data:image/") === 0)) {
+      if ((url.indexOf("http://") === 0) || (url.indexOf("https://") === 0) || (url.indexOf("data:image/") === 0)) {
         return url;
       } else {
         var withProtocol = "http://" + url;
         return withProtocol;
-      };
+      }
     },
 
     getRelatedContentItemHTML: function(contentItem, contentItemIndex, options, moduleSettings) {
@@ -1392,9 +1365,9 @@
       var datePublishedHTML = BibblioTemplates.getDatePublishedHTML(contentItem, moduleSettings);
       // Create template for syndication domain
       var syndicationHTML = '';
-      if(options.recommendationType == 'syndicated'){
+      if (options.recommendationType == 'syndicated') {
         syndicationHTML = BibblioTemplates.getSyndicationHTML(contentItem);
-      };
+      }
 
       // Create template for related content item
       var contentItemUrl = (contentItem.fields.url ? contentItem.fields.url : '');
@@ -1513,8 +1486,10 @@
       if (sourceContentItemId) {
         context.push(["sourceContentItemId", sourceContentItemId]);
       }
-      for(var i = 0; i < relatedContentItems.length; i++)
+
+      for(var i = 0; i < relatedContentItems.length; i++) {
         context.push(["recommendations.contentItemId", relatedContentItems[i].contentItemId]);
+      }
 
       // include all specified catalogue ids in the context
       // but assume recommendations are from the source content item's catalogue if no catalogues were specified
@@ -1549,11 +1524,11 @@
     // `DOMContentLoaded` may fire before your script has a chance to run,
     // so check before adding a listener
     if (document.readyState === "loading") {
+      document.addEventListener("DOMContentLoaded", BibblioUtils.initScriptParamIngestion);
       document.addEventListener("DOMContentLoaded", BibblioUtils.autoInit);
-      document.addEventListener("DOMContentLoaded", BibblioUtils.getSrcAutoIngestParams);
     } else {  // `DOMContentLoaded` already fired
+      BibblioUtils.initScriptParamIngestion();
       BibblioUtils.autoInit();
-      BibblioUtils.getSrcAutoIngestParams();
     }
   }
 })();
