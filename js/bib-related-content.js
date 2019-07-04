@@ -22,7 +22,7 @@
 
   // Bibblio module
   var Bibblio = {
-    moduleVersion: "4.4.0",
+    moduleVersion: "4.5.0",
     moduleTracking: {},
     isAmp: false,
 
@@ -1371,10 +1371,17 @@
 
       // Create template for related content item
       var contentItemUrl = (contentItem.fields.url ? contentItem.fields.url : '');
+
+      // Choose module image
       var contentItemImageUrl = "";
-      if(contentItem.fields.moduleImage && contentItem.fields.moduleImage.contentUrl)
-        var filteredImageUrl = BibblioTemplates.filterContentItemImageUrl(contentItem.fields.moduleImage.contentUrl);
-        contentItemImageUrl = filteredImageUrl;
+      if(contentItem.fields.moduleImage) {
+        if(contentItem.fields.moduleImage.cdnUrl) {
+          contentItemImageUrl = BibblioTemplates.filterContentItemImageUrl(contentItem.fields.moduleImage.cdnUrl);
+        }
+        else if(contentItem.fields.moduleImage.contentUrl) {
+          contentItemImageUrl = BibblioTemplates.filterContentItemImageUrl(contentItem.fields.moduleImage.contentUrl);
+        }
+      }
 
       var classes = (moduleSettings.styleClasses ? moduleSettings.styleClasses : BibblioUtils.getPresetModuleClasses(moduleSettings.stylePreset));
 
