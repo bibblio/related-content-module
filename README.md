@@ -190,7 +190,7 @@ Bibblio's Related Content Module can be implemented on Google AMP using an `amp-
 ```html
 <amp-iframe width="1" height="1" layout="responsive" resizable sandbox="allow-scripts allow-top-navigation allow-same-origin" src="https://cdn.bibblio.org/rcm/4.5/amp.html?recommendationKey=YOUR_RECOMMENDATION_KEY&contentItemId=YOUR_CONTENT_ITEM_ID">
     <div overflow tabindex=0 role=button aria-label="See more">See more!</div>
-    <amp-img layout="fill" src="" placeholder></amp-img>
+    <amp-img layout="fill" src="data:image/gif;base64,R0lGODlhAQABAIAAAP///wAAACH5BAEAAAAALAAAAAABAAEAAAICRAEAOw==" placeholder></amp-img>
 </amp-iframe>
 ```
 
