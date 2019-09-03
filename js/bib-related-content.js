@@ -22,7 +22,7 @@
 
   // Bibblio module
   var Bibblio = {
-    moduleVersion: "4.5.1",
+    moduleVersion: "4.5.2",
     moduleTracking: {},
     isAmp: false,
 
@@ -1125,7 +1125,7 @@
       return (moduleSettings.styleClasses ? moduleSettings.styleClasses : BibblioUtils.getPresetModuleClasses(moduleSettings.stylePreset));
     },
 
-    shouldTruncate(field, styles) {
+    shouldTruncate: function(field, styles) {
       switch(field) {
         case "title": return (styles.indexOf('bib--txt') === -1) && (styles.indexOf('bib--tall') === -1);
         case "subtitle": return (styles.indexOf('bib--txt') === -1) && (styles.indexOf('bib--tall') === -1);
