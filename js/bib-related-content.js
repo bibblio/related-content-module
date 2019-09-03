@@ -22,7 +22,7 @@
 
   // Bibblio module
   var Bibblio = {
-    moduleVersion: "4.5.0",
+    moduleVersion: "4.5.1",
     moduleTracking: {},
     isAmp: false,
 
@@ -1121,6 +1121,19 @@
       return recsData.find(function(element) { return element["contentItemId"] == contentItemId; });
     },
 
+    getModuleStyleClasses: function(moduleSettings) {
+      return (moduleSettings.styleClasses ? moduleSettings.styleClasses : BibblioUtils.getPresetModuleClasses(moduleSettings.stylePreset));
+    },
+
+    shouldTruncate(field, styles) {
+      switch(field) {
+        case "title": return (styles.indexOf('bib--txt') === -1) && (styles.indexOf('bib--tall') === -1);
+        case "subtitle": return (styles.indexOf('bib--txt') === -1) && (styles.indexOf('bib--tall') === -1);
+      }
+
+      return true;
+    },
+
     getTruncationLengthForStyle: function(styles) {
       if (styles.indexOf('bib--square') !== -1) {
         return 110;
@@ -1134,11 +1147,37 @@
     truncateTitle: function(name, styles, override) {
       var truncationLength = override || BibblioUtils.getTruncationLengthForStyle(styles);
 
-      if (name.length > truncationLength) {
+      if((name.length > truncationLength) && (BibblioUtils.shouldTruncate("title", styles))) {
         return name.substring(0, truncationLength) + "…";
       } else {
         return name;
       }
+    },
+
+    truncateText: function(text, minCharacters, maxCharacters) {
+      if(text.length <= minCharacters)
+        return text;
+
+      var truncatedText = text.substring(0, maxCharacters);
+      var fullStopIndex = truncatedText.indexOf('.', minCharacters);  // first full stop starting at min character length
+
+      if(fullStopIndex === -1)
+        return text.substring(0, minCharacters) + "…";
+      
+      return text.substring(0, fullStopIndex + 1);
+    },
+
+    truncateSubtitle: function(subtitle, styles) {
+      var truncateLength = 130;
+      var searchBounds = 10; // search for full stop between 'length - searchBounds' and 'length + searchBounds'
+      var subtitleLength = subtitle.length;
+      
+      if((subtitleLength > truncateLength) && (BibblioUtils.shouldTruncate("subtitle", styles))) {
+        // truncates to full stop between min and max length if it exists
+        return BibblioUtils.truncateText(subtitle, truncateLength - searchBounds, truncateLength + searchBounds);
+      }
+
+      return subtitle;
     }
   };
 
@@ -1263,9 +1302,12 @@
     getSubtitleHTML: function(contentItem, moduleSettings) {
       var subtitleField = BibblioUtils.getChildProperty(contentItem.fields, moduleSettings.subtitleField);
       var subtitleHTML = '';
+
       if(subtitleField) {
+        var styleClasses = BibblioUtils.getModuleStyleClasses(moduleSettings);
+        var truncatedSubtitle = BibblioUtils.truncateSubtitle(subtitleField, styleClasses);
         var templateOptions = {
-          subtitle: subtitleField
+          subtitle: truncatedSubtitle
         };
         subtitleHTML = BibblioTemplates.getTemplate(BibblioTemplates.subtitleTemplate, templateOptions);
       }
@@ -1383,7 +1425,7 @@
         }
       }
 
-      var classes = (moduleSettings.styleClasses ? moduleSettings.styleClasses : BibblioUtils.getPresetModuleClasses(moduleSettings.stylePreset));
+      var classes = BibblioUtils.getModuleStyleClasses(moduleSettings);
 
       var templateOptions = {
           contentItemId: (contentItem.contentItemId ? contentItem.contentItemId : ''),
