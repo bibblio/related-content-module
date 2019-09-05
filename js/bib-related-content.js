@@ -22,7 +22,7 @@
 
   // Bibblio module
   var Bibblio = {
-    moduleVersion: "4.5.2",
+    moduleVersion: "4.6.0",
     moduleTracking: {},
     isAmp: false,
 
@@ -190,19 +190,39 @@
         return false;
       }
 
-       if(options.autoIngestion && options.recommendationType === "popular") {
-        console.error("Bibblio: auto-ingestion cannot be enabled on a module serving popular recommendations. Please auto-ingest with a module serving 'optimised' or 'related' recommendations instead.");
-        return false;
-       }
+      if(options.autoIngestion && options.recommendationType === "popular") {
+       console.error("Bibblio: auto-ingestion cannot be enabled on a module serving popular recommendations. Please auto-ingest with a module serving 'optimised' or 'related' recommendations instead.");
+       return false;
+      }
+
+      if(options.autoIngestion && options.recommendationType === "personalised") {
+        console.error("Bibblio: auto-ingestion cannot be enabled on a module serving personalised recommendations. Please auto-ingest with a module serving 'optimised' or 'related' recommendations instead.");
+        return false
+      }
+
+      if(!options.userId && options.recommendationType === "personalised") {
+        console.error("Bibblio: Please provide a userId when requesting personalised recommendations.")
+        return false
+      }
 
       if(options.contentItemId && options.customUniqueIdentifier) {
         console.error("Bibblio: Cannot supply both contentItemId and customUniqueIdentifier.");
         return false;
       }
 
+      if(options.contentItemId && options.recommendationType === "personalised") {
+        console.error("Bibblio: contentItemId cannot be supplied when serving personalised recommendations.")
+        return false
+      }
+
       if(options.customUniqueIdentifier && !BibblioUtils.validateCustomUniqueIdentifier(options.customUniqueIdentifier)){
         console.error("Exception: Cannot supply a URL as a customUniqueIdentifier. Please see https://github.com/bibblio/related-content-module#customuniqueidentifier-required-if-no-contentitemid-is-provided on how to specify a customUniqueIdentifier, or see https://support.google.com/webmasters/answer/139066?hl=en to add a canonical URL tag.");
         return false;
+      }
+
+      if(options.customUniqueIdentifier && options.recommendationType === "personalised") {
+        console.error("Bibblio: customUniqueIdentifier cannot be supplied when serving personalised recommendations.")
+        return false
       }
 
       if(!options.urlParamIngestion) {
@@ -225,6 +245,16 @@
       if(options.autoIngestionCatalogueId && options.autoIngestionCustomCatalogueId) {
         console.error("Bibblio: Cannot supply both autoIngestionCatalogueId and autoIngestionCustomCatalogueId.");
         return false;
+      }
+
+      if(options.autoIngestionCatalogueId && options.recommendationType === "personalised") {
+        console.error("Bibblio: autoIngestionCatalogueId cannot be supplied when serving personalised recommendations.")
+        return false
+      }
+
+      if(options.autoIngestionCustomCatalogueId && options.recommendationType === "personalised") {
+        console.error("Bibblio: autoIngestionCustomCatalogueId cannot be supplied when serving personalised recommendations.")
+        return false
       }
 
       if(options.corpusType === "syndicated" && options.catalogueIds) {
@@ -300,7 +330,7 @@
     },
 
     prepareModuleOptions: function(options) {
-      if (options && !options.contentItemId && !options.customUniqueIdentifier && options.recommendationType !== "popular") {
+      if (options && !options.contentItemId && !options.customUniqueIdentifier && options.recommendationType !== "popular" && options.recommendationType !== "personalised") {
         var canonicalUrl = BibblioUtils.getCustomUniqueIdentifierFromUrl(options);
         if (canonicalUrl) {
           options.customUniqueIdentifier = BibblioUtils.getCustomUniqueIdentifierFromUrl(options);
@@ -575,6 +605,8 @@
               return baseUrl + "/recommendations/related?" + querystringArgs.join("&");
           case "popular" :
               return baseUrl + "/recommendations/popular?" + querystringArgs.join("&");
+          case "personalised" :
+              return baseUrl + "/recommendations/personalised?" + querystringArgs.join("&");
           default :
               return baseUrl + "/recommendations?" + querystringArgs.join("&");
       }

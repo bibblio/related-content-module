@@ -16,10 +16,10 @@ The easiest way to use the module is via our CDN. There is no need to install an
 ```html
 <head>
     <!-- CSS -->.
-    <link rel="stylesheet" type="text/css" href="https://cdn.bibblio.org/rcm/4.5/bib-related-content.min.css">
+    <link rel="stylesheet" type="text/css" href="https://cdn.bibblio.org/rcm/4.6/bib-related-content.min.css">
 
     <!-- JavaScript -->
-    <script src="https://cdn.bibblio.org/rcm/4.5/bib-related-content.min.js"></script>
+    <script src="https://cdn.bibblio.org/rcm/4.6/bib-related-content.min.js"></script>
 </head>
 ```
 
@@ -117,7 +117,7 @@ Allows you to perform a full integration without visually displaying the module.
 Allows you to append additional query string params to the target url of recommended items. This is particularly useful for specifying analytics params such as _utm_source_. The value should be a JavaScript object. Each property will be added as a param to the url. e.g. `{ "utm_source" : "BibblioRCM", "utm_campaign" : "SiteFooter" }` would append `utm_source=BibblioRCM&utm_campaign=SiteFooter` to the url query string of all recommended items.
 
 #### `'recommendationType'` _(optional)_
-Allows you to specify the type of recommendations to serve. Options are 'optimised', 'related' or 'popular'. _Optimised_ recommendations are rooted in relevance but will also learn from user behaviour and continuously adapt to attain better engagement. _Related_ recommendations ignore user behaviour and are based purely on relatedness. _Popular_ recommendations ignore relatedness and are based purely on user behaviour. We suggest starting with _optimised_ recommendations and adding _related_ or _popular_ modules elsewhere on the page to fit the site experience you desire. Default is 'optimised'.
+Allows you to specify the type of recommendations to serve. Options are 'optimised', 'related', 'popular' or 'personalised'. _Optimised_ recommendations are rooted in relevance but will also learn from user behaviour and continuously adapt to attain better engagement. _Related_ recommendations ignore user behaviour and are based purely on relatedness. _Popular_ recommendations ignore relatedness and are based purely on aggregated user behaviour. _Personalised_ recommendations are tailored to a specific user. We suggest starting with _optimised_ recommendations and adding _personalised_, _related_ or _popular_ modules elsewhere on the page to fit the site experience you desire. Default is 'optimised'.
 
 #### `'styleClasses'` _(optional)_
 Allows you to customise the CSS styles applied to the related content module. An interactive configuration wizard is available in the Demos section of your Bibblio management console, which allows you to generate parameters for this option. If you plan to place the module on an area of your page that has a dark background color you can append 'bib--invert' to your parameters to be sure everything remains legible. If most of your content item images are portrait sized, consider appending 'bib--portrait' to your parameters so the images resize nicely in the tiles.
@@ -188,7 +188,7 @@ The following snippet shows the initialisation of a related content module. You 
 Bibblio's Related Content Module can be implemented on Google AMP using an `amp-iframe`. The html page that will render inside the iframe is hosted on our servers so all you would need to do is place the following snippet in your AMP template instead of the example above.
 
 ```html
-<amp-iframe width="1" height="1" layout="responsive" resizable sandbox="allow-scripts allow-top-navigation allow-same-origin" src="https://cdn.bibblio.org/rcm/4.5/amp.html?recommendationKey=YOUR_RECOMMENDATION_KEY&contentItemId=YOUR_CONTENT_ITEM_ID">
+<amp-iframe width="1" height="1" layout="responsive" resizable sandbox="allow-scripts allow-top-navigation allow-same-origin" src="https://cdn.bibblio.org/rcm/4.6/amp.html?recommendationKey=YOUR_RECOMMENDATION_KEY&contentItemId=YOUR_CONTENT_ITEM_ID">
     <div overflow tabindex=0 role=button aria-label="See more">See more!</div>
     <amp-img layout="fill" src="data:image/gif;base64,R0lGODlhAQABAIAAAP///wAAACH5BAEAAAAALAAAAAABAAEAAAICRAEAOw==" placeholder></amp-img>
 </amp-iframe>
@@ -208,7 +208,7 @@ Some things to note:
 The following example includes all format variances. It will add `utm_source=Bibblio` and `utm_campaign=related` to your recommendation links and include the `bib--row-3` and `bib--hover` styleClasses.
 
 ```html
-<amp-iframe width="1" height="1" layout="responsive" resizable sandbox="allow-scripts allow-top-navigation allow-same-origin" src="https://cdn.bibblio.org/rcm/4.5/amp.html?recommendationKey=YOUR_RECOMMENDATION_KEY&contentItemId=YOUR_CONTENT_ITEM_ID&utm_source=Bibblio&utm_campaign=related&styleClasses=bib--row-3,bib--hover">
+<amp-iframe width="1" height="1" layout="responsive" resizable sandbox="allow-scripts allow-top-navigation allow-same-origin" src="https://cdn.bibblio.org/rcm/4.6/amp.html?recommendationKey=YOUR_RECOMMENDATION_KEY&contentItemId=YOUR_CONTENT_ITEM_ID&utm_source=Bibblio&utm_campaign=related&styleClasses=bib--row-3,bib--hover">
     <div overflow tabindex=0 role=button aria-label="See more">See more!</div>
     <amp-img layout="fill" src="" placeholder></amp-img>
 </amp-iframe>
