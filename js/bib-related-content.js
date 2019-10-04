@@ -22,7 +22,7 @@
 
   // Bibblio module
   var Bibblio = {
-    moduleVersion: "4.6.0",
+    moduleVersion: "4.7.0",
     moduleTracking: {},
     isAmp: false,
 
@@ -205,6 +205,11 @@
         return false
       }
 
+      if(!options.userId && options.userMetadata) {
+        console.error("Bibblio: userId must be present if userMetadata is supplied.");
+        return false;
+      }
+
       if(options.contentItemId && options.customUniqueIdentifier) {
         console.error("Bibblio: Cannot supply both contentItemId and customUniqueIdentifier.");
         return false;
@@ -268,6 +273,48 @@
       }
 
       return true;
+    },
+
+    isUserMetadataParam: function(param) {
+      return /^userMetadata\[(.+)\]$/.test(param);
+    },
+
+    cleanAmpUserMetadata: function(options) {
+      var ampOptions = {};
+
+      for(var param in options) {
+        if(BibblioUtils.isUserMetadataParam(param)) {
+          var cleanFirst = param.slice(13);
+          var newParam = cleanFirst.substring(0, cleanFirst.length - 1);
+
+          if(newParam !== "") {
+            ampOptions[newParam] = options[param];
+          }
+        }
+      }
+
+      return ampOptions;
+    },
+
+    convertInitParamUserMetadata: function(metadata) {
+      var cleanParams = metadata.split(/&/g);
+
+      var params = {};
+
+      for(param in cleanParams) {
+        var param = cleanParams[param];
+        var key = param.split('=')[0];
+        var value = param.split('=')[1];
+
+        if (value.indexOf('#') > -1) {
+          var cleanedValue = value.split('#')[0];
+          params[key] = cleanedValue;
+        } else {
+          params[key] = value;
+        }
+      }
+
+      return params;
     },
 
     getWindowLocation: function() {
@@ -366,6 +413,7 @@
       "subtitleField",
       "targetElementId",
       "truncateTitle",
+      "userMetadata",
       "userId"
     ],
 
@@ -433,7 +481,8 @@
         case "customCatalogueIds":
         case "catalogueIds":
           return value.split(",");
-
+        case "userMetadata":
+          return BibblioUtils.convertInitParamUserMetadata(value);
         default:
           break;
       }
@@ -450,6 +499,7 @@
 
       // Construct new objects with only the allowed keys from each node's dataset
       var initParams = [];
+
       for (var i = 0, len = nodeList.length; i < len; i++) {
         var node = nodeList[i];
         var dataset = node.dataset;
@@ -465,6 +515,30 @@
       }
 
       return initParams;
+    },
+
+    checkAndSetAmpUserMetadata: function(options) {
+      var hasMetadata = false;
+
+      for(var param in options.queryStringParams) {
+        if(BibblioUtils.isUserMetadataParam(param)) {
+          hasMetadata = true;
+        }
+      }
+
+      if(hasMetadata) {
+        options.userMetadata = BibblioUtils.cleanAmpUserMetadata(options.queryStringParams);
+
+        for(var param in options.queryStringParams) {
+          if(BibblioUtils.isUserMetadataParam(param)) {
+            delete options.queryStringParams[param];
+          }
+        }
+
+        return options;
+      } else {
+        return options;
+      }
     },
 
     getAmpOptions: function(url) {
@@ -490,7 +564,9 @@
 
       //set query string params
       options["queryStringParams"] = BibblioUtils.getQueryStringParams(options, url);
-      //set target element
+
+      options = BibblioUtils.checkAndSetAmpUserMetadata(options);
+
       options["targetElementId"] = "bibRelatedContentModule";
 
       return options;
@@ -563,6 +639,22 @@
       return fields;
     },
 
+    createMetadataQueryString: function(userMetadata) {
+      var queryString = '';
+
+      for(var param in userMetadata){
+        var newParams = 'userMetadata[' + param + ']=' + userMetadata[param];
+
+        if(queryString.includes('userMetadata')){
+          newParams = '&' + newParams;
+          queryString += newParams;
+        } else {
+          queryString += newParams;
+        }
+      }
+      return queryString;
+    },
+
     getRecommendationUrl: function(options, limit, page, fields) {
       var baseUrl = "https://api.bibblio.org/v1";
       var recommendationType = (options.recommendationType) ? options.recommendationType : null;
@@ -570,11 +662,18 @@
       var catalogueIds = options.catalogueIds ? options.catalogueIds : [];
       var customCatalogueIds = options.customCatalogueIds ? options.customCatalogueIds : [];
       var userId = options.userId;
+      var userMetadata = options.userMetadata ? options.userMetadata : null;
+
       var querystringArgs = [
           "limit=" + limit,
           "page=" + page,
           "fields=" + fields.join(",")
       ];
+
+      if(userMetadata) {
+          var queryString = BibblioUtils.createMetadataQueryString(userMetadata)
+          querystringArgs.push(queryString);
+      }
 
       if(options.contentItemId)
         querystringArgs.push("contentItemId=" + options.contentItemId);
@@ -1195,7 +1294,7 @@
 
       if(fullStopIndex === -1)
         return text.substring(0, minCharacters) + "…";
-      
+
       return text.substring(0, fullStopIndex + 1);
     },
 
@@ -1203,7 +1302,7 @@
       var truncateLength = 130;
       var searchBounds = 10; // search for full stop between 'length - searchBounds' and 'length + searchBounds'
       var subtitleLength = subtitle.length;
-      
+
       if((subtitleLength > truncateLength) && (BibblioUtils.shouldTruncate("subtitle", styles))) {
         // truncates to full stop between min and max length if it exists
         return BibblioUtils.truncateText(subtitle, truncateLength - searchBounds, truncateLength + searchBounds);
@@ -1222,8 +1321,9 @@
       var trackingLink = recommendationsResponse._links.tracking.href;
       var sourceContentItemId = (recommendationsResponse._links.sourceContentItem ? recommendationsResponse._links.sourceContentItem.id : null);
       var activityId = BibblioUtils.getActivityId(trackingLink);
-
       var userId = options.userId ? options.userId : null;
+      var userMetadata = options.userMetadata ? options.userMetadata : null;
+
       var activityData = BibblioActivity.constructOnClickedActivityData({
           sourceContentItemId: sourceContentItemId,
           clickedContentItemId: clickedContentItemId,
@@ -1235,7 +1335,8 @@
             version: Bibblio.moduleVersion,
             config: moduleSettings
           },
-          userId: userId
+          userId: userId,
+          userMetadata: userMetadata
         });
 
       if(!BibblioUtils.hasRecommendationBeenClicked(activityId, clickedContentItemId)) {
@@ -1259,6 +1360,8 @@
         var sourceContentItemId = (recommendationsResponse._links.sourceContentItem ? recommendationsResponse._links.sourceContentItem.id : null);
         BibblioUtils.setModuleViewed(activityId);
         var userId = options.userId ? options.userId : null;
+        var userMetadata = options.userMetadata ? options.userMetadata : null;
+
         var activityData = BibblioActivity.constructOnViewedActivityData({
             sourceContentItemId: sourceContentItemId,
             catalogueIds: options.catalogueIds,
@@ -1268,7 +1371,8 @@
               version: Bibblio.moduleVersion,
               config: moduleSettings
             },
-            userId: userId
+            userId: userId,
+            userMetadata: userMetadata
           });
 
         var response = BibblioActivity.trackAsync(trackingLink, activityData);
@@ -1527,8 +1631,12 @@
         "instrument": BibblioActivity.constructActivityInstrument(options.instrument)
       };
 
-      if(options.userId != null)
+      if(options.userId != null && options.userMetadata != null) {
+        activityData["actor"] = {"userId": options.userId,
+                                 "userMetadata": options.userMetadata};
+      } else if (options.userId != null) {
         activityData["actor"] = {"userId": options.userId};
+      }
 
       return activityData;
     },
@@ -1540,8 +1648,12 @@
         "instrument": BibblioActivity.constructActivityInstrument(options.instrument)
       };
 
-      if(options.userId != null)
+      if(options.userId != null && options.userMetadata != null) {
+        activityData["actor"] = {"userId": options.userId,
+                                 "userMetadata": options.userMetadata};
+      } else if (options.userId != null) {
         activityData["actor"] = {"userId": options.userId};
+      }
 
       return activityData;
     },
