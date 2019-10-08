@@ -155,7 +155,7 @@ Here is a sample of the tracking data submitted from within the Related Content 
     "userId": "42"}} // optional
 ```
 
-## An example
+## HTTP Example
 
 The following snippet shows the initialisation of a related content module. You will need to replace `YOUR_RECOMMENDATION_KEY` and `YOUR_CONTENT_ITEM_ID` with [a recommendation key](http://docs.bibblio.apiary.io/#reference/authorization/recommendation-keys/list-recommendation-keys) and the `contentItemId` returned when [creating a content item](http://docs.bibblio.apiary.io/#reference/storing-data/content-items/create-a-content-item) or [listing your content items](http://docs.bibblio.apiary.io/#reference/storing-data/content-items/list-content-items).
 
@@ -183,7 +183,96 @@ The following snippet shows the initialisation of a related content module. You 
 </script>
 ```
 
-## Google AMP (Accelerated Mobile Pages)
+## React Example
+
+The following snippets illustrate various ways of implementing the Related Content Module in React. First, include the related content module cdnjs files in your project's `index.html`.
+
+```html
+<head>
+    <!-- CSS -->.
+    <link rel="stylesheet" type="text/css" href="https://cdn.bibblio.org/rcm/4.7/bib-related-content.min.css">
+
+    <!-- JavaScript -->
+    <script src="https://cdn.bibblio.org/rcm/4.7/bib-related-content.min.js"></script>
+</head>
+```
+
+You then have several strategies for registering the module with React...
+
+#### 1) React component as a function
+
+```javascript
+import React from 'react';
+
+function RelatedContentModule(props) {
+  return (
+    <div className="bib--rcm-init"
+      data-recommendation-key="YOUR_RECOMMENDATION_KEY"
+      // data-content-item-id={props.contentItemId}
+      data-custom-unique-identifier={props.contentItemId}
+      data-recommendation-type="related"
+      data-style-classes="bib--hover bib--col-3">
+    </div>
+  )
+}
+
+export default RelatedContentModule;
+```
+
+#### 2) React component as a class
+
+```javascript
+import React from 'react';
+
+class RelatedContentModule extends React.Component {
+  render() {
+    return (
+      <div className="bib--rcm-init"
+        data-recommendation-key="YOUR_RECOMMENDATION_KEY"
+        // data-content-item-id={props.contentItemId}
+        data-custom-unique-identifier={this.props.contentItemId}
+        data-recommendation-type="related"
+        data-style-classes="bib--hover bib--col-3">
+      </div>
+    )
+  }
+}
+
+export default RelatedContentModule;
+```
+
+#### 3) React component using bibblio initRelatedContent
+
+```javascript
+import React from 'react';
+
+class RelatedContentModule extends React.Component {
+  componentDidMount() {
+    window.Bibblio.initRelatedContent({
+      targetElementId: "bibblio-related-module",
+      recommendationKey: "YOUR_RECOMMENDATION_KEY",
+      customUniqueIdentifier: this.props.contentItemId,
+      styleClasses: "bib--hover bib--col-3"
+    });
+  }
+
+  render() {
+    return (
+      <div id="bibblio-related-module"></div>
+    )
+  }
+}
+```
+
+#### Using the related content module component
+Once registered, the related content module component can be initialised as follows.
+
+```html
+<RelatedContentModule 
+  contentItemId="YOUR_CONTENT_ITEM_ID" />
+```
+
+## Google AMP (Accelerated Mobile Pages) Example
 
 Bibblio's Related Content Module can be implemented on Google AMP using an `amp-iframe`. The html page that will render inside the iframe is hosted on our servers so all you would need to do is place the following snippet in your AMP template instead of the example above.
 
