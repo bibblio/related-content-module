@@ -22,7 +22,7 @@
 
   // Bibblio module
   var Bibblio = {
-    moduleVersion: "4.7.0",
+    moduleVersion: "4.7.1",
     moduleTracking: {},
     isAmp: false,
 
@@ -1277,8 +1277,12 @@
 
     truncateTitle: function(name, styles, override) {
       var truncationLength = override || BibblioUtils.getTruncationLengthForStyle(styles);
+      var extraCutOffLength = 10;
 
-      if((name.length > truncationLength) && (BibblioUtils.shouldTruncate("title", styles))) {
+      var shouldTruncate = (name.length > (truncationLength + extraCutOffLength)) &&
+                           (BibblioUtils.shouldTruncate("title", styles));
+
+      if(shouldTruncate) {
         return name.substring(0, truncationLength) + "…";
       } else {
         return name;
