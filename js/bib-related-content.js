@@ -22,7 +22,7 @@
 
   // Bibblio module
   var Bibblio = {
-    moduleVersion: "4.7.2",
+    moduleVersion: "4.8.0",
     moduleTracking: {},
     isAmp: false,
 
@@ -1258,7 +1258,7 @@
 
     shouldTruncate: function(field, styles) {
       switch(field) {
-        case "title": return (styles.indexOf('bib--txt') === -1) && (styles.indexOf('bib--tall') === -1);
+        case "title": return (styles.indexOf('bib--txt') === -1) && (styles.indexOf('bib--tall') === -1) && (styles.indexOf('bib--split') === -1);
         case "subtitle": return (styles.indexOf('bib--txt') === -1) && (styles.indexOf('bib--tall') === -1);
       }
 
@@ -1406,7 +1406,7 @@
                                         <span class="bib__properties">\
                                           <% authorHTML %>\
                                           <% datePublishedHTML %>\
-                                          <% syndicationHTML %>\
+                                          <% siteHTML %>\
                                         </span>\
                                         <span class="bib__preview">\
                                           <% subtitleHTML %>\
@@ -1418,7 +1418,7 @@
 
     authorTemplate: '<span class="bib__author"><% author %></span>',
 
-    syndicationTemplate: '<span class="bib__site"><% domain %></span>',
+    siteTemplate: '<span class="bib__site"><% domain %></span>',
 
     datePublishedTemplate: '<span class="bib__recency"><% datePublished %></span>',
 
@@ -1470,19 +1470,19 @@
       return authorHTML;
     },
 
-    getSyndicationHTML: function(contentItem) {
-      var syndicationHTML = '';
+    getSiteHTML: function(contentItem) {
+      var siteHTML = '';
       try {
         var syndicationField = BibblioUtils.getDomainName(contentItem.fields.url);
         var templateOptions = {
           domain: syndicationField
         };
-        syndicationHTML = BibblioTemplates.getTemplate(BibblioTemplates.syndicationTemplate, templateOptions);
+        siteHTML = BibblioTemplates.getTemplate(BibblioTemplates.siteTemplate, templateOptions);
       } catch (e) {
 
       }
 
-      return syndicationHTML;
+      return siteHTML;
     },
 
     formatDate: function(value, formatting) {
@@ -1545,11 +1545,8 @@
       var authorHTML = BibblioTemplates.getAuthorHTML(contentItem, moduleSettings);
       // Create template for datePublished
       var datePublishedHTML = BibblioTemplates.getDatePublishedHTML(contentItem, moduleSettings);
-      // Create template for syndication domain
-      var syndicationHTML = '';
-      if (options.recommendationType == 'syndicated') {
-        syndicationHTML = BibblioTemplates.getSyndicationHTML(contentItem);
-      }
+      // Create template for site domain
+      var siteHTML = BibblioTemplates.getSiteHTML(contentItem);
 
       // Create template for related content item
       var contentItemUrl = (contentItem.fields.url ? contentItem.fields.url : '');
@@ -1571,7 +1568,7 @@
           contentItemId: (contentItem.contentItemId ? contentItem.contentItemId : ''),
           name: BibblioUtils.truncateTitle((contentItem.fields.name ? contentItem.fields.name   : ''), classes, moduleSettings.truncateTitle),
           authorHTML: authorHTML,
-          syndicationHTML: syndicationHTML,
+          siteHTML: siteHTML,
           datePublishedHTML: datePublishedHTML,
           linkHref: BibblioUtils.linkHrefFor(contentItemUrl, options.queryStringParams),
           linkTarget: BibblioUtils.linkTargetFor(contentItemUrl),
