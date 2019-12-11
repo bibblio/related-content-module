@@ -392,6 +392,7 @@
     right: 0;
     padding: 0 15px;
     margin: 0;
+    z-index: 2;
     border-bottom: 0px solid rgba(0,0,0,0.0);
     -webkit-transition: all 0.5s linear;
     -moz-transition: all 0.5s linear;

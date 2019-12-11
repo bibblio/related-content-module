@@ -22,7 +22,7 @@
 
   // Bibblio module
   var Bibblio = {
-    moduleVersion: "4.7.1",
+    moduleVersion: "4.7.2",
     moduleTracking: {},
     isAmp: false,
 
