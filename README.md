@@ -16,10 +16,10 @@ The easiest way to use the module is via our CDN. There is no need to install an
 ```html
 <head>
     <!-- CSS -->.
-    <link rel="stylesheet" type="text/css" href="https://cdn.bibblio.org/rcm/4.8/bib-related-content.min.css">
+    <link rel="stylesheet" type="text/css" href="https://cdn.bibblio.org/rcm/4.9/bib-related-content.min.css">
 
     <!-- JavaScript -->
-    <script src="https://cdn.bibblio.org/rcm/4.8/bib-related-content.min.js"></script>
+    <script src="https://cdn.bibblio.org/rcm/4.9/bib-related-content.min.js"></script>
 </head>
 ```
 
@@ -113,6 +113,9 @@ The customCatalogueIds that a recommendation should draw from. This allows you t
 #### `'hidden'` _(optional)_
 Allows you to perform a full integration without visually displaying the module. This is useful for testing and during initial auto-ingestion, before items have been indexed for the first time. Entering `Bibblio.showModules();` in the developer console will show all hidden modules on the page. Default is `false`.
 
+#### `'offset'` _(optional)_
+Allows you to offset the recommendations list before rendering, thereby skipping a specified number of items. This is useful if you'd like to put multiple modules using the same recommendation type on the page without displaying duplicate items. Simply offset the second module by the number of items displayed in the first. The supplied value must be an integer between 1 and 14.
+
 #### `'queryStringParams'` _(optional)_
 Allows you to append additional query string params to the target url of recommended items. This is particularly useful for specifying analytics params such as _utm_source_. The value should be a JavaScript object. Each property will be added as a param to the url. e.g. `{ "utm_source" : "BibblioRCM", "utm_campaign" : "SiteFooter" }` would append `utm_source=BibblioRCM&utm_campaign=SiteFooter` to the url query string of all recommended items.
 
@@ -190,10 +193,10 @@ The following snippets illustrate various ways of implementing the Related Conte
 ```html
 <head>
     <!-- CSS -->.
-    <link rel="stylesheet" type="text/css" href="https://cdn.bibblio.org/rcm/4.8/bib-related-content.min.css">
+    <link rel="stylesheet" type="text/css" href="https://cdn.bibblio.org/rcm/4.9/bib-related-content.min.css">
 
     <!-- JavaScript -->
-    <script src="https://cdn.bibblio.org/rcm/4.8/bib-related-content.min.js"></script>
+    <script src="https://cdn.bibblio.org/rcm/4.9/bib-related-content.min.js"></script>
 </head>
 ```
 
@@ -277,7 +280,7 @@ Once registered, the related content module component can be initialised as foll
 Bibblio's Related Content Module can be implemented on Google AMP using an `amp-iframe`. The html page that will render inside the iframe is hosted on our servers so all you would need to do is place the following snippet in your AMP template instead of the example above.
 
 ```html
-<amp-iframe width="1" height="1" layout="responsive" resizable sandbox="allow-scripts allow-top-navigation allow-same-origin" src="https://cdn.bibblio.org/rcm/4.8/amp.html?recommendationKey=YOUR_RECOMMENDATION_KEY&contentItemId=YOUR_CONTENT_ITEM_ID">
+<amp-iframe width="1" height="1" layout="responsive" resizable sandbox="allow-scripts allow-top-navigation allow-same-origin" src="https://cdn.bibblio.org/rcm/4.9/amp.html?recommendationKey=YOUR_RECOMMENDATION_KEY&contentItemId=YOUR_CONTENT_ITEM_ID">
     <div overflow tabindex=0 role=button aria-label="See more">See more!</div>
     <amp-img layout="fill" src="data:image/gif;base64,R0lGODlhAQABAIAAAP///wAAACH5BAEAAAAALAAAAAABAAEAAAICRAEAOw==" placeholder></amp-img>
 </amp-iframe>
@@ -297,7 +300,7 @@ Some things to note:
 The following example includes all format variances. It will add `utm_source=Bibblio` and `utm_campaign=related` to your recommendation links and include the `bib--row-3` and `bib--hover` styleClasses.
 
 ```html
-<amp-iframe width="1" height="1" layout="responsive" resizable sandbox="allow-scripts allow-top-navigation allow-same-origin" src="https://cdn.bibblio.org/rcm/4.8/amp.html?recommendationKey=YOUR_RECOMMENDATION_KEY&contentItemId=YOUR_CONTENT_ITEM_ID&utm_source=Bibblio&utm_campaign=related&styleClasses=bib--row-3,bib--hover">
+<amp-iframe width="1" height="1" layout="responsive" resizable sandbox="allow-scripts allow-top-navigation allow-same-origin" src="https://cdn.bibblio.org/rcm/4.9/amp.html?recommendationKey=YOUR_RECOMMENDATION_KEY&contentItemId=YOUR_CONTENT_ITEM_ID&utm_source=Bibblio&utm_campaign=related&styleClasses=bib--row-3,bib--hover">
     <div overflow tabindex=0 role=button aria-label="See more">See more!</div>
     <amp-img layout="fill" src="" placeholder></amp-img>
 </amp-iframe>

@@ -22,7 +22,7 @@
 
   // Bibblio module
   var Bibblio = {
-    moduleVersion: "4.8.0",
+    moduleVersion: "4.9.0",
     moduleTracking: {},
     isAmp: false,
 
@@ -45,9 +45,13 @@
       var moduleSettings = BibblioUtils.getModuleSettings(options);
       var subtitleField = moduleSettings.subtitleField;
       var accessToken = options.recommendationKey;
+      var baseItemLimit = 6;
+      var itemLimitOffset = (options.offset === undefined ? 0 : options.offset);
+      var itemLimit = baseItemLimit + itemLimitOffset;
+
       // URL arguments should be injected but the module only supports these settings now anyway.
       var fields = BibblioUtils.getRecommendationFields(subtitleField);
-      var url = BibblioUtils.getRecommendationUrl(options, 6, 1, fields);
+      var url = BibblioUtils.getRecommendationUrl(options, itemLimit, 1, fields);
       BibblioUtils.bibblioHttpGetRequest(url, accessToken, true, function(response, status) {
         Bibblio.handleRecsResponse(options, callbacks, response, status);
 
@@ -153,7 +157,7 @@
     },
 
     renderModule: function(options, callbacks, recommendationsResponse) {
-      var relatedContentItems = recommendationsResponse.results;
+      var relatedContentItems = recommendationsResponse.results.slice(options.offset);
       var moduleSettings = BibblioUtils.getModuleSettings(options);
       var relatedContentItemContainer = options.targetElement;
       var moduleHTML = BibblioTemplates.getModuleHTML(relatedContentItems, options, moduleSettings);
@@ -182,6 +186,15 @@
 
   // Bibblio utility module
   var BibblioUtils = {
+
+    isIntOrStringInt: function(val) {
+      return !isNaN(val) && (val.toString() === parseInt(val).toString());
+    },
+
+    numIsInRange: function(num, start, end) {
+      return num >= start && num <= end;
+    },
+
     /// Init module functions
     validateModuleOptions: function(options) {
 
@@ -269,6 +282,11 @@
 
       if(options.corpusType === "syndicated" && options.customCatalogueIds) {
         console.error("Bibblio: customCatalogueIds cannot be supplied when serving syndicated recommendations.")
+        return false
+      }
+
+      if(options.offset && (!BibblioUtils.isIntOrStringInt(options.offset) || !BibblioUtils.numIsInRange(parseInt(options.offset), 1, 14))) {
+        console.error("Bibblio: offset must be an integer between 1 and 14.")
         return false
       }
 
@@ -388,6 +406,12 @@
         options.targetElement = document.getElementById(options.targetElementId);
       }
 
+      if (options.offset === undefined) {
+        options.offset = 0;
+      } else {
+        options.offset = parseInt(options.offset);
+      }
+
       return options;
     },
 
@@ -405,6 +429,7 @@
       "customUniqueIdentifier",
       "dateFormat",
       "hidden",
+      "offset",
       "queryStringParams",
       "recommendationKey",
       "recommendationType",
