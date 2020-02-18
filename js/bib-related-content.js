@@ -22,7 +22,7 @@
 
   // Bibblio module
   var Bibblio = {
-    moduleVersion: "4.9.1",
+    moduleVersion: "4.9.2",
     moduleTracking: {},
     isAmp: false,
 
@@ -60,7 +60,8 @@
           console.log('Bibblio: Fetching Global Popularity Recs after receiving HTTP status ' + status);
 
           // copy and modify the previous options
-          var popularOptions = Object.assign({}, options);
+          var popularOptions = JSON.parse(JSON.stringify(options));
+          popularOptions.targetElement = document.getElementById(options.targetElementId);
           popularOptions.recommendationType = "popular";
           delete popularOptions.contentItemId;
           delete popularOptions.customUniqueIdentifier;
@@ -624,7 +625,9 @@
 
     filterOptions: function(options) {
       return Object.keys(options)
-        .filter(function(key) {return BibblioUtils.allowedKeys.includes(key)})
+        .filter(function(key) {
+          return BibblioUtils.allowedKeys.indexOf(key) > -1;
+        })
         .reduce(function(obj, key) {
           obj[key] = options[key];
           return obj;
@@ -670,7 +673,7 @@
       for(var param in userMetadata){
         var newParams = 'userMetadata[' + param + ']=' + userMetadata[param];
 
-        if(queryString.includes('userMetadata')){
+        if(queryString.indexOf('userMetadata') > -1){
           newParams = '&' + newParams;
           queryString += newParams;
         } else {
@@ -748,7 +751,7 @@
     },
 
     isInUrl: function(url, string) {
-      var hasString = url.includes(string);
+      var hasString = url.indexOf(string) > -1;
       return hasString;
     },
 
@@ -880,6 +883,7 @@
 
     /// Tracking functions
     getActivityId: function(trackingLink) {
+      trackingLink = trackingLink || "";
       var activityId = trackingLink.replace("https://", "")
                                    .replace("http://", "")
                                    .replace(/v[0-9]\//g, "")
@@ -1274,7 +1278,7 @@
     },
 
     getItemRecData: function(recsData, contentItemId) {
-      return recsData.find(function(element) { return element["contentItemId"] == contentItemId; });
+      return recsData.filter(function(element) { return element["contentItemId"] == contentItemId; })[0];
     },
 
     getModuleStyleClasses: function(moduleSettings) {
