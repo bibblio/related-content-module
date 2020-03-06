@@ -6,6 +6,7 @@
         <title>Bibblio Related Content Example</title>
         <meta name="description" content="Bibblio Related Content Example">
         <meta name="Bibblio" content="SitePoint">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
         <link rel="canonical" href="http://example.com/" />
         <!-- * Related Content Styles -->
         <link rel="stylesheet" type="text/css" href="css/bib-related-content.css">
@@ -40,6 +41,18 @@
                     contentItemId: getParameterByName('contentItemId'),
                     recommendationKey: getParameterByName('recommendationKey'),
                     styleClasses: "bib--row-3 bib--hover bib--recency-show"
+                }, 
+                {
+                    onRecommendationsRendered: function (recommendedItems) {
+                        console.log(recommendedItems);
+                    },
+                    onRecommendationViewed: function (viewedTrackingData) {
+                        console.log(viewedTrackingData); 
+                    },
+                    onRecommendationClick: function (clickedItem, clickEvent) {
+                        console.log(clickedItem);
+                        console.log(clickEvent); 
+                    }
                 });
             });
         </script>
