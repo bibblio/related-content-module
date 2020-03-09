@@ -75,7 +75,7 @@ Bibblio.initRelatedContent(
     });
 ```
 
-Typically this would be done on the `pageReady` event. Alternatively, the module can be initialised entirely as a div for convenience. This method does not support callbacks, but all other properties can be supplied as data attributes on the div, provided the div has a `bib--rcm-init` class. Bibblio uses this method to generate quick start snippets but if you're comfortable with JavaScript we would recommend using the function directly. For examples on div-based implementations, see the React examples further down the page.
+Typically this would be done on the `pageReady` event. Alternatively, the module can be initialised entirely as a div for convenience. This method does not support callbacks, but all other properties can be supplied as data attributes on the div, provided the div has a `bib--rcm-init` class. Bibblio uses this method to generate quick start snippets but if you're comfortable with JavaScript we would recommend using the function directly. See the React snippets further down the page for examples on div-based implementations.
 
 The initialisation function accepts two JavaScript objects as input.
 
@@ -201,7 +201,7 @@ Here is a sample of the tracking data submitted from within the Related Content 
 
 ## HTML Example
 
-The following snippet shows the initialisation of a related content module. You will need to replace `YOUR_RECOMMENDATION_KEY` and `YOUR_CONTENT_ITEM_ID` with [a recommendation key](https://bibblio.docs.apiary.io/#reference/authorization/recommendation-keys/list-recommendation-keys) and the `contentItemId` returned when [creating a content item](https://bibblio.docs.apiary.io/#reference/storing-data/content-items/create-a-content-item) or [listing your content items](https://bibblio.docs.apiary.io/#reference/storing-data/content-items/list-content-items).
+The following snippet shows the initialisation of a related content module. You will need to replace `YOUR_RECOMMENDATION_KEY`, and `YOUR_CONTENT_ITEM_ID` with [a recommendation key](https://bibblio.docs.apiary.io/#reference/authorization/recommendation-keys/list-recommendation-keys) and the `contentItemId` returned when [creating a content item](https://bibblio.docs.apiary.io/#reference/storing-data/content-items/create-a-content-item) or [listing your content items](https://bibblio.docs.apiary.io/#reference/storing-data/content-items/list-content-items). If a `customUniqueIdentifier` has been stored then this can be supplied instead of `contentItemId`.
 
 ```html
 <head>
@@ -226,8 +226,9 @@ The following snippet shows the initialisation of a related content module. You 
     window.addEventListener("load", function() {
         Bibblio.initRelatedContent({
             targetElementId: 'bib_related-content',
-            recommendationKey: 'YOUR_RECOMMENDATION_KEY',
-            contentItemId: 'YOUR_CONTENT_ITEM_ID'
+            contentItemId: 'YOUR_CONTENT_ITEM_ID',
+            // customUniqueIdentifier: `YOUR_CUSTOM_UNIQUE_IDENTIFIER`,
+            recommendationKey: 'YOUR_RECOMMENDATION_KEY'
         }, 
         {
             onRecommendationsRendered: function (recommendedItems) {
