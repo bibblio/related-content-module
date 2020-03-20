@@ -22,7 +22,7 @@
 
   // Bibblio module
   var Bibblio = {
-    moduleVersion: "4.9.2",
+    moduleVersion: "4.9.3",
     moduleTracking: {},
     isAmp: false,
 
@@ -509,6 +509,12 @@
           return value.split(",");
         case "userMetadata":
           return BibblioUtils.convertInitParamUserMetadata(value);
+        case "offset":
+          if (value === undefined) {
+            return 0;
+          } else {
+            return parseInt(value);
+          }
         default:
           break;
       }
@@ -629,14 +635,14 @@
           return BibblioUtils.allowedKeys.indexOf(key) > -1;
         })
         .reduce(function(obj, key) {
-          obj[key] = options[key];
+          obj[key] = BibblioUtils.handleNodeData(key, options[key]);
           return obj;
         }, {});
     },
 
     // TODO: might be unnecessarily specific to script param ingestion? could generify
     ingestFromScriptParam: function(options) {
-      if(options.recommendationKey && options.autoIngestion) {
+      if(options.recommendationKey && (options.autoIngestion === true)) {
         options.urlParamIngestion = true;
       } else {
         return;
