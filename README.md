@@ -141,6 +141,9 @@ Allows you to specify a character length for truncating recommended titles. If t
 #### `'userId'` _(optional)_
 Your own, unique id for the current site visitor. This allows us to compute personalised recommendations. This can be supplied for any `recommendationType` to generate additional training data for our personalisation algorithms. Please do not provide any personally identifiable information for this field.
 
+#### `'userMetadata'` _(optional)_
+Allows you to supply additional properties pertaining to the user specified by `userId`. This will be taken into account when training algorithms that produce personalised recommendations. Value should be a JSON object and can contain any keys. We would advise being sparing with this data and only including things that are specific to your user and pertinent to your domain. This could include the user's occupation or their field of interest. Cannot be supplied if `userId` is not present.
+
 ### Callbacks
 
 The second parameter to the initialisation function is optional. It allows you to supply various callbacks to inject your own functionality in the render chain. If supplied, it must be a JavaScript object, must supply functions, and can contain the following properties:
