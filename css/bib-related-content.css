@@ -4,7 +4,7 @@
 
 .bib__module {
     position: relative !important;
-    z-index: 0 !important;
+    z-index: 1 !important;
     margin: 0 !important;
     padding: 0 !important;
     border: 0 !important;
@@ -202,6 +202,11 @@
     filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#00000000', endColorstr='#000000',GradientType=0 );
 }
 
+.bib--text-left .bib__info { text-align: left !important; }
+.bib--text-center .bib__info { text-align: center !important; }
+.bib--text-right .bib__info { text-align: right !important; }
+.bib--text-justify .bib__info { text-align: justify !important; }
+
 
 /* Tile Metadata */
 
@@ -392,7 +397,7 @@
     right: 0;
     padding: 0 15px;
     margin: 0;
-    z-index: 2;
+    z-index: 3;
     border-bottom: 0px solid rgba(0,0,0,0.0);
     -webkit-transition: all 0.5s linear;
     -moz-transition: all 0.5s linear;
@@ -420,7 +425,7 @@
 }
 
 .bib--split .bib__link:hover {
-    z-index: 1;
+    z-index: 2;
 }
 
 .bib--split.bib--hover .bib__link:hover .bib__preview {
@@ -472,7 +477,7 @@
     top: 0;
     left: 90%;
     right: 0;
-    z-index: 1;
+    z-index: 2;
     opacity: 0;
 }
 
@@ -491,7 +496,7 @@ filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#00ff3232', e
     top: 0;
     left: 90%;
     right: 0;
-    z-index: 0;
+    z-index: 1;
     opacity: 0;
 }
 
@@ -507,7 +512,7 @@ filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#00ff3232', e
 .bib__origin {
     display: none !important;
     position: relative !important;
-    z-index: 0 !important;
+    z-index: 1 !important;
     margin: 0 !important;
     padding: 0 !important;
     border: 0 !important;
@@ -701,7 +706,13 @@ filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#00ff3232', e
 
 }
 
-@media (max-width: 414px) {
+@media (min-width: 415px) and (min-height: 851px), (min-width: 851px) and (min-height: 415px) {
+    .bib--hide-web {
+        display: none !important;
+    }
+}
+
+@media (max-width: 414px), (max-width: 850px) and (max-height: 414px) {
     .bib__link { width: 100% !important; margin-right: 0 !important; }
 
 
@@ -719,6 +730,12 @@ filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#00ff3232', e
         box-shadow: 0px 0px 20px 0px rgba(0,0,0,0.1) !important;
     }
 
+    .bib--hide-mobile,
+    [class*="bib--nxt"].bib--hide-mobile,
+    [class*="bib--nxt"].bib--hide {
+        display: none !important;
+    }
+
     [class*="bib--nxt"].bib--invert {
         -webkit-box-shadow: 0px 0px 0px 0px rgba(0,0,0,0) !important;
         -moz-box-shadow: 0px 0px 0px 0px rgba(0,0,0,0) !important;
@@ -734,7 +751,7 @@ filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#00ff3232', e
     [class*="bib--nxt"] .bib__link .bib__info {
         color: #000000;
         background: transparent !important;
-        padding: 15px 65px 15px 20px !important;
+        padding: 15px 20px !important;
         left: auto;
         right: auto;
         bottom: auto;
@@ -743,22 +760,13 @@ filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#00ff3232', e
 
     [class*="bib--nxt"] .bib__link .bib__info .bib__title { margin: 0; }
     [class*="bib--nxt"] .bib__link .bib__info .bib__title span { font-size: inherit !important; }
-    [class*="bib--nxt"] .bib__link .bib__info .bib__title::after { content: ">"; font-family: Times, serif; }
+    [class*="bib--nxt"] .bib__link .bib__info .bib__title::after { content: ">"; font-family: Times, serif; color: rgba(0,0,0,0.2); margin-left: 4px; font-size: larger; }
 
     [class*="bib--nxt"] .bib__link .bib__properties,
     [class*="bib--nxt"] .bib__link .bib__preview,
     [class*="bib--nxt"] .bib__origin { display: none !important; }
 
   /* Next Item mobile layout - Title */
-
-    .bib--nxt-title .bib__link .bib__info .bib__title::after {
-        font-size: 40px;
-        font-family: Times, serif;
-        color: rgba(0,0,0,0.15);
-        position: absolute;
-        top: 38%;
-        right: 20px;
-    }
 
     .bib--nxt-title.bib--invert { background-color: #000000; }
     .bib--nxt-title.bib--invert .bib__link .bib__info { color: #FFFFFF; }
@@ -783,7 +791,6 @@ filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#00ff3232', e
 
     .bib--nxt-thumb .bib__link:hover .bib__image::after { opacity: 0; }
 
-    .bib--nxt-thumb .bib__link .bib__info .bib__title::after { color: rgba(0,0,0,0.2); margin-left: 4px; font-size: larger; }
     .bib--nxt-thumb.bib--invert { background-color: #000000; }
     .bib--nxt-thumb.bib--invert .bib__link .bib__info { color: #FFFFFF; }
     .bib--nxt-thumb.bib--invert .bib__link .bib__info .bib__title::after { color: rgba(255,255,255,0.5); }
@@ -827,6 +834,29 @@ filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#00ff3232', e
     .bib--nxt-overlay.bib--invert { background-color: #000000; }
     .bib--nxt-overlay.bib--invert .bib__link .bib__info { color: #FFFFFF; }
     .bib--nxt-overlay.bib--invert .bib__link .bib__info .bib__title::after { color: rgba(255,255,255,0.5); }
+
+  /* Next Item mobile layout - Generic 'Next' label */
+
+    .bib--nxt-label .bib__link .bib__info .bib__title::before { content: "Next article"; }
+    .bib--nxt-label .bib__info { text-align: right; }
+    .bib--nxt-label.bib--invert { background-color: #000000; }
+    .bib--nxt-label.bib--invert .bib__link .bib__info { color: #FFFFFF; }
+    .bib--nxt-label.bib--invert .bib__link .bib__info .bib__title::after { color: rgba(255,255,255,0.5); }
+    .bib--nxt-label .bib__link .bib__name, .bib--nxt-label .bib__link .bib__image { display: none !important; }
+
+
+
+    .bib--mobile-top,
+    [class*="bib--nxt"].bib--mobile-top {
+        top: 0;
+        bottom: auto;
+     }
+
+    .bib--mobile-bottom,
+    [class*="bib--nxt"].bib--mobile-bottom {
+        top: auto;
+        bottom: 0;
+     }
 
 }
 

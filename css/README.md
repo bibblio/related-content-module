@@ -7,7 +7,7 @@ The style and layout is extremely customisable. We've currently implemented 3 pr
 * _Grid layout:_ bib--grd-4, bib--grd-6
 * _Row layout:_ bib--row-1, bib--row-2, bib--row-3, bib--row-4
 * _Showcased Box layout:_ bib--box-3, bib--box-5, bib--box-6
-* _Text-only layout:_ bib--txt-3, bib--txt-6
+* _Text-only layout:_ bib--txt-1, bib--txt-3, bib--txt-6
 
 ### Ratios
 * _Standard ratio:_ _default_
@@ -52,6 +52,12 @@ The style and layout is extremely customisable. We've currently implemented 3 pr
 * _20px:_ bib--size-20
 * _22px:_ bib--size-22
 
+### Text alignment
+* _Align all tile text to the left:_ bib--text-left
+* _Align all tile text to the center:_ bib--text-center
+* _Align all tile text to the right:_ bib--text-right
+* _Justify all tile text:_ bib--text-justify
+
 ### Image alignment
 * _Align all images to top of tiles:_ bib--image-top
 * _Align all images to middle of tiles:_ _default_
@@ -60,6 +66,6 @@ The style and layout is extremely customisable. We've currently implemented 3 pr
 ### Extras
 * _Hover 'shine' effect:_ bib--shine
 * _Hover 'spectrum' effect:_ bib--spectrum
-* _Invert module to display on dark backgrounds:_ bib--invert
+* _Invert the text color when it's beneath an image or text-only, for clearer display on dark page backgrounds:_ bib--invert
 * _If a tile has a background image, this class is automatically added to the anchor 'bib__link':_ bib__link--image
 * _Hide module for testing:_ bib--hide
