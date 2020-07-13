@@ -365,7 +365,7 @@ The following example includes all format variances. It will add `utm_source=Bib
 ```html
 <amp-iframe width="1" height="1" layout="responsive" resizable sandbox="allow-scripts allow-top-navigation allow-same-origin" src="https://cdn.bibblio.org/rcm/4.10/amp.html?recommendationKey=YOUR_RECOMMENDATION_KEY&contentItemId=YOUR_CONTENT_ITEM_ID&utm_source=Bibblio&utm_campaign=related&styleClasses=bib--row-3,bib--hover">
     <div overflow tabindex=0 role=button aria-label="See more">See more!</div>
-    <amp-img layout="fill" src="" placeholder></amp-img>
+    <amp-img layout="fill" src="data:image/gif;base64,R0lGODlhAQABAIAAAP///wAAACH5BAEAAAAALAAAAAABAAEAAAICRAEAOw==" placeholder></amp-img>
 </amp-iframe>
 ```
 
