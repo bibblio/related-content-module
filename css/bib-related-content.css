@@ -74,14 +74,15 @@
 .bib--box-5 .bib__link--1, .bib--box-5 .bib__link--2, .bib--box-5 .bib__link--3, .bib--box-5 .bib__link--4, .bib--box-5 .bib__link--5,
 .bib--box-6 .bib__link--1, .bib--box-6 .bib__link--2, .bib--box-6 .bib__link--3, .bib--box-6 .bib__link--4, .bib--box-6 .bib__link--5, .bib--box-6 .bib__link--6,
 .bib--grd-4 .bib__link--1, .bib--grd-4 .bib__link--2, .bib--grd-4 .bib__link--3, .bib--grd-4 .bib__link--4,
-.bib--grd-6 .bib__link--1, .bib--grd-6 .bib__link--2, .bib--grd-6 .bib__link--3, .bib--grd-6 .bib__link--4, .bib--grd-6 .bib__link--5, .bib--grd-6 .bib__link--6,
+[class*="bib--grd-6"] .bib__link--1, [class*="bib--grd-6"] .bib__link--2, [class*="bib--grd-6"] .bib__link--3, [class*="bib--grd-6"] .bib__link--4, [class*="bib--grd-6"] .bib__link--5, [class*="bib--grd-6"] .bib__link--6,
 .bib--txt-1 .bib__link--1,
 .bib--txt-3 .bib__link--1, .bib--txt-3 .bib__link--2, .bib--txt-3 .bib__link--3,
 .bib--txt-6 .bib__link--1, .bib--txt-6 .bib__link--2, .bib--txt-6 .bib__link--3, .bib--txt-6 .bib__link--4, .bib--txt-6 .bib__link--5, .bib--txt-6 .bib__link--6,
+.bib--car-6 .bib__link--1, .bib--car-6 .bib__link--2, .bib--car-6 .bib__link--3, .bib--car-6 .bib__link--4, .bib--car-6 .bib__link--5, .bib--car-6 .bib__link--6,
 [class*="bib--nxt"] .bib__link--1
 { display: block !important; }
 
-.bib--row-2 .bib__link, .bib--grd-4 .bib__link, .bib--box-5 .bib__link.bib__link--1, .bib--box-5 .bib__link.bib__link--2 { width: 49%; margin-right: 2%; }
+.bib--row-2 .bib__link, .bib--grd-4 .bib__link, .bib--grd-6v .bib__link, .bib--box-5 .bib__link.bib__link--1, .bib--box-5 .bib__link.bib__link--2 { width: 49%; margin-right: 2%; }
 .bib--row-3 .bib__link, .bib--grd-6 .bib__link, .bib--box-3 .bib__link, .bib--box-5 .bib__link, .bib--box-6 .bib__link { width: 32%; margin-right: 2%; }
 .bib--row-4 .bib__link { width: 23.5%; margin-right: 2%; }
 
@@ -98,7 +99,10 @@
 .bib--grd-4 .bib__link.bib__link--2,
 .bib--grd-4 .bib__link.bib__link--4,
 .bib--grd-6 .bib__link.bib__link--3,
-.bib--grd-6 .bib__link.bib__link--6
+.bib--grd-6 .bib__link.bib__link--6,
+.bib--grd-6v .bib__link.bib__link--2,
+.bib--grd-6v .bib__link.bib__link--4,
+.bib--grd-6v .bib__link.bib__link--6
 { margin-right: 0; }
 
 .bib--box-3 .bib__link { width: 40%; }
@@ -120,13 +124,19 @@
 
 .bib--box-5 .bib__link--3,
 .bib--box-6 .bib__link--4,
-.bib--grd-6 .bib__link--4 { clear: left; }
+.bib--grd-6v .bib__link--3,
+.bib--grd-6v .bib__link--5
+ { clear: left; }
 
 .bib--box-3 .bib__link.bib__link--1 .bib__title .bib__name,
 .bib--box-5 .bib__link.bib__link--1 .bib__title .bib__name,
 .bib--box-5 .bib__link.bib__link--2 .bib__title .bib__name,
 .bib--box-6 .bib__link.bib__link--1 .bib__title .bib__name
 { font-size: larger; line-height: 1.1em; }
+
+.bib--car-6 { overflow-x: auto !important; overflow-y: hidden !important; }
+.bib--car-6 .bib__link { display: table-cell !important; float: none !important; min-width: 250px; padding-right: 10px !important; padding-bottom: 16px !important; }
+.bib--car-6.bib--split .bib__link .bib__info { min-height: 105px; }
 
 .bib__image {
     position: relative;
@@ -202,6 +212,8 @@
     filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#00000000', endColorstr='#000000',GradientType=0 );
 }
 
+.bib--car-6 .bib__info { right: 10px; bottom: 16px; }
+
 .bib--text-left .bib__info { text-align: left !important; }
 .bib--text-center .bib__info { text-align: center !important; }
 .bib--text-right .bib__info { text-align: right !important; }
@@ -214,7 +226,6 @@
     display: block;
     margin: 0 0 5px;
     font-size: 18px;
-    line-height: 1.1em;
 }
 
 .bib__properties {
