@@ -10,10 +10,10 @@ The easiest way to use the module is via our CDN. Simply include the assets in y
 ```html
 <head>
     <!-- CSS -->.
-    <link rel="stylesheet" type="text/css" href="https://cdn.bibblio.org/rcm/4.12/bib-related-content.min.css">
+    <link rel="stylesheet" type="text/css" href="https://cdn.bibblio.org/rcm/4.13/bib-related-content.min.css">
 
     <!-- JavaScript -->
-    <script src="https://cdn.bibblio.org/rcm/4.12/bib-related-content.min.js"></script>
+    <script src="https://cdn.bibblio.org/rcm/4.13/bib-related-content.min.js"></script>
 </head>
 ```
 
@@ -215,7 +215,7 @@ The following snippet shows the initialisation of a related content module. You 
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="canonical" href="http://example.com/bibblio/sample-content-item" />
     <!-- * Related Content Styles -->
-    <link rel="stylesheet" type="text/css" href="https://cdn.bibblio.org/rcm/4.12/bib-related-content.min.css">
+    <link rel="stylesheet" type="text/css" href="https://cdn.bibblio.org/rcm/4.13/bib-related-content.min.css">
 </head>
 
 <!-- * Related Content HTML -->
@@ -223,7 +223,7 @@ The following snippet shows the initialisation of a related content module. You 
 <div id="bib_related-content"></div>
 
 <!-- * Related Content Javascript -->
-<script src="https://cdn.bibblio.org/rcm/4.12/bib-related-content.min.js"></script>
+<script src="https://cdn.bibblio.org/rcm/4.13/bib-related-content.min.js"></script>
 <script>
     // Initialise the related content plugin.
     window.addEventListener("load", function() {
@@ -256,10 +256,10 @@ The following snippets illustrate various ways of implementing the Related Conte
 ```html
 <head>
     <!-- CSS -->.
-    <link rel="stylesheet" type="text/css" href="https://cdn.bibblio.org/rcm/4.12/bib-related-content.min.css">
+    <link rel="stylesheet" type="text/css" href="https://cdn.bibblio.org/rcm/4.13/bib-related-content.min.css">
 
     <!-- JavaScript -->
-    <script src="https://cdn.bibblio.org/rcm/4.12/bib-related-content.min.js"></script>
+    <script src="https://cdn.bibblio.org/rcm/4.13/bib-related-content.min.js"></script>
 </head>
 ```
 
@@ -343,7 +343,7 @@ Once registered, the related content module component can be initialised as foll
 Bibblio's Related Content Module can be implemented on Google AMP using an `amp-iframe`. The html page that will render inside the iframe is hosted on our servers. All you need to do is place the following snippet in your AMP template:
 
 ```html
-<amp-iframe width="1" height="1" layout="responsive" resizable sandbox="allow-scripts allow-top-navigation allow-same-origin" src="https://cdn.bibblio.org/rcm/4.12/amp.html?recommendationKey=YOUR_RECOMMENDATION_KEY&contentItemId=YOUR_CONTENT_ITEM_ID">
+<amp-iframe width="1" height="1" layout="responsive" resizable sandbox="allow-scripts allow-top-navigation allow-same-origin" src="https://cdn.bibblio.org/rcm/4.13/amp.html?recommendationKey=YOUR_RECOMMENDATION_KEY&contentItemId=YOUR_CONTENT_ITEM_ID">
     <div overflow tabindex=0 role=button aria-label="See more">See more!</div>
     <amp-img layout="fill" src="data:image/gif;base64,R0lGODlhAQABAIAAAP///wAAACH5BAEAAAAALAAAAAABAAEAAAICRAEAOw==" placeholder></amp-img>
 </amp-iframe>
@@ -363,7 +363,7 @@ Some things to note:
 The following example includes all format variances. It will add `utm_source=Bibblio` and `utm_campaign=related` to your recommendation links and include the `bib--row-3` and `bib--hover` styleClasses.
 
 ```html
-<amp-iframe width="1" height="1" layout="responsive" resizable sandbox="allow-scripts allow-top-navigation allow-same-origin" src="https://cdn.bibblio.org/rcm/4.12/amp.html?recommendationKey=YOUR_RECOMMENDATION_KEY&contentItemId=YOUR_CONTENT_ITEM_ID&utm_source=Bibblio&utm_campaign=related&styleClasses=bib--row-3,bib--hover">
+<amp-iframe width="1" height="1" layout="responsive" resizable sandbox="allow-scripts allow-top-navigation allow-same-origin" src="https://cdn.bibblio.org/rcm/4.13/amp.html?recommendationKey=YOUR_RECOMMENDATION_KEY&contentItemId=YOUR_CONTENT_ITEM_ID&utm_source=Bibblio&utm_campaign=related&styleClasses=bib--row-3,bib--hover">
     <div overflow tabindex=0 role=button aria-label="See more">See more!</div>
     <amp-img layout="fill" src="data:image/gif;base64,R0lGODlhAQABAIAAAP///wAAACH5BAEAAAAALAAAAAABAAEAAAICRAEAOw==" placeholder></amp-img>
 </amp-iframe>

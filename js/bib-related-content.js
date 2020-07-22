@@ -22,7 +22,7 @@
 
   // Bibblio module
   var Bibblio = {
-    moduleVersion: "4.12.2",
+    moduleVersion: "4.13.0",
     moduleTracking: {},
     isAmp: false,
 
@@ -33,12 +33,41 @@
       });
     },
 
+    autoInit: function() {
+      var rcmSrcElement = BibblioUtils.getSrcElement();
+      var rcmAutoInitElements = BibblioUtils.getAutoInitElements();
+      var options = {}
+      var callbacks = {}
+
+      // Initialise auto ingestion
+      BibblioUtils.initScriptParamIngestion(rcmSrcElement);
+
+      // Loop over all auto init elements and initialise
+      rcmAutoInitElements.forEach(function(element) {
+        var moduleData = BibblioUtils.parseModuleData(element);
+        Bibblio.initRelatedContent(moduleData.options, moduleData.callbacks);
+      });
+    },
+
     initRelatedContent: function(options, callbacks) {
-      var callbacks = callbacks || {};
       // Validate the values of the related content module options
       if (!BibblioUtils.validateModuleOptions(options)) return;
-      var moduleOptions = BibblioUtils.prepareModuleOptions(options)
-      Bibblio.getRelatedContentItems(moduleOptions, callbacks);
+
+      var url = window.location.href;
+      var callbacks = callbacks || {};
+      var moduleOptions = BibblioUtils.prepareModuleOptions(options);
+      var element = (options.targetElementId) ? document.getElementById(options.targetElementId) : options.targetElement;
+      var elementIsVisible = BibblioUtils.isElementVisible(element);
+      var isAmp = BibblioUtils.isAmp(url);
+
+      //Get recs for the module if visible
+      if (elementIsVisible === true || isAmp === true) {
+        Bibblio.getRelatedContentItems(moduleOptions, callbacks);
+      } else {
+        console.log("Bibblio: Module will not be rendered until the target element is made visible on the page");
+        //Watch for attribute modifications on module
+        BibblioUtils.watchForAttributeModifications(element, moduleOptions, callbacks);
+      }
     },
 
     getRelatedContentItems: function(options, callbacks) {
@@ -188,6 +217,51 @@
   // Bibblio utility module
   var BibblioUtils = {
 
+    isInUrl: function(url, string) {
+      var hasString = url.indexOf(string) > -1;
+      return hasString;
+    },
+
+    getSrcElement: function() {
+      return document.getElementById('bib--rcm-src');
+    },
+
+    getAutoInitElements: function() {
+      var elements = document.getElementsByClassName('bib--rcm-init');
+      return [].slice.call(elements); //converting htmlCollection to array of elements
+    },
+
+    getOptionsAndCallbacks: function(element, options, callbacks) {
+      return (options.targetElementId) ? {'options': options, 'callbacks': callbacks} : BibblioUtils.parseModuleData(element);
+    },
+
+    watchForAttributeModifications: function(element, options, callbacks) {
+      window.MutationObserver = window.MutationObserver || window.WebKitMutationObserver || window.MozMutationObserver;
+      if (window.MutationObserver) {
+        var config = {attributes: true};
+        var callback = function(mutationsList, observer) {
+          var data = BibblioUtils.getOptionsAndCallbacks(element, options, callbacks);
+          Bibblio.initRelatedContent(data.options, data.callbacks);
+          observer.disconnect();
+        };
+        var observer = new MutationObserver(callback);
+        observer.observe(element, config);
+      }
+    },
+
+    isElementVisible: function(element) {
+      var visible = false;
+      if (element !== null) {
+        var computedDisplayAttr = window.getComputedStyle(element).getPropertyValue('display');
+        visible = (computedDisplayAttr !== "none") ? true : false;
+      }
+      return visible;
+    },
+
+    isAmp: function(url) {
+      return BibblioUtils.isInUrl(url, '#amp=1');
+    },
+
     isIntOrStringInt: function(val) {
       return !isNaN(val) && (val.toString() === parseInt(val).toString());
     },
@@ -198,7 +272,6 @@
 
     /// Init module functions
     validateModuleOptions: function(options) {
-
       if(!options.recommendationKey) {
         console.error("Bibblio: Please provide a recommendation key for the recommendationKey value in the options parameter.");
         return false;
@@ -443,26 +516,27 @@
       "userId"
     ],
 
-    autoInit: function() {
+    parseModuleData: function(element) {
       var url = window.location.href;
       Bibblio.isAmp = BibblioUtils.isInUrl(url, '#amp=1');
-      var params = [];
+      var options = {};
       var callbacks = {};
 
       if(Bibblio.isAmp) {
-        params = BibblioUtils.getAmpAutoInitParams(url)
+        options = BibblioUtils.getAmpAutoInitParams(url)
         callbacks = BibblioUtils.ampCallbacks;
       } else {
-        params = BibblioUtils.getParams();
+        options = BibblioUtils.getParams(element);
       }
 
-      params.forEach(function(options) {
-        Bibblio.initRelatedContent(options, callbacks);
-      });
+      return {
+        'options': options,
+        'callbacks': callbacks
+      }
     },
 
     getAmpAutoInitParams: function(url) {
-      var params = [];
+      var params = {};
       var targetElement = BibblioUtils.findInitElements()[0];
       if (targetElement) {
         params = BibblioUtils.getAmpParams(url, targetElement);
@@ -474,12 +548,11 @@
       var ampParams = BibblioUtils.getAmpOptions(url);
       ampParams.autoIngestionUrl = document.referrer;
       ampParams.targetElement = targetElement;
-      return [ampParams];
+      return ampParams;
     },
 
-    getParams: function() {
-      var elements = BibblioUtils.findInitElements();
-      var params = BibblioUtils.elementsToInitParams(elements);
+    getParams: function(element) {
+      var params = BibblioUtils.elementToInitParams(element);
       return params;
     },
 
@@ -526,25 +599,17 @@
       return value;
     },
 
-    elementsToInitParams: function(nodeList) {
+    elementToInitParams: function(element) {
       var allowedKeys = BibblioUtils.allowedKeys;
 
       // Construct new objects with only the allowed keys from each node's dataset
-      var initParams = [];
-
-      for (var i = 0, len = nodeList.length; i < len; i++) {
-        var node = nodeList[i];
-        var dataset = node.dataset;
-        initParams.push(
-          allowedKeys.reduce(function(acc, key) {
-            if (dataset[key]) {
-              acc[key] = BibblioUtils.handleNodeData(key, dataset[key]);
-            }
-
-            return acc;
-          }, {targetElement: node})
-        );
-      }
+      var dataset = element.dataset;
+      var initParams = allowedKeys.reduce(function(acc, key) {
+        if (dataset[key]) {
+          acc[key] = BibblioUtils.handleNodeData(key, dataset[key]);
+        }
+        return acc;
+      }, {targetElement: element});
 
       return initParams;
     },
@@ -656,12 +721,10 @@
       }
     },
 
-    initScriptParamIngestion: function() {
-      if(document.getElementById('bib--rcm-src')) {
-        var options = BibblioUtils.filterOptions(document.getElementById('bib--rcm-src').dataset);
+    initScriptParamIngestion: function(element) {
+      if (element && element.dataset) {
+        var options = BibblioUtils.filterOptions(element.dataset);
         BibblioUtils.ingestFromScriptParam(options);
-      } else {
-        return;
       }
     },
 
@@ -754,11 +817,6 @@
       } else {
         return {};
       }
-    },
-
-    isInUrl: function(url, string) {
-      var hasString = url.indexOf(string) > -1;
-      return hasString;
     },
 
     /// Auto ingestion functions
@@ -1753,11 +1811,9 @@
     // `DOMContentLoaded` may fire before your script has a chance to run,
     // so check before adding a listener
     if (document.readyState === "loading") {
-      document.addEventListener("DOMContentLoaded", BibblioUtils.initScriptParamIngestion);
-      document.addEventListener("DOMContentLoaded", BibblioUtils.autoInit);
+      document.addEventListener("DOMContentLoaded", Bibblio.autoInit);
     } else {  // `DOMContentLoaded` already fired
-      BibblioUtils.initScriptParamIngestion();
-      BibblioUtils.autoInit();
+      Bibblio.autoInit();
     }
   }
 })();

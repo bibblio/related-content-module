@@ -41,17 +41,17 @@
                     contentItemId: getParameterByName('contentItemId'),
                     recommendationKey: getParameterByName('recommendationKey'),
                     styleClasses: "bib--row-3 bib--hover bib--recency-show"
-                }, 
+                },
                 {
                     onRecommendationsRendered: function (recommendedItems) {
                         console.log(recommendedItems);
                     },
                     onRecommendationViewed: function (viewedTrackingData) {
-                        console.log(viewedTrackingData); 
+                        console.log(viewedTrackingData);
                     },
                     onRecommendationClick: function (clickedItem, clickEvent) {
                         console.log(clickedItem);
-                        console.log(clickEvent); 
+                        console.log(clickEvent);
                     }
                 });
             });
