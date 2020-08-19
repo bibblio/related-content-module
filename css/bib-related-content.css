@@ -135,7 +135,7 @@
 { font-size: larger; line-height: 1.1em; }
 
 .bib--car-6 { overflow-x: auto !important; overflow-y: hidden !important; }
-.bib--car-6 .bib__link { display: table-cell !important; float: none !important; min-width: 250px; padding-right: 10px !important; padding-bottom: 16px !important; }
+.bib--car-6 .bib__link { display: table-cell !important; float: none !important; width: 250px; min-width: 250px; padding-right: 10px !important; padding-bottom: 16px !important; }
 .bib--car-6.bib--split .bib__link .bib__info { min-height: 105px; }
 
 .bib__image {
@@ -362,7 +362,7 @@
 [class*="bib--txt"] .bib__link .bib__info,
 [class*="bib--txt"] .bib__link.bib__link--image .bib__info {
     background: transparent none;
-    padding: 10px 15px;
+    padding: 10px 5px 10px 2px;
     color: initial;
     position: relative;
     display: block;
@@ -624,7 +624,8 @@ filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#00ff3232', e
 }
 
 .bib--hide,
-[class*="bib--nxt"] {
+[class*="bib--nxt"],
+.bib--car-6.bib--about .bib__origin {
     display: none !important;
 }
 
