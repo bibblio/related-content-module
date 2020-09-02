@@ -1,12 +1,364 @@
 "use strict";
 
-(function() {
-  var isNodeJS = false;
+// -- Global -------------------------------------------------------------------
 
-  // support for NodeJS, which doesn't support XMLHttpRequest natively
-  if (typeof module !== 'undefined' && typeof module.exports !== 'undefined') {
-    isNodeJS = true;
+var isNodeJS = (typeof module !== 'undefined' && typeof module.exports !== 'undefined') ? true : false;
+
+if (isNodeJS) {
+  module.exports = {};
+}
+
+// -- Hide Addon ---------------------------------------------------------------
+(function() {
+  var HideAddonUtils = {
+    allowedKeys: [
+      "hidden"
+    ],
+    getAutoInitElements: function() {
+      var elements = document.getElementsByClassName('bib--hide-init');
+      return [].slice.call(elements); // Converting htmlCollection to array of elements
+    },
+    handleNodeData: function(key, value) {
+      // Handle booleans
+      if(value === "true")  return true;
+      if(value === "false") return false;
+
+      return value;
+    },
+    elementToInitParams: function(element) {
+      var allowedKeys = HideAddonUtils.allowedKeys;
+
+      // Construct new objects with only the allowed keys from each node's dataset
+      var dataset = element.dataset;
+      var acc = {'options'  : {'targetElement': element}};
+      var initParams = allowedKeys.reduce(function(acc, key) {
+        if (dataset && dataset[key]) {
+          acc['options'][key] = HideAddonUtils.handleNodeData(key, dataset[key]);
+        }
+        return acc;
+      }, acc);
+
+      return initParams;
+    },
+    getParams: function(element) {
+      var params = HideAddonUtils.elementToInitParams(element);
+      return params;
+    },
+    parseAddonData: function(element) {
+      var params = HideAddonUtils.getParams(element);
+      return {
+        'options': params['options']
+      }
+    },
+    prepareAddonOptions: function(options) {
+      // Set targetElement on options if no targetElement is specified
+      if (options && options.targetElementId && !options.targetElement) {
+        options.targetElement = document.getElementById(options.targetElementId);
+      }
+
+      return options;
+    },
+    shouldBeHidden: function(options) {
+      var validHiddenOptions = ["web", "mobile"];
+      var isValidHiddenOption = validHiddenOptions.indexOf(options.hidden) !== -1;
+
+      if(options.hidden && isValidHiddenOption) {
+        // ViewportWidth
+        var vw = Math.max(document.documentElement.clientWidth || 0, window.innerWidth || 0);
+        // ViewportHeight
+        var vh = Math.max(document.documentElement.clientHeight || 0, window.innerHeight || 0);
+
+        var isWeb = (vw >= 415 && vh >= 851) || (vw >= 851);
+        var isMobile = (vw <= 414) || (vw <= 850 && vh <= 414);
+
+        if(isWeb) {
+          return options.hidden === "web";
+        }
+        else if(isMobile) {
+          return options.hidden === "mobile"
+        }
+      }
+
+      return true;
+    },
+    renderHTML: function(options, callbacks) {
+      var element = options.targetElement;
+
+      if(HideAddonUtils.shouldBeHidden(options)) {
+        element.classList.add("bib--hide");
+        console.log("Bibblio: Hide add-on and its children will not be rendered");
+      }
+
+      if (callbacks && callbacks.loaderNextStep && typeof callbacks.loaderNextStep === "function") {
+        callbacks.loaderNextStep();
+      }
+    }
   }
+
+  var HideAddon = {
+    init: function(options, callbacks) {
+
+      // Define vars
+      options = HideAddonUtils.prepareAddonOptions(options);
+
+      // Perform initialisation
+      HideAddonUtils.renderHTML(options, callbacks);
+    },
+    _initForLoader: function(element, loaderCallback) {
+      var callbacks = {
+        loaderNextStep: loaderCallback
+      };
+
+      var addonData = HideAddonUtils.parseAddonData(element);
+      HideAddon.init(addonData.options, callbacks);
+    }
+  }
+
+  // Bootstrap
+  if (isNodeJS === true) {
+    module.exports.BibblioHideAddon = HideAddon;
+  } else {
+    window.BibblioHideAddon = HideAddon;
+  }
+})();
+
+// -- Takeover Addon Core ------------------------------------------------------
+(function() {
+
+  var TakeOverAddonTemplates = {
+    main: '<div class="bib__takeover">\
+              <div class="bib__scrim"></div>\
+              <div class="bib__modal-sheet">\
+                <div class="bib__modal-sheet-panel"></div>\
+                <div class="bib__modal-sheet-tab">%tabText%</div>\
+             </div>\
+           </div>'
+  }
+
+  var TakeoverAddonUtils = {
+    previousStyles: {},
+    allowedKeys: ["tabText", "callbackOnInitEnd"],
+    getAutoInitElements: function() {
+      var elements = document.getElementsByClassName('bib--takeover-init');
+      return [].slice.call(elements); // Converting htmlCollection to array of elements
+    },
+    parseAddonData: function(element) {
+      var params = TakeoverAddonUtils.getParams(element);
+      return {
+        'options': params['options'],
+        'callbacks': params['callbacks']
+      }
+    },
+    getParams: function(element) {
+      var params = TakeoverAddonUtils.elementToInitParams(element);
+      return params;
+    },
+    handleNodeData: function(key, value) {
+      // Handle booleans
+      if(value === "true")  return true;
+      if(value === "false") return false;
+
+      return value;
+    },
+    hasClass: function(element, name) {
+      return (' ' + element.className + ' ').indexOf(' ' + name+ ' ') > -1;
+    },
+    getTakeoverPanelElement: function(element) {
+      return element.querySelector("div.bib__takeover");
+    },
+    addClass: function(element, name) {
+      var arr = element.className.split(" ");
+      if (arr.indexOf(name) == -1) {
+        element.className += " " + name;
+      }
+    },
+    removeClass: function(element, name) {
+      var className = element.className;
+      var classes = className.split(' ');
+      classes.splice(classes.indexOf(name), 1);
+      var newClassName = classes.join(' ');
+      element.className = newClassName;
+    },
+    changeStyle: function(bodyElement, key, value) {
+      // Save the current style that we are about to change
+      TakeoverAddonUtils.previousStyles[key] = bodyElement.style[key];
+      // Change style to new value
+      bodyElement.style[key] = value;
+    },
+    resetStyle: function(bodyElement, key) {
+      // Change style back to previously saved value (in changeStyle method)
+      bodyElement.style[key] = TakeoverAddonUtils.previousStyles[key];
+    },
+    getModalSheetTabElement: function(element) {
+      return element.querySelector("div.bib__modal-sheet-tab");
+    },
+    getScrimElement: function(element) {
+      return element.querySelector("div.bib__scrim");
+    },
+    getBodyElement: function() {
+      return document.getElementsByTagName("body")[0];
+    },
+    closureCallback: function(element, callback) {
+      return function() {
+        return callback(element);
+      }
+    },
+    registerTabElementActions: function(takeoverPanelElement, modalSheetTabElement, bodyElement) {
+      modalSheetTabElement.addEventListener("click", TakeoverAddonUtils.closureCallback(takeoverPanelElement, function(takeoverPanelElement) {
+        var visbilityToggleClass = "bib--open";
+        var takeOverPanelElement = TakeoverAddonUtils.getTakeoverPanelElement(takeoverPanelElement);
+        var isTakeoverPanelElementOpen = TakeoverAddonUtils.hasClass(takeOverPanelElement, visbilityToggleClass);
+        if (isTakeoverPanelElementOpen) {
+          TakeoverAddonUtils.removeClass(takeOverPanelElement, visbilityToggleClass);
+          TakeoverAddonUtils.resetStyle(bodyElement, 'overflow');
+        } else {
+          TakeoverAddonUtils.addClass(takeOverPanelElement, visbilityToggleClass);
+          TakeoverAddonUtils.changeStyle(bodyElement, 'overflow', 'hidden');
+        }
+      }));
+    },
+    registerScrimElementActions: function(takeoverPanelElement, scrimElement, bodyElement) {
+      scrimElement.addEventListener("click", TakeoverAddonUtils.closureCallback(takeoverPanelElement, function(takeoverPanelElement) {
+        var visbilityToggleClass = "bib--open";
+        var takeOverPanelElement = TakeoverAddonUtils.getTakeoverPanelElement(takeoverPanelElement);
+        var isTakeoverPanelElementOpen = TakeoverAddonUtils.hasClass(takeOverPanelElement, visbilityToggleClass);
+        if (isTakeoverPanelElementOpen) {
+          TakeoverAddonUtils.removeClass(takeOverPanelElement, visbilityToggleClass);
+          TakeoverAddonUtils.resetStyle(bodyElement, 'overflow');
+        } else {
+          TakeoverAddonUtils.addClass(takeOverPanelElement, visbilityToggleClass);
+          TakeoverAddonUtils.changeStyle(bodyElement, 'overflow', 'hidden');
+        }
+      }));
+    },
+    elementToInitParams: function(element) {
+      var allowedKeys = TakeoverAddonUtils.allowedKeys;
+
+      // Construct new objects with only the allowed keys from each node's dataset
+      var dataset = element.dataset;
+      var acc = {'callbacks': {},
+                 'options'  : {'targetElement': element}};
+      var initParams = allowedKeys.reduce(function(acc, key) {
+        if (dataset && dataset[key]) {
+          switch(key) {
+             case "callbackOnInitEnd":
+               acc['callbacks']['onInitEnd'] = dataset[key];
+               break;
+             default:
+               acc['options'][key] = TakeoverAddonUtils.handleNodeData(key, dataset[key]);
+               break;
+          }
+        }
+        return acc;
+      }, acc);
+
+      return initParams;
+    },
+    prepareAddonOptions: function(options) {
+      // Set targetElement on options if no targetElement is specified
+      if (options && options.targetElementId && !options.targetElement) {
+        options.targetElement = document.getElementById(options.targetElementId);
+      }
+
+      return options;
+    },
+    getTabTextTemplate: function(template, options) {
+      var tabText = (options.tabText && options.tabText !== "") ? options.tabText : "Related articles";
+      return template.replace("%tabText%", tabText);
+    },
+
+    handleCallbackFn: function (fn, params) {
+      if (fn) {
+        try {
+          // If fn is a string, fetch the function from the window obj
+          if (typeof fn === 'string' || fn instanceof String) {
+            fn = window[fn];
+          }
+          // If fn is a function, apply params to it
+          if (typeof fn === "function") {
+            fn.apply(null, params);
+          }
+        } catch (err) {
+          console.error(err);
+        }
+      }
+    },
+
+    renderHTML: function(element, options) {
+      // Move the children elements (eg: RCM) out of the addon
+      if (element.children) {
+        var temp = document.createElement('div');
+        for (var i=0; i<element.children.length; ++i) {
+          temp.appendChild(element.children[i]);
+        }
+      }
+
+      // Render the addon's template
+      element.innerHTML = TakeoverAddonUtils.getTabTextTemplate(TakeOverAddonTemplates.main, options);
+
+      // Move the children elements (eg: RCM) back into the template, in the necessary container
+      if (element.children) {
+        var container = element.querySelector('.bib__modal-sheet-panel');
+        for (var i=0; i<temp.children.length; ++i) {
+          container.appendChild(temp.children[i]);
+        }
+      }
+    },
+
+    registerEventHandlers: function(element, callback) {
+      var modalSheetTabElement = TakeoverAddonUtils.getModalSheetTabElement(element);
+      var scrimElement = TakeoverAddonUtils.getScrimElement(element);
+      var bodyElement = TakeoverAddonUtils.getBodyElement();
+      TakeoverAddonUtils.registerTabElementActions(element, modalSheetTabElement, bodyElement);
+      TakeoverAddonUtils.registerScrimElementActions(element, scrimElement, bodyElement);
+
+      if (callback && typeof callback === "function") {
+        callback();
+      }
+    }
+  }
+
+  var TakeoverAddon = {
+    init: function(options, callbacks) {
+      // Define vars
+      var callbacks = callbacks || {};
+      var options = TakeoverAddonUtils.prepareAddonOptions(options);
+      var element = options.targetElement;
+
+      // Perform initialisation
+      TakeoverAddonUtils.renderHTML(element, options);
+      TakeoverAddonUtils.registerEventHandlers(element);
+
+      // Callback at end
+      if (callbacks && callbacks.loaderNextStep && typeof callbacks.loaderNextStep === "function") {
+        callbacks.loaderNextStep();
+      }
+      TakeoverAddonUtils.handleCallbackFn(callbacks.onInitEnd, [options, element]);
+    },
+
+    _initForLoader: function(element, loaderCallback) {
+      var addonData = TakeoverAddonUtils.parseAddonData(element);
+      var callbacks = addonData.callbacks || {}; // User's callback if they set data function
+      callbacks.loaderNextStep = loaderCallback
+
+      TakeoverAddon.init(addonData.options, callbacks);
+    }
+  }
+
+  // Bootstrap
+  if (isNodeJS === true) {
+    module.exports.BibblioTakeoverAddon = TakeoverAddon;
+    module.exports.BibblioTakeoverAddonUtils = TakeoverAddonUtils;
+    module.exports.BibblioTakeoverAddonTemplates = TakeOverAddonTemplates;
+  } else {
+    window.BibblioTakeoverAddon = TakeoverAddon;
+    window.BibblioTakeoverAddonUtils = TakeoverAddonUtils;
+    window.BibblioTakeoverAddonTemplates = TakeOverAddonTemplates;
+  }
+})();
+
+// -- RCM Core -----------------------------------------------------------------
+(function () {
 
   function limitExecutionRate(func, delay) {
     var timer;
@@ -22,7 +374,7 @@
 
   // Bibblio module
   var Bibblio = {
-    moduleVersion: "4.13.1",
+    moduleVersion: "4.14.0",
     moduleTracking: {},
     isAmp: false,
 
@@ -34,19 +386,14 @@
     },
 
     autoInit: function() {
-      var rcmSrcElement = BibblioUtils.getSrcElement();
-      var rcmAutoInitElements = BibblioUtils.getAutoInitElements();
-      var options = {}
-      var callbacks = {}
-
       // Initialise auto ingestion
+      var rcmSrcElement = BibblioUtils.getSrcElement();
       BibblioUtils.initScriptParamIngestion(rcmSrcElement);
+    },
 
-      // Loop over all auto init elements and initialise
-      rcmAutoInitElements.forEach(function(element) {
-        var moduleData = BibblioUtils.parseModuleData(element);
-        Bibblio.initRelatedContent(moduleData.options, moduleData.callbacks);
-      });
+    _initForLoader: function(element) {
+      var moduleData = BibblioUtils.parseModuleData(element);
+      Bibblio.initRelatedContent(moduleData.options, moduleData.callbacks);
     },
 
     initRelatedContent: function(options, callbacks) {
@@ -56,17 +403,17 @@
       var url = window.location.href;
       var callbacks = callbacks || {};
       var moduleOptions = BibblioUtils.prepareModuleOptions(options);
-      var element = (options.targetElementId) ? document.getElementById(options.targetElementId) : options.targetElement;
-      var elementIsVisible = BibblioUtils.isElementVisible(element);
+      var targetElement = (options.targetElementId) ? document.getElementById(options.targetElementId) : options.targetElement;
+      var elementIsVisible = BibblioUtils.isElementVisible(targetElement);
       var isAmp = BibblioUtils.isAmp(url);
 
-      //Get recs for the module if visible
+      // Get recs for the module if visible
       if (elementIsVisible === true || isAmp === true) {
         Bibblio.getRelatedContentItems(moduleOptions, callbacks);
       } else {
-        console.log("Bibblio: Module will not be rendered until the target element is made visible on the page");
-        //Watch for attribute modifications on module
-        BibblioUtils.watchForAttributeModifications(element, moduleOptions, callbacks);
+        // Watch for attribute modifications on module and parent elements
+        var elementsToWatch = BibblioUtils.getElementAndParents(targetElement);
+        BibblioUtils.watchForAttributeModifications(elementsToWatch, targetElement, moduleOptions, callbacks);
       }
     },
 
@@ -84,11 +431,11 @@
       BibblioUtils.bibblioHttpGetRequest(url, accessToken, true, function(response, status) {
         Bibblio.handleRecsResponse(options, callbacks, response, status);
 
-        // fall back to Global Popularity recommendations if no recommendations could be fetched yet
+        // Fall back to Global Popularity recommendations if no recommendations could be fetched yet
         if ((status === 404) || (status === 412) || (status === 422)) {
           console.log('Bibblio: Fetching Global Popularity Recs after receiving HTTP status ' + status);
 
-          // copy and modify the previous options
+          // Copy and modify the previous options
           var popularOptions = JSON.parse(JSON.stringify(options));
           popularOptions.targetElement = document.getElementById(options.targetElementId);
           popularOptions.recommendationType = "popular";
@@ -105,13 +452,13 @@
 
     handleRecsResponse: function(options, callbacks, recommendationsResponse, status) {
       if(options.autoIngestion) {
-        // if content item has not been ingested yet
-        if(status === 404) { // this will always be returned before a 402 (if the item doesn't exist)
+        // If content item has not been ingested yet
+        if(status === 404) { // This will always be returned before a 402 (if the item doesn't exist)
 
-          // delay the call(s) to createScrapeRequest
+          // Delay the call(s) to createScrapeRequest
           var timeout = Math.floor(Math.random() * 500);
           setTimeout(function() {
-            // then make sure it hasn't been called yet (so only one module on a page gets to ingest)
+            // Then make sure it hasn't been called yet (so only one module on a page gets to ingest)
             if (!Bibblio.createScrapeRequestCalled) {
               Bibblio.createScrapeRequest(options);
             }
@@ -120,11 +467,11 @@
       }
 
       if(status === 200) {
-        // recommendations have been returned
+        // Recommendations have been returned
         Bibblio.renderModule(options, callbacks, recommendationsResponse);
       }
       else if(status === 412) {
-        // content item does not have recommendations yet
+        // Content item does not have recommendations yet
         console.info("Bibblio: Awaiting indexing. This delay will only occur until some click events have been processed. Recommendations will thereafter be available immediately on ingestion.");
       }
 
@@ -228,24 +575,46 @@
 
     getAutoInitElements: function() {
       var elements = document.getElementsByClassName('bib--rcm-init');
-      return [].slice.call(elements); //converting htmlCollection to array of elements
+      return [].slice.call(elements); // Converting htmlCollection to array of elements
     },
 
     getOptionsAndCallbacks: function(element, options, callbacks) {
       return (options.targetElementId) ? {'options': options, 'callbacks': callbacks} : BibblioUtils.parseModuleData(element);
     },
 
-    watchForAttributeModifications: function(element, options, callbacks) {
+    getElementAndParents: function(element)
+    {
+      var elements = [];
+
+      while (element) {
+        elements.unshift(element);
+        element = element.parentNode;
+      }
+
+      return elements;
+    },
+
+    watchForAttributeModifications: function(elementsToWatch, rcmTargetElement, options, callbacks) {
       window.MutationObserver = window.MutationObserver || window.WebKitMutationObserver || window.MozMutationObserver;
       if (window.MutationObserver) {
         var config = {attributes: true};
+        var observers = [];
+        // Listener callback
         var callback = function(mutationsList, observer) {
-          var data = BibblioUtils.getOptionsAndCallbacks(element, options, callbacks);
+          var data = BibblioUtils.getOptionsAndCallbacks(rcmTargetElement, options, callbacks);
+          // Disconnect all observers
+          observers.forEach(function(obs) {
+            obs.disconnect();
+          });
+          // Init module
           Bibblio.initRelatedContent(data.options, data.callbacks);
-          observer.disconnect();
         };
-        var observer = new MutationObserver(callback);
-        observer.observe(element, config);
+        // Get mutation observers
+        observers = elementsToWatch.map(function(el) {
+          var obs = new MutationObserver(callback);
+          obs.observe(el, config);
+          return obs;
+        });
       }
     },
 
@@ -270,7 +639,7 @@
       return num >= start && num <= end;
     },
 
-    /// Init module functions
+    // Init module functions
     validateModuleOptions: function(options) {
       if(!options.recommendationKey) {
         console.error("Bibblio: Please provide a recommendation key for the recommendationKey value in the options parameter.");
@@ -489,7 +858,7 @@
       return options;
     },
 
-    /// Auto initialise params functions
+    // Auto initialise params functions
     allowedKeys: [
       "amp",
       "autoIngestion",
@@ -605,7 +974,7 @@
       // Construct new objects with only the allowed keys from each node's dataset
       var dataset = element.dataset;
       var initParams = allowedKeys.reduce(function(acc, key) {
-        if (dataset[key]) {
+        if (dataset && dataset[key]) {
           acc[key] = BibblioUtils.handleNodeData(key, dataset[key]);
         }
         return acc;
@@ -642,24 +1011,24 @@
       var allowedKeys = BibblioUtils.allowedKeys;
       var options = {};
 
-      //create options object from amp query string
+      // Create options object from amp query string
       for (var index in allowedKeys) {
         var name = allowedKeys[index]
         var queryParam = BibblioUtils.getParameterByName(name, url);
-        //Change boolean string to booleans
+        // Change boolean string to booleans
         queryParam = queryParam === "false" ? false : queryParam;
         queryParam = queryParam === "true" ? true : queryParam;
-        //If style related param, replace commas with spaces
+        // If style related param, replace commas with spaces
         if (name == 'styleClasses' || name == 'stylePreset') {
           queryParam = BibblioUtils.convertCommasToSpaces(queryParam);
         }
-        //Append query param to options
+        // Append query param to options
         if (queryParam != null) {
           options[name] = queryParam;
         }
       }
 
-      //set query string params
+      // Set query string params
       options["queryStringParams"] = BibblioUtils.getQueryStringParams(options, url);
 
       options = BibblioUtils.checkAndSetAmpUserMetadata(options);
@@ -687,7 +1056,7 @@
           type: 'embed-ready'
         }, '*');
 
-        // this event is currently not being issued by the browser. This code is left here in hope that it will one day
+        // This event is currently not being issued by the browser. This code is left here in hope that it will one day
         window.addEventListener("orientationchange", function () {
           BibblioUtils.submitAmpEmbedSize(document.body.scrollHeight, document.body.scrollWidth);
         }, false);
@@ -705,7 +1074,6 @@
         }, {});
     },
 
-    // TODO: might be unnecessarily specific to script param ingestion? could generify
     ingestFromScriptParam: function(options) {
       if(options.recommendationKey && (options.autoIngestion === true)) {
         options.urlParamIngestion = true;
@@ -728,7 +1096,7 @@
       }
     },
 
-    /// Get recommendations functions
+    // Get recommendations functions
     getRecommendationFields: function(subtitleField) {
       var fields = ["name", "url", "moduleImage", "datePublished", "author"];
       if(subtitleField)
@@ -819,7 +1187,7 @@
       }
     },
 
-    /// Auto ingestion functions
+    // Auto ingestion functions
     stripUrlTrackingParameters: function(url) {
       var parser = document.createElement('a');
       parser.href = url;
@@ -829,7 +1197,7 @@
         params = params.substr(1);
       }
 
-      // remove fragment identifier
+      // Remove fragment identifier
       params = params.split('#')[0];
 
       if (params) {
@@ -841,23 +1209,23 @@
         params = params.filter(function(param) {
           var paramName = param.split('=')[0].toLowerCase();
 
-          // remove specific parameters
+          // Remove specific parameters
           if (paramsToRemoveSpecific.indexOf(paramName) !== -1) {
-            return false; // remove parameter if it's in paramsToRemoveSpecific array
+            return false; // Remove parameter if it's in paramsToRemoveSpecific array
           }
 
-          // remove matching parameters
+          // Remove matching parameters
           for (var i = paramsToRemoveMatch.length - 1; i >= 0; i--) {
             if (paramName.indexOf(paramsToRemoveMatch[i]) === 0) {
-              return false; // remove parameter if it starts with anything in paramsToRemoveMatch
+              return false; // Remove parameter if it starts with anything in paramsToRemoveMatch
             }
           }
 
-          return true; // keep parameter
+          return true; // Keep parameter
         });
       }
 
-      // ensure remaining parameters always appear in a consistent order
+      // Ensure remaining parameters always appear in a consistent order
 
       if (params.length > 0) {
         params.sort();
@@ -897,7 +1265,7 @@
       }
     },
 
-    /// Render module functions
+    // Render module functions
     getPresetModuleClasses: function(stylePreset) {
       var presets = {
           "grid-4": "bib--grd-4 bib--wide",
@@ -945,7 +1313,7 @@
       return urlSegments.join("#");
     },
 
-    /// Tracking functions
+    // Tracking functions
     getActivityId: function(trackingLink) {
       trackingLink = trackingLink || "";
       var activityId = trackingLink.replace("https://", "")
@@ -967,7 +1335,6 @@
       var container = options.targetElement;
       if (container) {
         var relatedContentItemlinks = container.getElementsByClassName("bib__link");
-        // (options, recommendationsResponse, callback, event)
         var callback = callbacks.onRecommendationClick;
 
         for (var i = 0; i < relatedContentItemlinks.length; i++) {
@@ -1055,24 +1422,24 @@
         }, '*');
 
         window.addEventListener('message', handleMessage, true);
-      } else {
-        // Check if the module is in view immediately after rendered
-        if (BibblioUtils.isRecommendationTileInView(moduleElement, moduleElement.getBoundingClientRect())) {
-          BibblioEvents.onRecommendationViewed(options, recommendationsResponse, callback);
-        } else {
-          var handleScroll = limitExecutionRate(function () {
-            if (BibblioUtils.hasModuleBeenViewed(activityId)) {
-              window.removeEventListener("scroll", handleScroll, true);
-              return;
-            }
-
+      }
+      else {
+        var pollInterval = 200;
+        var pollForViewedEvents = function() {
+          // Only check for viewed if module has not been viewed
+          if (!BibblioUtils.hasModuleBeenViewed(activityId)) {
             if (BibblioUtils.isRecommendationTileInView(moduleElement, moduleElement.getBoundingClientRect())) {
               BibblioEvents.onRecommendationViewed(options, recommendationsResponse, callback);
             }
-          }, visibilityTimeout);
-
-          window.addEventListener('scroll', handleScroll, true);
+            else {
+              // If recommendation tile not in view then continue polling
+              setTimeout(pollForViewedEvents, pollInterval);
+            }
+          }
         }
+
+        // Start polling for viewed events
+        pollForViewedEvents();
       }
     },
 
@@ -1091,33 +1458,33 @@
     },
 
     getScrollableParents: function(moduleElement, moduleRect) {
-      // is module displayed
+      // Is module displayed
       if(moduleRect.top == 0 && moduleRect.bottom == 0)
         return false;
 
-      // is module visible
+      // Is module visible
       var moduleStyle = window.getComputedStyle(moduleElement);
       if(moduleStyle.getPropertyValue("visibility") === "hidden")
         return false;
 
-      // get scrollable parents
+      // Get scrollable parents
       var parent = moduleElement.parentNode;
       var parentStyle, parentRect, isScrollable;
       var scrollableParents = [];
       while(parent !== document.body) {
-        // is parent visible
+        // Is parent visible
         parentStyle = window.getComputedStyle(parent);
         if(parentStyle.getPropertyValue("visibility") === "hidden")
           return false;
 
-        // does container have scrollbar
+        // Does container have scrollbar
         isScrollable = BibblioUtils.hasScrollableOverflow(parentStyle.getPropertyValue("overflow-x")) ||
                        BibblioUtils.hasScrollableOverflow(parentStyle.getPropertyValue("overflow-y"));
         if(isScrollable) {
           parentRect = parent.getBoundingClientRect();
           scrollableParents.push({
             rect: parentRect,
-            // replace with clientWidth and clientHeight for exact measurements
+            // Replace with clientWidth and clientHeight for exact measurements
             width: parentRect.right - parentRect.left,
             height: parentRect.bottom - parentRect.top,
             style: parentStyle
@@ -1136,28 +1503,28 @@
       var tileWidth = tileRect.right - tileRect.left;
       var tileHeight = tileRect.bottom - tileRect.top;
 
-      // is tile displayed
+      // Is tile displayed
       if(tileHeight == 0)
         return false;
 
-      // is tile in window's current viewport
+      // Is tile in window's current viewport
       var isInVerticleView, isInHorizontalView;
-      isInVerticleView  = tileHeight <= (window.innerHeight * visibleRatio) &&    // isn't higher than viewport. adjust to visible ratio if supplied for AMP
-                          tileRect.bottom <= window.innerHeight;                  // whole tile height is within viewport
-      isInHorizontalView  = tileWidth <= window.innerWidth &&                     // isn't wider than viewport
-                            tileRect.right <= window.innerWidth;                  // whole tile width in within viewport
+      isInVerticleView  = tileHeight <= (window.innerHeight * visibleRatio) &&    // Isn't higher than viewport. adjust to visible ratio if supplied for AMP
+                          tileRect.bottom <= window.innerHeight;                  // Whole tile height is within viewport
+      isInHorizontalView  = tileWidth <= window.innerWidth &&                     // Isn't wider than viewport
+                            tileRect.right <= window.innerWidth;                  // Whole tile width in within viewport
       if(!isInVerticleView || !isInHorizontalView)
         return false;
 
-      // is tile displayed in scrollable parents
+      // Is tile displayed in scrollable parents
       var parent, parentRect;
       for(var i = 0; i < scrollableParents.length; i++) {
         parent = scrollableParents[i];
         parentRect = parent.rect;
-        isInVerticleView  = tileHeight <= parent.height &&         // isn't higher than viewport
-                            tileRect.bottom <= parentRect.bottom;  // whole tile height is within viewport
-        isInHorizontalView  = tileWidth <= parent.width &&         // isn't wider than viewport
-                              tileRect.right <= parentRect.right;  // whole tile width in within viewport
+        isInVerticleView  = tileHeight <= parent.height &&         // Isn't higher than viewport
+                            tileRect.bottom <= parentRect.bottom;  // Whole tile height is within viewport
+        isInHorizontalView  = tileWidth <= parent.width &&         // Isn't wider than viewport
+                              tileRect.right <= parentRect.right;  // Whole tile width in within viewport
         if(!isInVerticleView || !isInHorizontalView)
           return false;
       }
@@ -1177,7 +1544,7 @@
       Bibblio.moduleTracking[activityId]["hasModuleBeenViewed"] = true;
     },
 
-    /// Common utils
+    // Common utils
     getChildProperty: function(obj, path) {
       if ((typeof obj === 'object') && (typeof path === 'string')) {
         var arr = path.split('.');
@@ -1387,7 +1754,7 @@
         return text;
 
       var truncatedText = text.substring(0, maxCharacters);
-      var fullStopIndex = truncatedText.indexOf('.', minCharacters);  // first full stop starting at min character length
+      var fullStopIndex = truncatedText.indexOf('.', minCharacters);  // First full stop starting at min character length
 
       if(fullStopIndex === -1)
         return text.substring(0, minCharacters) + "…";
@@ -1397,7 +1764,7 @@
 
     truncateSubtitle: function(subtitle, styles) {
       var truncateLength = 130;
-      var searchBounds = 10; // search for full stop between 'length - searchBounds' and 'length + searchBounds'
+      var searchBounds = 10; // Search for full stop between 'length - searchBounds' and 'length + searchBounds'
       var subtitleLength = subtitle.length;
 
       if((subtitleLength > truncateLength) && (BibblioUtils.shouldTruncate("subtitle", styles))) {
@@ -1700,7 +2067,6 @@
       var moduleHTML = BibblioTemplates.getOuterModuleHTML(moduleSettings, contentItemsHTML);
       return moduleHTML;
     }
-
   }
 
   // BibblioActivity module
@@ -1778,7 +2144,7 @@
         context.push(["recommendations.contentItemId", relatedContentItems[i].contentItemId]);
       }
 
-      // include all specified catalogue ids in the context
+      // Include all specified catalogue ids in the context
       // but assume recommendations are from the source content item's catalogue if no catalogues were specified
       if (catalogueIds && (catalogueIds.length > 0)) {
         for(var i = 0; i < catalogueIds.length; i++)
@@ -1794,13 +2160,11 @@
   };
 
   if (isNodeJS) {
-    module.exports = {
-      Bibblio: Bibblio,
-      BibblioUtils: BibblioUtils,
-      BibblioActivity: BibblioActivity,
-      BibblioEvents: BibblioEvents,
-      BibblioTemplates: BibblioTemplates
-    };
+    module.exports.Bibblio = Bibblio;
+    module.exports.BibblioUtils = BibblioUtils;
+    module.exports.BibblioActivity = BibblioActivity;
+    module.exports.BibblioEvents = BibblioEvents;
+    module.exports.BibblioTemplates = BibblioTemplates;
   } else {
     window.Bibblio = Bibblio;
     window.BibblioActivity = BibblioActivity;
@@ -1810,10 +2174,93 @@
 
     // `DOMContentLoaded` may fire before your script has a chance to run,
     // so check before adding a listener
-    if (document.readyState === "loading") {
+    if ((document.readyState === "loading") || (document.readyState === "interactive")) {
       document.addEventListener("DOMContentLoaded", Bibblio.autoInit);
     } else {  // `DOMContentLoaded` already fired
       Bibblio.autoInit();
+    }
+  }
+})();
+
+// -- Loader -----------------------------------------------------------------
+(function () {
+  var BibblioLoader = {
+
+    autoInitData: {
+      "bib--hide-init":     (isNodeJS) ? module.exports.BibblioHideAddon._initForLoader     : window.BibblioHideAddon._initForLoader,
+      "bib--takeover-init": (isNodeJS) ? module.exports.BibblioTakeoverAddon._initForLoader : window.BibblioTakeoverAddon._initForLoader,
+      "bib--rcm-init":      (isNodeJS) ? module.exports.Bibblio._initForLoader              : window.Bibblio._initForLoader
+    },
+
+    getRcmElements: function() {
+      var elements = document.getElementsByClassName('bib--rcm-init');
+      return [].slice.call(elements); // Converting htmlCollection to array of elements
+    },
+
+    getElementsToInit: function(element) {
+      var autoInitClasses = Object.keys(BibblioLoader.autoInitData);
+      var ret = [];
+
+      while (element) {
+        autoInitClasses.forEach(function(klass) {
+          if (element.classList && element.classList.contains(klass)) {
+            ret.push(element)
+          }
+        });
+        element = element.parentNode;
+      }
+      return ret;
+    },
+
+    makeNestedCallbackFunction: function(initFn, element, prevFn) {
+      if (!prevFn) {
+        return function() {
+          initFn(element)
+        }
+      } else {
+        return function() {
+          initFn(element, prevFn);
+        }
+      }
+    },
+
+    makeNestedInitFunctions: function(elements) {
+      var prevFn;
+      var autoInitClasses = Object.keys(BibblioLoader.autoInitData);
+
+      // For each element in the node
+      elements.forEach(function (element) {
+        // Find out which init function applies to it, based on its class
+        autoInitClasses.forEach(function(klass) {
+          if (element.classList && element.classList.contains(klass)) {
+            var initFn = BibblioLoader.autoInitData[klass];
+            // Return that as a function (potentially nesting the previous function)
+            prevFn = BibblioLoader.makeNestedCallbackFunction(initFn, element, prevFn);
+          }
+        });
+      });
+
+      return prevFn;
+    },
+
+    init: function() {
+      var rcms = BibblioLoader.getRcmElements()
+      var elementsToInit = rcms.map(BibblioLoader.getElementsToInit)
+      var initFunctions = elementsToInit.map(BibblioLoader.makeNestedInitFunctions)
+      initFunctions.forEach(function(initFunc) { initFunc(); })
+    }
+  }
+
+  if (isNodeJS) {
+    module.exports.BibblioLoader = BibblioLoader;
+
+  } else {
+    window.BibblioLoader = BibblioLoader;
+
+    if ((document.readyState === "loading") || (document.readyState === "interactive")) {
+      document.addEventListener("DOMContentLoaded", BibblioLoader.init);
+    } else {  // `DOMContentLoaded` already fired
+      BibblioLoader.init();
     }
   }
 })();

@@ -624,11 +624,11 @@ filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#00ff3232', e
 }
 
 .bib--hide,
+.bib--hide *,
 [class*="bib--nxt"],
 .bib--car-6.bib--about .bib__origin {
     display: none !important;
 }
-
 
 /* Pending message */
 
@@ -718,12 +718,6 @@ filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#00ff3232', e
 
 }
 
-@media (min-width: 415px) and (min-height: 851px), (min-width: 851px) and (min-height: 415px) {
-    .bib--hide-web {
-        display: none !important;
-    }
-}
-
 @media (max-width: 414px), (max-width: 850px) and (max-height: 414px) {
     .bib__link { width: 100% !important; margin-right: 0 !important; }
 
@@ -742,8 +736,6 @@ filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#00ff3232', e
         box-shadow: 0px 0px 20px 0px rgba(0,0,0,0.1) !important;
     }
 
-    .bib--hide-mobile,
-    [class*="bib--nxt"].bib--hide-mobile,
     [class*="bib--nxt"].bib--hide {
         display: none !important;
     }
@@ -856,6 +848,20 @@ filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#00ff3232', e
     .bib--nxt-label.bib--invert .bib__link .bib__info .bib__title::after { color: rgba(255,255,255,0.5); }
     .bib--nxt-label .bib__link .bib__name, .bib--nxt-label .bib__link .bib__image { display: none !important; }
 
+  /* Next Item mobile layout - 'Next' side tab */
+
+
+    .bib--nxt-side { background-color: transparent; width: auto; left: auto; bottom: 150px; 
+                     -webkit-box-shadow: 0px 0px 0px 0px rgba(0,0,0,0) !important;
+                     -moz-box-shadow: 0px 0px 0px 0px rgba(0,0,0,0) !important;
+                     box-shadow: 0px 0px 0px 0px rgba(0,0,0,0) !important; }
+    .bib--nxt-side .bib__link .bib__info .bib__title::before { content: "Next"; }
+    .bib--nxt-side .bib__info { text-align: right; }
+    .bib--nxt-side .bib__link { background-color: #666666; border-radius: 25px 0 0 25px; }
+    .bib--nxt-side .bib__link .bib__info { color: #FFFFFF; padding: 14px 15px 14px 25px !important;  }
+    .bib--nxt-side .bib__link .bib__info .bib__title::after { content:""; }
+    .bib--nxt-side .bib__link .bib__name, .bib--nxt-side .bib__link .bib__image { display: none !important; }
+
 
 
     .bib--mobile-top,
@@ -874,4 +880,112 @@ filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#00ff3232', e
 
 @media (max-width: 320px) {
     .bib_pending-recs-text { padding: 75px 20px 0; }
+}
+
+
+/* ADDONS - to be split out in BB-1335 */
+
+/* Takeover addon */
+.bib__takeover * {
+    box-sizing: border-box;
+}
+
+.bib__takeover {
+    position: fixed;
+    left: auto;
+    right: 0;
+    bottom: 0;
+    z-index: 9999;
+}
+
+.bib__scrim {
+    background-color: rgba(0, 0, 0, 0.3);
+    position: fixed;
+    top: 0;
+    left: 100%;
+    right: 0;
+    bottom: 0;
+    opacity: 0;
+    transition: opacity 1s, left 0s 1s;
+}
+
+.bib__modal-sheet {
+    pointer-events: none;
+    position: fixed;
+    width: 370px;
+    top: 0;
+    right: -270px;
+    bottom: 0;
+    transition: right 1s;
+    -webkit-overflow-scrolling: touch;
+}
+
+.bib__modal-sheet-panel {
+    pointer-events: auto;
+    background-color: #ffffff;
+    position: absolute;
+    width: 270px;
+    padding: 20px 20px 100px 20px;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    transition: box-shadow 0.9s;
+    overflow-y: auto;
+    box-shadow: 0px 0px 15px 0px rgba(0, 0, 0, 0);
+}
+
+.bib__modal-sheet-tab {
+    pointer-events: auto;
+    color: #ffffff;
+    background-color: #666666;
+    position: absolute;
+    width: 100px;
+    padding: 15px 10px 15px 15px;
+    bottom: 150px;
+    right: 270px;
+    text-align: center;
+    border-radius: 25px 0 0 25px;
+    font-family: arial;
+    cursor: pointer;
+    transition: background-color 1s;
+}
+
+.bib__takeover.bib--open {
+    left: 0;
+}
+
+.bib__takeover.bib--open .bib__scrim {
+    left: 0;
+    opacity: 1;
+    transition: opacity 1s;
+}
+
+.bib__takeover.bib--open .bib__modal-sheet {
+    right: 0;
+    transition: right 1s;
+}
+
+.bib__takeover.bib--open .bib__modal-sheet-panel {
+    box-shadow: 0px 0px 15px 0px rgba(0, 0, 0, 0.5);
+    transition: box-shadow 0.9s;
+}
+
+.bib__takeover.bib--open .bib__modal-sheet-tab {
+    background-color: #444444;
+    transition: background-color 1s;
+}
+
+@media (max-width: 360px) {
+    .bib__takeover .bib__modal-sheet {
+        right: -220px;
+    }
+
+    .bib__takeover .bib__modal-sheet-panel {
+        width: 220px;
+        padding: 15px 15px 100px 15px;
+    }
+
+    .bib__takeover .bib__modal-sheet-tab {
+        right: 220px;
+    }
 }
