@@ -374,7 +374,7 @@ if (isNodeJS) {
 
   // Bibblio module
   var Bibblio = {
-    moduleVersion: "4.14.0",
+    moduleVersion: "4.15.0",
     moduleTracking: {},
     isAmp: false,
 
@@ -430,7 +430,6 @@ if (isNodeJS) {
       var url = BibblioUtils.getRecommendationUrl(options, itemLimit, 1, fields);
       BibblioUtils.bibblioHttpGetRequest(url, accessToken, true, function(response, status) {
         Bibblio.handleRecsResponse(options, callbacks, response, status);
-
         // Fall back to Global Popularity recommendations if no recommendations could be fetched yet
         if ((status === 404) || (status === 412) || (status === 422)) {
           console.log('Bibblio: Fetching Global Popularity Recs after receiving HTTP status ' + status);
@@ -1104,6 +1103,24 @@ if (isNodeJS) {
       return fields;
     },
 
+    base64Encode: function(data) {
+      // Convert to a string if necessary
+      if (typeof data === 'object') {
+        data = JSON.stringify(data);
+      }
+
+      if (isNodeJS) {
+        return Buffer.from(data).toString('base64')
+      } else {
+        return btoa(data);
+      }
+    },
+
+    safelyEncodeQueryParam: function(data) {
+      // Convert to url encoded, base64 string
+      return encodeURI(BibblioUtils.base64Encode(data));
+    },
+
     createMetadataQueryString: function(userMetadata) {
       var queryString = '';
 
@@ -1163,6 +1180,11 @@ if (isNodeJS) {
           // Hardcode recommendation type for now when using syndication
           recommendationType = "optimised";
       }
+
+      // Add module settings to request payload
+      var moduleSettings = BibblioUtils.getModuleSettings(options);
+      var encodedModuleSettings = BibblioUtils.safelyEncodeQueryParam(moduleSettings);
+      querystringArgs.push("moduleSettings=" + encodedModuleSettings);
 
       switch (recommendationType) {
           case "related" :
