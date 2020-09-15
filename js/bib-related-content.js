@@ -374,7 +374,7 @@ if (isNodeJS) {
 
   // Bibblio module
   var Bibblio = {
-    moduleVersion: "4.15.0",
+    moduleVersion: "4.16.0",
     moduleTracking: {},
     isAmp: false,
 
@@ -436,7 +436,7 @@ if (isNodeJS) {
 
           // Copy and modify the previous options
           var popularOptions = JSON.parse(JSON.stringify(options));
-          popularOptions.targetElement = document.getElementById(options.targetElementId);
+          popularOptions.targetElement = options.targetElement;
           popularOptions.recommendationType = "popular";
           delete popularOptions.contentItemId;
           delete popularOptions.customUniqueIdentifier;
@@ -554,7 +554,9 @@ if (isNodeJS) {
     initTracking: function(options, callbacks, recommendationsResponse) {
       var trackingLink = recommendationsResponse._links.tracking.href;
       var activityId = BibblioUtils.getActivityId(trackingLink);
-      BibblioUtils.createModuleTrackingEntry(activityId);
+      var requestedRecsType = BibblioUtils.getChildProperty(recommendationsResponse, '_status.recommendationType.requested');
+      var returnedRecsType  = BibblioUtils.getChildProperty(recommendationsResponse, '_status.recommendationType.returned');
+      BibblioUtils.createModuleTrackingEntry(activityId, requestedRecsType, returnedRecsType);
       BibblioUtils.bindContentItemsClickEvents(options, callbacks, recommendationsResponse);
       BibblioUtils.setOnViewedListeners(options, callbacks, recommendationsResponse);
     }
@@ -1345,10 +1347,12 @@ if (isNodeJS) {
       return activityId;
     },
 
-    createModuleTrackingEntry: function(activityId) {
+    createModuleTrackingEntry: function(activityId, requestedRecsType, returnedRecsType) {
       Bibblio.moduleTracking[activityId] = {
         "trackedRecommendations": [],
-        "hasModuleBeenViewed": false
+        "hasModuleBeenViewed": false,
+        "requestedRecommendationType": requestedRecsType,
+        "returnedRecommendationType": returnedRecsType
       }
     },
 
@@ -1564,6 +1568,14 @@ if (isNodeJS) {
 
     setModuleViewed: function(activityId) {
       Bibblio.moduleTracking[activityId]["hasModuleBeenViewed"] = true;
+    },
+
+    getRequestedRecommendationType: function(activityId) {
+      return Bibblio.moduleTracking[activityId]["requestedRecommendationType"];
+    },
+
+    getReturnedRecommendationType: function(activityId) {
+      return Bibblio.moduleTracking[activityId]["returnedRecommendationType"];
     },
 
     // Common utils
@@ -1809,6 +1821,8 @@ if (isNodeJS) {
       var activityId = BibblioUtils.getActivityId(trackingLink);
       var userId = options.userId ? options.userId : null;
       var userMetadata = options.userMetadata ? options.userMetadata : null;
+      var requestedRecsType = BibblioUtils.getRequestedRecommendationType(activityId);
+      var returnedRecsType = BibblioUtils.getReturnedRecommendationType(activityId);
 
       var activityData = BibblioActivity.constructOnClickedActivityData({
           sourceContentItemId: sourceContentItemId,
@@ -1822,7 +1836,9 @@ if (isNodeJS) {
             config: moduleSettings
           },
           userId: userId,
-          userMetadata: userMetadata
+          userMetadata: userMetadata,
+          requestedRecommendationType: requestedRecsType,
+          returnedRecommendationType: returnedRecsType
         });
 
       if(!BibblioUtils.hasRecommendationBeenClicked(activityId, clickedContentItemId)) {
@@ -1847,19 +1863,22 @@ if (isNodeJS) {
         BibblioUtils.setModuleViewed(activityId);
         var userId = options.userId ? options.userId : null;
         var userMetadata = options.userMetadata ? options.userMetadata : null;
-
+        var requestedRecsType = BibblioUtils.getRequestedRecommendationType(activityId);
+        var returnedRecsType = BibblioUtils.getReturnedRecommendationType(activityId);
         var activityData = BibblioActivity.constructOnViewedActivityData({
-            sourceContentItemId: sourceContentItemId,
-            catalogueIds: options.catalogueIds,
-            relatedContentItems: relatedContentItems,
-            instrument: {
-              type: "BibblioRelatedContent",
-              version: Bibblio.moduleVersion,
-              config: moduleSettings
-            },
-            userId: userId,
-            userMetadata: userMetadata
-          });
+          sourceContentItemId: sourceContentItemId,
+          catalogueIds: options.catalogueIds,
+          relatedContentItems: relatedContentItems,
+          instrument: {
+            type: "BibblioRelatedContent",
+            version: Bibblio.moduleVersion,
+            config: moduleSettings
+          },
+          userId: userId,
+          userMetadata: userMetadata,
+          requestedRecommendationType: requestedRecsType,
+          returnedRecommendationType: returnedRecsType
+        });
 
         var response = BibblioActivity.trackAsync(trackingLink, activityData);
 
@@ -2109,7 +2128,7 @@ if (isNodeJS) {
       var activityData = {
         "type": "Clicked",
         "object": BibblioActivity.constructActivityObject(options.clickedContentItemId, options.clickedContentItemHref),
-        "context": BibblioActivity.constructActivityContext(options.sourceContentItemId, options.catalogueIds, options.relatedContentItems),
+        "context": BibblioActivity.constructActivityContext(options),
         "instrument": BibblioActivity.constructActivityInstrument(options.instrument)
       };
 
@@ -2126,7 +2145,7 @@ if (isNodeJS) {
     constructOnViewedActivityData: function(options) {
       var activityData = {
         "type": "Viewed",
-        "context": BibblioActivity.constructActivityContext(options.sourceContentItemId, options.catalogueIds, options.relatedContentItems),
+        "context": BibblioActivity.constructActivityContext(options),
         "instrument": BibblioActivity.constructActivityInstrument(options.instrument)
       };
 
@@ -2153,7 +2172,13 @@ if (isNodeJS) {
               ["href", clickedContentItemHref]];
     },
 
-    constructActivityContext: function(sourceContentItemId, catalogueIds, relatedContentItems) {
+    constructActivityContext: function(data) {
+      var sourceContentItemId = data.sourceContentItemId;
+      var catalogueIds        = data.catalogueIds;
+      var relatedContentItems = data.relatedContentItems;
+      var requestedRecsType   = data.requestedRecommendationType;
+      var returnedRecsType    = data.returnedRecommendationType;
+
       var context = [];
       var href = ((typeof window !== 'undefined') && window.location && window.location.href) ? window.location.href : '';
 
@@ -2175,6 +2200,17 @@ if (isNodeJS) {
         if (relatedContentItems[0].catalogueId) {
           context.push(["recommendations.catalogueId", relatedContentItems[0].catalogueId]);
         }
+      }
+
+      var recommendationType = []
+      if (requestedRecsType) {
+        recommendationType.push(["requested", requestedRecsType]);
+      }
+      if (returnedRecsType) {
+        recommendationType.push(["returned", returnedRecsType]);
+      }
+      if (recommendationType.length > 0) {
+        context.push(["recommendationType", recommendationType]);
       }
 
       return context

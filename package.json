@@ -1,6 +1,6 @@
 {
   "name": "bibblio-related-content-module",
-  "version": "4.15.0",
+  "version": "4.16.0",
   "description": "Bibblio HTML modules (CSS+JS) for displaying related content.",
   "main": "js/bib-related-content.js",
   "files": [
