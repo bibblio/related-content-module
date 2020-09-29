@@ -374,7 +374,7 @@ if (isNodeJS) {
 
   // Bibblio module
   var Bibblio = {
-    moduleVersion: "4.16.0",
+    moduleVersion: "4.17.0",
     moduleTracking: {},
     isAmp: false,
 
@@ -850,6 +850,32 @@ if (isNodeJS) {
         options.targetElement = document.getElementById(options.targetElementId);
       }
 
+      // If "moduleId" was set, use it and make sure it's a string
+      if (options && options.moduleId) {
+        if (typeof options.moduleId !== 'string') {
+          options.moduleId = JSON.stringify(options.moduleId);
+        }
+      } else {
+        // Otherwise try and use the target container's id
+        if (options.targetElement && options.targetElement.id) {
+          options.moduleId = options.targetElement.id;
+        } else {
+          // Or fall back to generating an identifier from the options
+          var moduleId = BibblioUtils.createModuleId(options);
+          if (moduleId) {
+            options.moduleId = moduleId;
+          }
+        }
+      }
+
+      if(options && options.catalogueIds) {
+        options.catalogueIds = BibblioUtils.cleanCommaSeparatedParams(options.catalogueIds);
+      }
+
+      if(options && options.customCatalogueIds) {
+        options.customCatalogueIds = BibblioUtils.cleanCommaSeparatedParams(options.customCatalogueIds);
+      }
+
       if (options.offset === undefined) {
         options.offset = 0;
       } else {
@@ -875,6 +901,7 @@ if (isNodeJS) {
       "hidden",
       "offset",
       "queryStringParams",
+      "moduleId",
       "recommendationKey",
       "recommendationType",
       "styleClasses",
@@ -1139,6 +1166,12 @@ if (isNodeJS) {
       return queryString;
     },
 
+    cleanCommaSeparatedParams: function(params) {
+      return params.map(function(param) {
+        return param.trim();
+      })
+    },
+
     getRecommendationUrl: function(options, limit, page, fields) {
       var baseUrl = "https://api.bibblio.org/v1";
       var recommendationType = (options.recommendationType) ? options.recommendationType : null;
@@ -1187,6 +1220,10 @@ if (isNodeJS) {
       var moduleSettings = BibblioUtils.getModuleSettings(options);
       var encodedModuleSettings = BibblioUtils.safelyEncodeQueryParam(moduleSettings);
       querystringArgs.push("moduleSettings=" + encodedModuleSettings);
+
+      if (options.moduleId) {
+        querystringArgs.push("moduleId=" + options.moduleId);
+      }
 
       switch (recommendationType) {
           case "related" :
@@ -1448,7 +1485,7 @@ if (isNodeJS) {
         }, '*');
 
         window.addEventListener('message', handleMessage, true);
-      }
+      } 
       else {
         var pollInterval = 200;
         var pollForViewedEvents = function() {
@@ -1807,6 +1844,43 @@ if (isNodeJS) {
       }
 
       return subtitle;
+    },
+
+    hash32: function(str) {
+      // From https://werxltd.com/wp/2010/05/13/javascript-implementation-of-javas-string-hashcode-method/
+      var hash = 0;
+      var strlen = str.length;
+      var i;
+      var c;
+
+      for (i = 0; i<strlen; i++) {
+        c = str.charCodeAt(i);
+        hash = ((hash << 5) - hash) + c;
+        hash = hash & hash; // Convert to 32bit integer
+      }
+      if (hash < 1) {
+        hash = hash * -1;
+      }
+      return parseInt(hash).toString(16);
+    },
+
+    createModuleId: function(data) {
+      if (data) {
+        if (typeof data !== 'string') {
+          data = JSON.stringify(data);
+        }
+
+        // Call the hasing function multiple times to increase entropy (and reduce collisions)
+        var hash = BibblioUtils.hash32(data);
+        hash = hash + BibblioUtils.hash32(hash + data);
+        hash = hash + BibblioUtils.hash32(hash + data);
+        hash = hash + BibblioUtils.hash32(hash + data);
+
+        // Ensure 32 character length for consistency
+        hash = ('0' + hash).substr(-32, 32);
+
+        return hash;
+      }
     }
   };
 
@@ -1833,7 +1907,8 @@ if (isNodeJS) {
           instrument: {
             type: "BibblioRelatedContent",
             version: Bibblio.moduleVersion,
-            config: moduleSettings
+            config: moduleSettings,
+            moduleId: options.moduleId
           },
           userId: userId,
           userMetadata: userMetadata,
@@ -1872,7 +1947,8 @@ if (isNodeJS) {
           instrument: {
             type: "BibblioRelatedContent",
             version: Bibblio.moduleVersion,
-            config: moduleSettings
+            config: moduleSettings,
+            moduleId: options.moduleId
           },
           userId: userId,
           userMetadata: userMetadata,
@@ -2163,7 +2239,8 @@ if (isNodeJS) {
       return {
           "type": instrument.type,
           "version": instrument.version,
-          "config": instrument.config
+          "config": instrument.config,
+          "moduleId": instrument.moduleId
       };
     },
 
