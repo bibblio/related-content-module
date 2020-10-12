@@ -81,6 +81,20 @@ if (isNodeJS) {
 
       return true;
     },
+
+    registerState: function(options) {
+      var BibblioState = (isNodeJS) ? module.exports.BibblioStateManager : window.BibblioStateManager;
+      var state = {
+        type: 'HideAddon',
+        options: Object.assign({}, options)
+      }
+
+      // Remove the reference to the DOM element
+      delete state.options.targetElement;
+
+      BibblioState.set(options.targetElement, state);
+    },
+
     renderHTML: function(options, callbacks) {
       var element = options.targetElement;
 
@@ -97,12 +111,12 @@ if (isNodeJS) {
 
   var HideAddon = {
     init: function(options, callbacks) {
-
       // Define vars
       options = HideAddonUtils.prepareAddonOptions(options);
 
       // Perform initialisation
       HideAddonUtils.renderHTML(options, callbacks);
+      HideAddonUtils.registerState(options);
     },
     _initForLoader: function(element, loaderCallback) {
       var callbacks = {
@@ -283,7 +297,18 @@ if (isNodeJS) {
         }
       }
     },
+    registerState: function(options) {
+      var BibblioState = (isNodeJS) ? module.exports.BibblioStateManager : window.BibblioStateManager;
+      var state = {
+        type: 'TakeoverAddon',
+        options: Object.assign({}, options)
+      }
 
+      // Remove the reference to the DOM element
+      delete state.options.targetElement;
+
+      BibblioState.set(options.targetElement, state);
+    },
     renderHTML: function(element, options) {
       // Move the children elements (eg: RCM) out of the addon
       if (element.children) {
@@ -327,6 +352,7 @@ if (isNodeJS) {
 
       // Perform initialisation
       TakeoverAddonUtils.renderHTML(element, options);
+      TakeoverAddonUtils.registerState(options);
       TakeoverAddonUtils.registerEventHandlers(element);
 
       // Callback at end
@@ -374,7 +400,7 @@ if (isNodeJS) {
 
   // Bibblio module
   var Bibblio = {
-    moduleVersion: "4.17.0",
+    moduleVersion: "4.18.0",
     moduleTracking: {},
     isAmp: false,
 
@@ -397,24 +423,28 @@ if (isNodeJS) {
     },
 
     initRelatedContent: function(options, callbacks) {
-      // Validate the values of the related content module options
-      if (!BibblioUtils.validateModuleOptions(options)) return;
+      // Avoid race conditions with Google Tag Manager, etc
+      BibblioUtils.delayExecution(function() {
 
-      var url = window.location.href;
-      var callbacks = callbacks || {};
-      var moduleOptions = BibblioUtils.prepareModuleOptions(options);
-      var targetElement = (options.targetElementId) ? document.getElementById(options.targetElementId) : options.targetElement;
-      var elementIsVisible = BibblioUtils.isElementVisible(targetElement);
-      var isAmp = BibblioUtils.isAmp(url);
+        // Validate the values of the related content module options
+        if (!BibblioUtils.validateModuleOptions(options)) return;
 
-      // Get recs for the module if visible
-      if (elementIsVisible === true || isAmp === true) {
-        Bibblio.getRelatedContentItems(moduleOptions, callbacks);
-      } else {
-        // Watch for attribute modifications on module and parent elements
-        var elementsToWatch = BibblioUtils.getElementAndParents(targetElement);
-        BibblioUtils.watchForAttributeModifications(elementsToWatch, targetElement, moduleOptions, callbacks);
-      }
+        var url = window.location.href;
+        callbacks = callbacks || {};
+        var moduleOptions = BibblioUtils.prepareModuleOptions(options);
+        var targetElement = (options.targetElementId) ? document.getElementById(options.targetElementId) : options.targetElement;
+        var elementIsVisible = BibblioUtils.isElementVisible(targetElement);
+        var isAmp = BibblioUtils.isAmp(url);
+
+        // Get recs for the module if visible
+        if (elementIsVisible === true || isAmp === true) {
+          Bibblio.getRelatedContentItems(moduleOptions, callbacks);
+        } else {
+          // Watch for attribute modifications on module and parent elements
+          var elementsToWatch = BibblioUtils.getElementAndParents(targetElement);
+          BibblioUtils.watchForAttributeModifications(elementsToWatch, targetElement, moduleOptions, callbacks);
+        }
+      });
     },
 
     getRelatedContentItems: function(options, callbacks) {
@@ -675,11 +705,6 @@ if (isNodeJS) {
       if(options.contentItemId && options.recommendationType === "personalised") {
         console.error("Bibblio: contentItemId cannot be supplied when serving personalised recommendations.")
         return false
-      }
-
-      if(options.customUniqueIdentifier && !BibblioUtils.validateCustomUniqueIdentifier(options.customUniqueIdentifier)){
-        console.error("Exception: Cannot supply a URL as a customUniqueIdentifier. Please see https://github.com/bibblio/related-content-module#customuniqueidentifier-required-if-no-contentitemid-is-provided on how to specify a customUniqueIdentifier, or see https://support.google.com/webmasters/answer/139066?hl=en to add a canonical URL tag.");
-        return false;
       }
 
       if(options.customUniqueIdentifier && options.recommendationType === "personalised") {
@@ -1220,6 +1245,14 @@ if (isNodeJS) {
       var moduleSettings = BibblioUtils.getModuleSettings(options);
       var encodedModuleSettings = BibblioUtils.safelyEncodeQueryParam(moduleSettings);
       querystringArgs.push("moduleSettings=" + encodedModuleSettings);
+      querystringArgs.push("moduleVersion=" + Bibblio.moduleVersion);
+
+      // Add addon information to recommendations request
+      var addons = BibblioUtils.getParentAddons(options.targetElement);
+      if (addons) {
+        var encodedAddons = BibblioUtils.safelyEncodeQueryParam(addons);
+        querystringArgs.push("moduleAddons=" + encodedAddons);
+      }
 
       if (options.moduleId) {
         querystringArgs.push("moduleId=" + options.moduleId);
@@ -1485,7 +1518,7 @@ if (isNodeJS) {
         }, '*');
 
         window.addEventListener('message', handleMessage, true);
-      } 
+      }
       else {
         var pollInterval = 200;
         var pollForViewedEvents = function() {
@@ -1881,6 +1914,38 @@ if (isNodeJS) {
 
         return hash;
       }
+    },
+
+    getParentAddons: function(element) {
+      var addons = [];
+      var addonTypes = ["HideAddon", "TakeoverAddon"];
+
+      // Travers up the DOM tree
+      while (element) {
+        var BibblioState = (isNodeJS) ? module.exports.BibblioStateManager : window.BibblioStateManager;
+        var state = BibblioState.get(element);
+
+        // Collect information for addon classes
+        if (state && state.type && (addonTypes.indexOf(state.type) > -1)) {
+          var addon = {
+            type: state.type,
+            options: state.options
+          };
+          addons.unshift(addon);
+        }
+        element = element.parentNode;
+      }
+
+      // Return a populated array or undefined (but not an empty array)
+      if (addons.length > 0) {
+        return addons;
+      }
+    },
+
+    delayExecution: function(fn) {
+      // Move execution of the given function to the end of the queue, for breaking race conditions (eg: Google Tag Manager init)
+      // see https://nodejs.org/en/docs/guides/event-loop-timers-and-nexttick/ for more info
+      setTimeout(fn, 0);
     }
   };
 
@@ -1897,6 +1962,7 @@ if (isNodeJS) {
       var userMetadata = options.userMetadata ? options.userMetadata : null;
       var requestedRecsType = BibblioUtils.getRequestedRecommendationType(activityId);
       var returnedRecsType = BibblioUtils.getReturnedRecommendationType(activityId);
+      var addons = BibblioUtils.getParentAddons(options.targetElement);
 
       var activityData = BibblioActivity.constructOnClickedActivityData({
           sourceContentItemId: sourceContentItemId,
@@ -1908,7 +1974,8 @@ if (isNodeJS) {
             type: "BibblioRelatedContent",
             version: Bibblio.moduleVersion,
             config: moduleSettings,
-            moduleId: options.moduleId
+            moduleId: options.moduleId,
+            addons: addons
           },
           userId: userId,
           userMetadata: userMetadata,
@@ -1931,6 +1998,8 @@ if (isNodeJS) {
     onRecommendationViewed: function(options, recommendationsResponse, callback) {
       var trackingLink = recommendationsResponse._links.tracking.href;
       var activityId = BibblioUtils.getActivityId(trackingLink);
+      var addons = BibblioUtils.getParentAddons(options.targetElement);
+
       if(!BibblioUtils.hasModuleBeenViewed(activityId)) {
         var moduleSettings = BibblioUtils.getModuleSettings(options);
         var relatedContentItems = recommendationsResponse.results;
@@ -1948,7 +2017,8 @@ if (isNodeJS) {
             type: "BibblioRelatedContent",
             version: Bibblio.moduleVersion,
             config: moduleSettings,
-            moduleId: options.moduleId
+            moduleId: options.moduleId,
+            addons: addons
           },
           userId: userId,
           userMetadata: userMetadata,
@@ -2240,7 +2310,8 @@ if (isNodeJS) {
           "type": instrument.type,
           "version": instrument.version,
           "config": instrument.config,
-          "moduleId": instrument.moduleId
+          "moduleId": instrument.moduleId,
+          "addons": instrument.addons
       };
     },
 
@@ -2317,7 +2388,7 @@ if (isNodeJS) {
   }
 })();
 
-// -- Loader -----------------------------------------------------------------
+// -- Loader -------------------------------------------------------------------
 (function () {
   var BibblioLoader = {
 
@@ -2397,5 +2468,44 @@ if (isNodeJS) {
     } else {  // `DOMContentLoaded` already fired
       BibblioLoader.init();
     }
+  }
+})();
+
+// -- State Manager ------------------------------------------------------------
+(function () {
+  var BibblioStateManager = {
+    store: {},
+
+    get: function(element) {
+      // State is retrieved using a "stateId", attached the (DOM) element
+      if (element && element.dataset && element.dataset.bibblioStateId) {
+        var stateId = element.dataset.bibblioStateId;
+        return BibblioStateManager.store[stateId];
+      }
+    },
+
+    set: function(element, value) {
+      if (element && element.dataset) {
+        // State is stored using a "stateId", assigned to the (DOM) element
+        var stateId;
+
+        if (element.dataset.bibblioStateId) {
+          stateId = element.dataset.bibblioStateId;
+        } else {
+          stateId = Math.floor((Math.random() + Math.random()) * 4500000000000000);
+          element.dataset.bibblioStateId = stateId;
+        }
+
+        BibblioStateManager.store[stateId] = value;
+        return true;
+      }
+      return false;
+    },
+  }
+
+  if (isNodeJS) {
+    module.exports.BibblioStateManager = BibblioStateManager;
+  } else {
+    window.BibblioStateManager = BibblioStateManager;
   }
 })();
