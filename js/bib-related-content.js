@@ -400,7 +400,7 @@ if (isNodeJS) {
 
   // Bibblio module
   var Bibblio = {
-    moduleVersion: "4.18.0",
+    moduleVersion: "4.18.1",
     moduleTracking: {},
     isAmp: false,
 
@@ -914,6 +914,7 @@ if (isNodeJS) {
     allowedKeys: [
       "amp",
       "autoIngestion",
+      "autoIngestionUrl",
       "autoIngestionCatalogueId",
       "autoIngestionCustomCatalogueId",
       "urlParamIngestion",

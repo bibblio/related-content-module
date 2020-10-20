@@ -218,7 +218,9 @@
 .bib--text-center .bib__info { text-align: center !important; }
 .bib--text-right .bib__info { text-align: right !important; }
 .bib--text-justify .bib__info { text-align: justify !important; }
-
+.bib--text-center .bib__author { margin: 0 5px; }
+.bib--text-right .bib__author { margin-right: 0; }
+.bib--text-right .bib__recency { margin-left: 5px; }
 
 /* Tile Metadata */
 
