@@ -313,9 +313,9 @@ if (isNodeJS) {
       // Move the children elements (eg: RCM) out of the addon
       if (element.children) {
         var temp = document.createElement('div');
-        for (var i=0; i<element.children.length; ++i) {
-          temp.appendChild(element.children[i]);
-        }
+        [].slice.call(element.children).forEach(function(item, index) {
+          temp.appendChild(item);
+        });
       }
 
       // Render the addon's template
@@ -324,9 +324,10 @@ if (isNodeJS) {
       // Move the children elements (eg: RCM) back into the template, in the necessary container
       if (element.children) {
         var container = element.querySelector('.bib__modal-sheet-panel');
-        for (var i=0; i<temp.children.length; ++i) {
-          container.appendChild(temp.children[i]);
-        }
+        [].slice.call(temp.children).forEach(function(item, index) {
+          temp.appendChild(item);
+          container.appendChild(item);
+        });
       }
     },
 
@@ -400,7 +401,7 @@ if (isNodeJS) {
 
   // Bibblio module
   var Bibblio = {
-    moduleVersion: "4.18.1",
+    moduleVersion: "4.19",
     moduleTracking: {},
     isAmp: false,
 
@@ -417,34 +418,37 @@ if (isNodeJS) {
       BibblioUtils.initScriptParamIngestion(rcmSrcElement);
     },
 
-    _initForLoader: function(element) {
-      var moduleData = BibblioUtils.parseModuleData(element);
-      Bibblio.initRelatedContent(moduleData.options, moduleData.callbacks);
+    _initForLoader: function(element, loaderCallback) {
+      BibblioUtils.delayExecution(function() {
+        var moduleData = BibblioUtils.parseModuleData(element);
+        Bibblio.initRelatedContent(moduleData.options, moduleData.callbacks);
+      });
+
+      // Callback at end
+      if (loaderCallback && typeof loaderCallback === "function") {
+        loaderCallback();
+      }
     },
 
     initRelatedContent: function(options, callbacks) {
-      // Avoid race conditions with Google Tag Manager, etc
-      BibblioUtils.delayExecution(function() {
+      // Validate the values of the related content module options
+      if (!BibblioUtils.validateModuleOptions(options)) return;
 
-        // Validate the values of the related content module options
-        if (!BibblioUtils.validateModuleOptions(options)) return;
+      var url = window.location.href;
+      callbacks = callbacks || {};
+      var moduleOptions = BibblioUtils.prepareModuleOptions(options);
+      var targetElement = (options.targetElementId) ? document.getElementById(options.targetElementId) : options.targetElement;
+      var elementIsVisible = BibblioUtils.isElementVisible(targetElement);
+      var isAmp = BibblioUtils.isAmp(url);
 
-        var url = window.location.href;
-        callbacks = callbacks || {};
-        var moduleOptions = BibblioUtils.prepareModuleOptions(options);
-        var targetElement = (options.targetElementId) ? document.getElementById(options.targetElementId) : options.targetElement;
-        var elementIsVisible = BibblioUtils.isElementVisible(targetElement);
-        var isAmp = BibblioUtils.isAmp(url);
-
-        // Get recs for the module if visible
-        if (elementIsVisible === true || isAmp === true) {
-          Bibblio.getRelatedContentItems(moduleOptions, callbacks);
-        } else {
-          // Watch for attribute modifications on module and parent elements
-          var elementsToWatch = BibblioUtils.getElementAndParents(targetElement);
-          BibblioUtils.watchForAttributeModifications(elementsToWatch, targetElement, moduleOptions, callbacks);
-        }
-      });
+      // Get recs for the module if visible
+      if (elementIsVisible === true || isAmp === true) {
+        Bibblio.getRelatedContentItems(moduleOptions, callbacks);
+      } else {
+        // Watch for attribute modifications on module and parent elements
+        var elementsToWatch = BibblioUtils.getElementAndParents(targetElement);
+        BibblioUtils.watchForAttributeModifications(elementsToWatch, targetElement, moduleOptions, callbacks);
+      }
     },
 
     getRelatedContentItems: function(options, callbacks) {
@@ -2404,57 +2408,78 @@ if (isNodeJS) {
       return [].slice.call(elements); // Converting htmlCollection to array of elements
     },
 
-    getElementsToInit: function(element) {
+    getRcmsAndParentAddons: function(rcms) {
+      // Returns a flat array of hierarchical add-on and rcm dom nodes (uniqued)
       var autoInitClasses = Object.keys(BibblioLoader.autoInitData);
       var ret = [];
+      var rcmAndParentAddons = [];
 
-      while (element) {
-        autoInitClasses.forEach(function(klass) {
-          if (element.classList && element.classList.contains(klass)) {
-            ret.push(element)
-          }
-        });
-        element = element.parentNode;
-      }
-      return ret;
-    },
+      // Foreach RCM
+      rcms.forEach(function(element) {
+        rcmAndParentAddons = [];
 
-    makeNestedCallbackFunction: function(initFn, element, prevFn) {
-      if (!prevFn) {
-        return function() {
-          initFn(element)
+        // Collect it and any add-on parents, in DOM order (Hide -> Takeover -> RCM)
+        while (element) {
+          autoInitClasses.forEach(function(klass) {
+            if (element.classList && element.classList.contains(klass)) {
+              rcmAndParentAddons.unshift(element)
+            }
+          });
+          element = element.parentNode;
         }
-      } else {
-        return function() {
-          initFn(element, prevFn);
-        }
-      }
-    },
 
-    makeNestedInitFunctions: function(elements) {
-      var prevFn;
-      var autoInitClasses = Object.keys(BibblioLoader.autoInitData);
-
-      // For each element in the node
-      elements.forEach(function (element) {
-        // Find out which init function applies to it, based on its class
-        autoInitClasses.forEach(function(klass) {
-          if (element.classList && element.classList.contains(klass)) {
-            var initFn = BibblioLoader.autoInitData[klass];
-            // Return that as a function (potentially nesting the previous function)
-            prevFn = BibblioLoader.makeNestedCallbackFunction(initFn, element, prevFn);
+        // Then merge the array (uniquely) in to our returned array
+        // (We have to do this in two steps to correctly place siblings - eg: [Hide, Takeover, RCM1, RCM2] instead of [RCM2, Hide, Takeover, RCM1]  if we're in a single loop using "shift")
+        rcmAndParentAddons.forEach(function(element) {
+          // Ensuring only unique elements are added (to prevent initialising shared add-ons multiple times)
+          if (ret.indexOf(element) === -1) {
+            ret.push(element);
           }
         });
       });
 
-      return prevFn;
+      return ret;
+    },
+
+    makeNestedCallbackFunction: function(theFn, element, prevFn) {
+      return function() {
+        theFn(element, prevFn);
+      }
+    },
+
+    callNestedInitFunctions: function(elements) {
+      var prevFn;
+      var autoInitClasses = Object.keys(BibblioLoader.autoInitData);
+
+      // For each element to init, work from back to front wrapping in a function and calling the previous one
+      // (We end on the first element, which triggers the second element, which triggers the third...)
+      for (var i = elements.length - 1; i >= 0; i--) {
+        // Find out which init function applies to it, based on its class
+        autoInitClasses.forEach(function(klass) {
+          if (elements[i].classList && elements[i].classList.contains(klass)) {
+            var initFn = BibblioLoader.autoInitData[klass];
+            // Make a (callback) function that runs its init function and the previous callback (if there was one)
+            prevFn = BibblioLoader.makeNestedCallbackFunction(initFn, elements[i], prevFn);
+          }
+        });
+      }
+
+      if (prevFn) {
+        prevFn();
+      }
     },
 
     init: function() {
-      var rcms = BibblioLoader.getRcmElements()
-      var elementsToInit = rcms.map(BibblioLoader.getElementsToInit)
-      var initFunctions = elementsToInit.map(BibblioLoader.makeNestedInitFunctions)
-      initFunctions.forEach(function(initFunc) { initFunc(); })
+      // Delay execution for Google Tag Manager support
+      BibblioUtils.delayExecution(function() {
+
+        // Find all the (auto init) RCMs on the page
+        var rcms = BibblioLoader.getRcmElements();
+        var rcmAndParentAddons = BibblioLoader.getRcmsAndParentAddons(rcms);
+
+        // Build and execute the chain of callbacks, allowing each add-on/RCM to init before moving on to the next
+        BibblioLoader.callNestedInitFunctions(rcmAndParentAddons);
+      });
     }
   }
 
