@@ -404,6 +404,7 @@ if (isNodeJS) {
     moduleVersion: "4.19",
     moduleTracking: {},
     isAmp: false,
+    recommendationsLimit: 6,
 
     showModules: function() {
       var modules = document.getElementsByClassName("bib__module");
@@ -455,9 +456,8 @@ if (isNodeJS) {
       var moduleSettings = BibblioUtils.getModuleSettings(options);
       var subtitleField = moduleSettings.subtitleField;
       var accessToken = options.recommendationKey;
-      var baseItemLimit = 6;
       var itemLimitOffset = (options.offset === undefined ? 0 : options.offset);
-      var itemLimit = baseItemLimit + itemLimitOffset;
+      var itemLimit = Bibblio.recommendationsLimit + itemLimitOffset;
 
       // URL arguments should be injected but the module only supports these settings now anyway.
       var fields = BibblioUtils.getRecommendationFields(subtitleField);
@@ -475,7 +475,7 @@ if (isNodeJS) {
           delete popularOptions.contentItemId;
           delete popularOptions.customUniqueIdentifier;
 
-          var popularUrl = BibblioUtils.getRecommendationUrl(popularOptions, 6, 1, fields);
+          var popularUrl = BibblioUtils.getRecommendationUrl(popularOptions, Bibblio.recommendationsLimit, 1, fields);
           BibblioUtils.bibblioHttpGetRequest(popularUrl, accessToken, true, function(response, status) {
             Bibblio.handleRecsResponse(popularOptions, callbacks, response, status);
           });
@@ -568,9 +568,11 @@ if (isNodeJS) {
 
     renderModule: function(options, callbacks, recommendationsResponse) {
       var relatedContentItems = recommendationsResponse.results.slice(options.offset);
+      var tiles = BibblioUtils.getTemplateTiles(options.placeholders, relatedContentItems)
+
       var moduleSettings = BibblioUtils.getModuleSettings(options);
       var relatedContentItemContainer = options.targetElement;
-      var moduleHTML = BibblioTemplates.getModuleHTML(relatedContentItems, options, moduleSettings);
+      var moduleHTML = BibblioTemplates.getModuleHTML(tiles, options, moduleSettings);
       relatedContentItemContainer.innerHTML = moduleHTML;
 
       if(callbacks.onRecommendationsRendered) {
@@ -598,6 +600,29 @@ if (isNodeJS) {
 
   // Bibblio utility module
   var BibblioUtils = {
+
+    getTemplateTiles: function(placeholders, recommendations) {
+      // Create recommendation tiles
+      var tiles = (recommendations || []).map(function (rec) {
+        return {
+          type: "recTile",
+          value: rec
+        }
+      });
+      
+      if(Array.isArray(placeholders)) {
+        for(var i = 0; i < placeholders.length; i++) {
+          if(placeholders[i] > 0) {
+            // Insert placeholder at position placeholders[i] (not using 0)
+            tiles.splice(placeholders[i] - 1, 0, {
+              type: "emptyTile"
+            });
+          }
+        }
+      }
+
+      return tiles;
+    },
 
     isInUrl: function(url, string) {
       var hasString = url.indexOf(string) > -1;
@@ -905,6 +930,10 @@ if (isNodeJS) {
         options.customCatalogueIds = BibblioUtils.cleanCommaSeparatedParams(options.customCatalogueIds);
       }
 
+      if(options && options.placeholders) {
+        options.placeholders = BibblioUtils.cleanCommaSeparatedParams(options.placeholders);
+      }
+
       if (options.offset === undefined) {
         options.offset = 0;
       } else {
@@ -929,9 +958,10 @@ if (isNodeJS) {
       "customUniqueIdentifier",
       "dateFormat",
       "hidden",
-      "offset",
-      "queryStringParams",
       "moduleId",
+      "offset",
+      "placeholders",
+      "queryStringParams",
       "recommendationKey",
       "recommendationType",
       "styleClasses",
@@ -1006,6 +1036,8 @@ if (isNodeJS) {
         // Transform comma separated strings into array
         case "customCatalogueIds":
         case "catalogueIds":
+          return value.split(",");
+        case "placeholders":
           return value.split(",");
         case "userMetadata":
           return BibblioUtils.convertInitParamUserMetadata(value);
@@ -1198,7 +1230,11 @@ if (isNodeJS) {
 
     cleanCommaSeparatedParams: function(params) {
       return params.map(function(param) {
-        return param.trim();
+        if(typeof param === "string") {
+          return param.trim();
+        }
+
+        return param;
       })
     },
 
@@ -2045,7 +2081,6 @@ if (isNodeJS) {
   var BibblioTemplates = {
     outerModuleTemplate: '<div class="bib__module <% classes %>">\
                             <% recommendedContentItems %>\
-                            <div class="bib__origin"><a href="https://www.bibblio.org/what" target="_blank" rel="nofollow"><span class="bib__origin--icon">i</span><span class="bib__origin--label">About these recommendations</span></a></div>\
                           </div>',
 
     relatedContentItemTemplate: '<a href="<% linkHref %>" target="<% linkTarget %>" <% linkRel %> data="<% contentItemId %>" class="bib__link bib__link--<% linkNumber %> <% linkImageClass %>">\
@@ -2065,6 +2100,8 @@ if (isNodeJS) {
                                         </span>\
                                     </span>\
                                     </a>',
+
+    emptyTileTemplate: '<div class="bib__empty-tile"></div>',
 
     subtitleTemplate: '<span class="bib__description"><% subtitle %></span>',
 
@@ -2189,6 +2226,8 @@ if (isNodeJS) {
       }
     },
 
+    // Place holders
+
     getRelatedContentItemHTML: function(contentItem, contentItemIndex, options, moduleSettings) {
 
       // Create template for subtitle
@@ -2234,6 +2273,11 @@ if (isNodeJS) {
       return BibblioTemplates.getTemplate(BibblioTemplates.relatedContentItemTemplate, templateOptions);
     },
 
+    getEmptyTileHTML: function() {
+      return BibblioTemplates.getTemplate(BibblioTemplates.emptyTileTemplate, {});
+    },
+
+    // Outer html
     getOuterModuleHTML: function(moduleSettings, relatedContentItemsHTML) {
       var classes = moduleSettings.styleClasses ? moduleSettings.styleClasses : BibblioUtils.getPresetModuleClasses(moduleSettings.stylePreset);
       if (moduleSettings.hidden) {
@@ -2248,15 +2292,29 @@ if (isNodeJS) {
       return BibblioTemplates.getTemplate(BibblioTemplates.outerModuleTemplate, templateOptions);
     },
 
-    getModuleHTML: function(relatedContentItems, options, moduleSettings) {
-      var contentItemsHTML = "";
-      if (relatedContentItems) {
-        for(var i = 0; i < relatedContentItems.length; i++) {
-          contentItemsHTML += BibblioTemplates.getRelatedContentItemHTML(relatedContentItems[i], i, options, moduleSettings) + "\n";
+    getModuleHTML: function(tiles, options, moduleSettings) {
+      var moduleHTML = "";
+      
+      if (tiles) {        
+        for(var i = 0; i < Bibblio.recommendationsLimit; i++) {
+          // Return html depending on tile type
+          switch(tiles[i].type) {
+            case "recTile":
+              moduleHTML += BibblioTemplates.getRelatedContentItemHTML(tiles[i].value, i, options, moduleSettings) + "\n";
+              break;
+
+            case "emptyTile":
+              moduleHTML += BibblioTemplates.getEmptyTileHTML() + "\n";
+              break;
+
+            case "string":
+              moduleHTML += tile[i].value + "\n";
+              break;
+          }
         }
       }
       // Create module HTML
-      var moduleHTML = BibblioTemplates.getOuterModuleHTML(moduleSettings, contentItemsHTML);
+      var moduleHTML = BibblioTemplates.getOuterModuleHTML(moduleSettings, moduleHTML);
       return moduleHTML;
     }
   }
