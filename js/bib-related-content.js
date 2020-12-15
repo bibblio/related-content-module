@@ -609,7 +609,7 @@ if (isNodeJS) {
           value: rec
         }
       });
-      
+
       if(Array.isArray(placeholders)) {
         for(var i = 0; i < placeholders.length; i++) {
           if(placeholders[i] > 0) {
@@ -1864,7 +1864,6 @@ if (isNodeJS) {
     shouldTruncate: function(field, styles) {
       switch(field) {
         case "title": return (styles.indexOf('bib--txt') === -1) && (styles.indexOf('bib--tall') === -1) && (styles.indexOf('bib--split') === -1);
-        case "subtitle": return (styles.indexOf('bib--txt') === -1) && (styles.indexOf('bib--tall') === -1);
       }
 
       return true;
@@ -2294,8 +2293,8 @@ if (isNodeJS) {
 
     getModuleHTML: function(tiles, options, moduleSettings) {
       var moduleHTML = "";
-      
-      if (tiles) {        
+
+      if (tiles) {
         for(var i = 0; i < Bibblio.recommendationsLimit; i++) {
           // Return html depending on tile type
           switch(tiles[i].type) {
