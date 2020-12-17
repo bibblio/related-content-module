@@ -401,7 +401,7 @@ if (isNodeJS) {
 
   // Bibblio module
   var Bibblio = {
-    moduleVersion: "4.20.2",
+    moduleVersion: "4.20.3",
     moduleTracking: {},
     isAmp: false,
     recommendationsLimit: 6,
@@ -2293,9 +2293,10 @@ if (isNodeJS) {
 
     getModuleHTML: function(tiles, options, moduleSettings) {
       var moduleHTML = "";
+      var maxTiles = (tiles.length < Bibblio.recommendationsLimit) ? tiles.length : Bibblio.recommendationsLimit;
 
       if (tiles) {
-        for(var i = 0; i < Bibblio.recommendationsLimit; i++) {
+        for(var i = 0; i < maxTiles; i++) {
           // Return html depending on tile type
           switch(tiles[i].type) {
             case "recTile":
