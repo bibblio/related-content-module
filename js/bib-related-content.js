@@ -401,7 +401,7 @@ if (isNodeJS) {
 
   // Bibblio module
   var Bibblio = {
-    moduleVersion: "4.20.3",
+    moduleVersion: "4.20.4",
     moduleTracking: {},
     isAmp: false,
     recommendationsLimit: 6,
@@ -1105,16 +1105,24 @@ if (isNodeJS) {
       for (var index in allowedKeys) {
         var name = allowedKeys[index]
         var queryParam = BibblioUtils.getParameterByName(name, url);
-        // Change boolean string to booleans
-        queryParam = queryParam === "false" ? false : queryParam;
-        queryParam = queryParam === "true" ? true : queryParam;
-        // If style related param, replace commas with spaces
-        if (name == 'styleClasses' || name == 'stylePreset') {
-          queryParam = BibblioUtils.convertCommasToSpaces(queryParam);
-        }
-        // Append query param to options
+        // Potentially transform queryParam if exists
         if (queryParam != null) {
+
+          // Change boolean string to booleans
+          queryParam = queryParam === "false" ? false : queryParam;
+          queryParam = queryParam === "true" ? true : queryParam;
+          // If style related param, replace commas with spaces
+          if (name == 'styleClasses' || name == 'stylePreset') {
+            queryParam = BibblioUtils.convertCommasToSpaces(queryParam);
+          }
+          // If catalogue params, convert csv to array
+          if (name == 'catalogueIds' || name == 'customCatalogueIds') {
+            queryParam = queryParam.split(",");
+          }
+
+          // Append query param to options
           options[name] = queryParam;
+
         }
       }
 
