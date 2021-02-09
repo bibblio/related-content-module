@@ -12,6 +12,7 @@ if (isNodeJS) {
 (function() {
   var HideAddonUtils = {
     allowedKeys: [
+      "targetElementId",
       "hidden"
     ],
     getAutoInitElements: function() {
@@ -27,10 +28,11 @@ if (isNodeJS) {
     },
     elementToInitParams: function(element) {
       var allowedKeys = HideAddonUtils.allowedKeys;
+      var isDOMElement = BibblioUtils.isDOMElement(element);
 
       // Construct new objects with only the allowed keys from each node's dataset
-      var dataset = element.dataset;
-      var acc = {'options'  : {'targetElement': element}};
+      var dataset = (isDOMElement) ? element.dataset : element;
+      var acc = {'options'  : {'targetElement': (isDOMElement) ? element : document.getElementById(dataset.targetElementId)}};
       var initParams = allowedKeys.reduce(function(acc, key) {
         if (dataset && dataset[key]) {
           acc['options'][key] = HideAddonUtils.handleNodeData(key, dataset[key]);
@@ -68,7 +70,7 @@ if (isNodeJS) {
         // ViewportHeight
         var vh = Math.max(document.documentElement.clientHeight || 0, window.innerHeight || 0);
 
-        var isWeb = (vw >= 415 && vh >= 851) || (vw >= 851);
+        var isWeb = (vw > 414 && vh > 414) || (vw > 850 && vh <= 414);
         var isMobile = (vw <= 414) || (vw <= 850 && vh <= 414);
 
         if(isWeb) {
@@ -113,12 +115,12 @@ if (isNodeJS) {
     init: function(options, callbacks) {
       // Define vars
       options = HideAddonUtils.prepareAddonOptions(options);
-
       // Perform initialisation
       HideAddonUtils.renderHTML(options, callbacks);
       HideAddonUtils.registerState(options);
     },
     _initForLoader: function(element, loaderCallback) {
+      var element = (BibblioUtils.isDOMElement(element)) ? element : element.options;
       var callbacks = {
         loaderNextStep: loaderCallback
       };
@@ -151,7 +153,7 @@ if (isNodeJS) {
 
   var TakeoverAddonUtils = {
     previousStyles: {},
-    allowedKeys: ["tabText", "callbackOnInitEnd"],
+    allowedKeys: ["targetElementId", "tabText", "callbackOnInitEnd"],
     getAutoInitElements: function() {
       var elements = document.getElementsByClassName('bib--takeover-init');
       return [].slice.call(elements); // Converting htmlCollection to array of elements
@@ -247,11 +249,12 @@ if (isNodeJS) {
     },
     elementToInitParams: function(element) {
       var allowedKeys = TakeoverAddonUtils.allowedKeys;
-
+      var isDOMElement = BibblioUtils.isDOMElement(element);
       // Construct new objects with only the allowed keys from each node's dataset
-      var dataset = element.dataset;
+      var dataset = (isDOMElement) ? element.dataset : element;
       var acc = {'callbacks': {},
-                 'options'  : {'targetElement': element}};
+                 'options'  : {'targetElement': (isDOMElement) ? element : document.getElementById(dataset.targetElementId)}};
+
       var initParams = allowedKeys.reduce(function(acc, key) {
         if (dataset && dataset[key]) {
           switch(key) {
@@ -350,11 +353,10 @@ if (isNodeJS) {
       var callbacks = callbacks || {};
       var options = TakeoverAddonUtils.prepareAddonOptions(options);
       var element = options.targetElement;
-
       // Perform initialisation
       TakeoverAddonUtils.renderHTML(element, options);
       TakeoverAddonUtils.registerState(options);
-      TakeoverAddonUtils.registerEventHandlers(element);
+      TakeoverAddonUtils.registerEventHandlers(element, options);
 
       // Callback at end
       if (callbacks && callbacks.loaderNextStep && typeof callbacks.loaderNextStep === "function") {
@@ -364,6 +366,7 @@ if (isNodeJS) {
     },
 
     _initForLoader: function(element, loaderCallback) {
+      var element = (BibblioUtils.isDOMElement(element)) ? element : element.options;
       var addonData = TakeoverAddonUtils.parseAddonData(element);
       var callbacks = addonData.callbacks || {}; // User's callback if they set data function
       callbacks.loaderNextStep = loaderCallback
@@ -371,7 +374,7 @@ if (isNodeJS) {
       TakeoverAddon.init(addonData.options, callbacks);
     }
   }
-
+      // Perform initiali
   // Bootstrap
   if (isNodeJS === true) {
     module.exports.BibblioTakeoverAddon = TakeoverAddon;
@@ -401,22 +404,36 @@ if (isNodeJS) {
 
   // Bibblio module
   var Bibblio = {
-    moduleVersion: "4.20.5",
+    moduleVersion: "4.21.0",
     moduleTracking: {},
     isAmp: false,
     recommendationsLimit: 6,
+
+    autoInit: function() {
+      BibblioUtils.delayExecution(function() {
+        // Initialise auto ingestion
+        var rcmSrcElement = BibblioUtils.getSrcElement();
+        BibblioUtils.initScriptParamIngestion(rcmSrcElement);
+      });
+    },
+
+    init: function(elements) {
+      BibblioUtils.delayExecution(function() {
+        var elementsWithClasses = BibblioUtils.getElementsWithClasses(elements);
+        BibblioLoader.callNestedInitFunctions(elementsWithClasses);
+      });
+    },
+
+    import: function(options) {
+      options.autoIngestion = true;
+      BibblioUtils.ingestFromScriptParam(options);
+    },
 
     showModules: function() {
       var modules = document.getElementsByClassName("bib__module");
       [].forEach.call(modules, function(element) {
         element.classList.remove("bib--hide");
       });
-    },
-
-    autoInit: function() {
-      // Initialise auto ingestion
-      var rcmSrcElement = BibblioUtils.getSrcElement();
-      BibblioUtils.initScriptParamIngestion(rcmSrcElement);
     },
 
     _initForLoader: function(element, loaderCallback) {
@@ -441,7 +458,6 @@ if (isNodeJS) {
       var targetElement = (options.targetElementId) ? document.getElementById(options.targetElementId) : options.targetElement;
       var elementIsVisible = BibblioUtils.isElementVisible(targetElement);
       var isAmp = BibblioUtils.isAmp(url);
-
       // Get recs for the module if visible
       if (elementIsVisible === true || isAmp === true) {
         Bibblio.getRelatedContentItems(moduleOptions, callbacks);
@@ -569,10 +585,10 @@ if (isNodeJS) {
     renderModule: function(options, callbacks, recommendationsResponse) {
       var relatedContentItems = recommendationsResponse.results.slice(options.offset);
       var tiles = BibblioUtils.getTemplateTiles(options.placeholders, relatedContentItems)
-
       var moduleSettings = BibblioUtils.getModuleSettings(options);
       var relatedContentItemContainer = options.targetElement;
       var moduleHTML = BibblioTemplates.getModuleHTML(tiles, options, moduleSettings);
+
       relatedContentItemContainer.innerHTML = moduleHTML;
 
       if(callbacks.onRecommendationsRendered) {
@@ -636,6 +652,27 @@ if (isNodeJS) {
     getAutoInitElements: function() {
       var elements = document.getElementsByClassName('bib--rcm-init');
       return [].slice.call(elements); // Converting htmlCollection to array of elements
+    },
+
+    getElementsWithClasses: function(elements){
+      var elementsWithClasses = elements.map(function(element) {
+        var klassList = [];
+        switch(element.type) {
+          case 'rcm':
+            klassList = ['bib--rcm-init']
+            break;
+          case 'hide':
+            klassList = ['bib--hide-init']
+            break;
+          case 'takeover':
+            klassList = ['bib--takeover-init']
+            break;
+        }
+        element.classList = klassList;
+        return element;
+      });
+
+      return elementsWithClasses;
     },
 
     getOptionsAndCallbacks: function(element, options, callbacks) {
@@ -893,11 +930,17 @@ if (isNodeJS) {
     },
 
     prepareModuleOptions: function(options) {
+      var isDOMElement = BibblioUtils.isDOMElement(options.targetElement);
+
       if (options && !options.contentItemId && !options.customUniqueIdentifier && options.recommendationType !== "popular" && options.recommendationType !== "personalised") {
         var canonicalUrl = BibblioUtils.getCustomUniqueIdentifierFromUrl(options);
         if (canonicalUrl) {
           options.customUniqueIdentifier = BibblioUtils.getCustomUniqueIdentifierFromUrl(options);
         }
+      }
+
+      if (!isDOMElement) {
+        options.targetElement = document.getElementById(options.targetElementId);
       }
 
       if (options && options.targetElementId && !options.targetElement) {
@@ -970,11 +1013,13 @@ if (isNodeJS) {
       "targetElementId",
       "truncateTitle",
       "userMetadata",
-      "userId"
+      "userId",
+      "callback"
     ],
 
     parseModuleData: function(element) {
       var url = window.location.href;
+      var isDOMElement = BibblioUtils.isDOMElement(element);
       Bibblio.isAmp = BibblioUtils.isInUrl(url, '#amp=1');
       var options = {};
       var callbacks = {};
@@ -982,6 +1027,9 @@ if (isNodeJS) {
       if(Bibblio.isAmp) {
         options = BibblioUtils.getAmpAutoInitParams(url)
         callbacks = BibblioUtils.ampCallbacks;
+      } else if (!isDOMElement && element.options) {
+        options = BibblioUtils.getParams(element.options);
+        callbacks = (element.callbacks) ? element.callbacks : {};
       } else {
         options = BibblioUtils.getParams(element);
       }
@@ -1058,11 +1106,26 @@ if (isNodeJS) {
       return value;
     },
 
+    isDOMElement: function(obj) {
+      try {
+        //Using W3 DOM2 (works for FF, Opera and Chrome)
+        return obj instanceof HTMLElement;
+      }
+      catch(e){
+        //Browsers not supporting W3 DOM2 don't have HTMLElement and
+        //an exception is thrown and we end up here. Testing some
+        //properties that all elements have (works on IE7)
+        return (typeof obj==="object") &&
+          (obj.nodeType===1) && (typeof obj.style === "object") &&
+          (typeof obj.ownerDocument ==="object");
+      }
+    },
+
     elementToInitParams: function(element) {
       var allowedKeys = BibblioUtils.allowedKeys;
 
       // Construct new objects with only the allowed keys from each node's dataset
-      var dataset = element.dataset;
+      var dataset = (BibblioUtils.isDOMElement(element)) ? element.dataset : element;
       var initParams = allowedKeys.reduce(function(acc, key) {
         if (dataset && dataset[key]) {
           acc[key] = BibblioUtils.handleNodeData(key, dataset[key]);
@@ -1175,8 +1238,6 @@ if (isNodeJS) {
     ingestFromScriptParam: function(options) {
       if(options.recommendationKey && (options.autoIngestion === true)) {
         options.urlParamIngestion = true;
-      } else {
-        return;
       }
 
       if(!BibblioUtils.validateModuleOptions(options)) {
@@ -1794,7 +1855,6 @@ if (isNodeJS) {
               }
           })
         });
-
         req.on('error', function(e) {
           BibblioUtils.httpCallback(callback, {}, response.statusCode);
         });
@@ -1804,7 +1864,6 @@ if (isNodeJS) {
           var requestBody = JSON.stringify(options.body);
           req.write(requestBody);
         }
-
         req.end();
       }
       else {
@@ -2090,7 +2149,7 @@ if (isNodeJS) {
                             <% recommendedContentItems %>\
                           </div>',
 
-    relatedContentItemTemplate: '<a href="<% linkHref %>" target="<% linkTarget %>" <% linkRel %> data="<% contentItemId %>" class="bib__link bib__link--<% linkNumber %> <% linkImageClass %>">\
+    relatedContentItemTemplate: '<a href="<% linkHref %>" target="<% linkTarget %>" <% linkRel %> data="<% contentItemId %>" class="bib__link <% linkImageClass %>">\
                                     <span class="bib__image" <% linkImageStyle %> >\
                                     </span>\
                                     <span class="bib__info">\
@@ -2108,7 +2167,7 @@ if (isNodeJS) {
                                     </span>\
                                     </a>',
 
-    emptyTileTemplate: '<div class="bib__empty-tile"></div>',
+    emptyTileTemplate: '<div class="bib__placeholder"></div>',
 
     subtitleTemplate: '<span class="bib__description"><% subtitle %></span>',
 
@@ -2273,8 +2332,7 @@ if (isNodeJS) {
           linkRel: BibblioUtils.linkRelFor(contentItemUrl),
           linkImageClass: (contentItemImageUrl ? 'bib__link--image' : ''),
           linkImageStyle: (contentItemImageUrl ? 'style="background-image: url(' + "'"  + contentItemImageUrl + "'" + ')"' : ''),
-          subtitleHTML: subtitleHTML,
-          linkNumber: contentItemIndex + 1
+          subtitleHTML: subtitleHTML
       };
 
       return BibblioTemplates.getTemplate(BibblioTemplates.relatedContentItemTemplate, templateOptions);
@@ -2507,22 +2565,22 @@ if (isNodeJS) {
       return ret;
     },
 
-    makeNestedCallbackFunction: function(theFn, element, prevFn) {
+    makeNestedCallbackFunction: function(theFn, element, prevFn, options) {
       return function() {
-        theFn(element, prevFn);
+        theFn(element, prevFn, options);
       }
     },
 
     callNestedInitFunctions: function(elements) {
       var prevFn;
       var autoInitClasses = Object.keys(BibblioLoader.autoInitData);
-
       // For each element to init, work from back to front wrapping in a function and calling the previous one
       // (We end on the first element, which triggers the second element, which triggers the third...)
       for (var i = elements.length - 1; i >= 0; i--) {
         // Find out which init function applies to it, based on its class
         autoInitClasses.forEach(function(klass) {
-          if (elements[i].classList && elements[i].classList.contains(klass)) {
+          var klassList = (Array.isArray(elements[i].classList)) ? elements[i].classList : Array.from(elements[i].classList);
+          if (klassList && (klassList.indexOf(klass) > -1)) {
             var initFn = BibblioLoader.autoInitData[klass];
             // Make a (callback) function that runs its init function and the previous callback (if there was one)
             prevFn = BibblioLoader.makeNestedCallbackFunction(initFn, elements[i], prevFn);
@@ -2538,16 +2596,14 @@ if (isNodeJS) {
     init: function() {
       // Delay execution for Google Tag Manager support
       BibblioUtils.delayExecution(function() {
-
         // Find all the (auto init) RCMs on the page
         var rcms = BibblioLoader.getRcmElements();
         var rcmAndParentAddons = BibblioLoader.getRcmsAndParentAddons(rcms);
-
         // Build and execute the chain of callbacks, allowing each add-on/RCM to init before moving on to the next
         BibblioLoader.callNestedInitFunctions(rcmAndParentAddons);
       });
     }
-  }
+  };
 
   if (isNodeJS) {
     module.exports.BibblioLoader = BibblioLoader;
