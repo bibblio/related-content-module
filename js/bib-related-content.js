@@ -404,7 +404,7 @@ if (isNodeJS) {
 
   // Bibblio module
   var Bibblio = {
-    moduleVersion: "4.21.0",
+    moduleVersion: "4.22.0",
     moduleTracking: {},
     isAmp: false,
     recommendationsLimit: 6,
@@ -619,6 +619,7 @@ if (isNodeJS) {
 
     getTemplateTiles: function(placeholders, recommendations) {
       // Create recommendation tiles
+      
       var tiles = (recommendations || []).map(function (rec) {
         return {
           type: "recTile",
@@ -626,15 +627,48 @@ if (isNodeJS) {
         }
       });
 
+      // Handle placeholders
+
+      var insertTile = function(index, data) {
+        tiles.splice(index - 1, 0, data);
+      }
+
       if(Array.isArray(placeholders)) {
         for(var i = 0; i < placeholders.length; i++) {
           if(placeholders[i] > 0) {
-            // Insert placeholder at position placeholders[i] (not using 0)
-            tiles.splice(placeholders[i] - 1, 0, {
+            insertTile(placeholders[i], {
               type: "emptyTile"
             });
           }
         }
+      }
+      // 'null' is also seen as typeof 'object'
+      else if(typeof placeholders === "object" && placeholders !== null) {
+        Object.keys(placeholders).forEach(function(key) {
+          const index = parseInt(key);
+          
+          // Ignore non integers
+          if(index && index > 0) {
+            const value = placeholders[key];
+
+            // Handle object
+            if(typeof placeholders === "object" && placeholders !== null) {
+              insertTile(index, {
+                type: "customRecTile",
+                value: {
+                  fields: {
+                    author: { name: value.author || "" },
+                    name: value.title || "",
+                    description: value.description || "",
+                    url: value.url || "",
+                    moduleImage: { contentUrl: value.moduleImage || "" },
+                    datePublished: value.date || ""
+                  }
+                }
+              });
+            }
+          }
+        })
       }
 
       return tiles;
@@ -825,6 +859,16 @@ if (isNodeJS) {
         return false
       }
 
+      if(options.placeholders && typeof options.placeholders === "object" && !Array.isArray(options.placeholders)) {
+        var validPlaceholders = Object.keys(options.placeholders).every(function(key) {
+          return options.placeholders[key].title && options.placeholders[key].url
+        })
+        if(!validPlaceholders) {
+          console.error("Bibblio: placeholders object must contain 'title' and 'url' fields.");
+          return false
+        }
+      }
+
       return true;
     },
 
@@ -973,7 +1017,7 @@ if (isNodeJS) {
         options.customCatalogueIds = BibblioUtils.cleanCommaSeparatedParams(options.customCatalogueIds);
       }
 
-      if(options && options.placeholders) {
+      if(options && options.placeholders && typeof options.placeholders === "string") {
         options.placeholders = BibblioUtils.cleanCommaSeparatedParams(options.placeholders);
       }
 
@@ -1544,33 +1588,37 @@ if (isNodeJS) {
         var callback = callbacks.onRecommendationClick;
 
         for (var i = 0; i < relatedContentItemlinks.length; i++) {
-          // This event is only here for the callback on left clicks
-          relatedContentItemlinks[i].addEventListener('click', function(event) {
-              BibblioEvents.onRecommendationClick(options, recommendationsResponse, event, callback);
-          }, false);
+          var tileType = relatedContentItemlinks[i].getAttribute("tile-type");
 
-          relatedContentItemlinks[i].addEventListener('mousedown', function(event) {
-            if (event.which == 3)
-              BibblioEvents.onRecommendationClick(options, recommendationsResponse, event, callback);
-          }, false);
+          if(tileType === "recTile") {
+            // This event is only here for the callback on left clicks
+            relatedContentItemlinks[i].addEventListener('click', function(event) {
+                BibblioEvents.onRecommendationClick(options, recommendationsResponse, event, callback);
+            }, false);
 
-          relatedContentItemlinks[i].addEventListener('mouseup', function(event) {
-            if (event.which < 4) {
-              BibblioEvents.onRecommendationClick(options, recommendationsResponse, event, callback);
-            }
-          }, false);
+            relatedContentItemlinks[i].addEventListener('mousedown', function(event) {
+              if (event.which == 3)
+                BibblioEvents.onRecommendationClick(options, recommendationsResponse, event, callback);
+            }, false);
 
-          relatedContentItemlinks[i].addEventListener('auxclick', function(event) {
-            if (event.which < 4) {
-              BibblioEvents.onRecommendationClick(options, recommendationsResponse, event, callback);
-            }
-          }, false);
+            relatedContentItemlinks[i].addEventListener('mouseup', function(event) {
+              if (event.which < 4) {
+                BibblioEvents.onRecommendationClick(options, recommendationsResponse, event, callback);
+              }
+            }, false);
 
-          relatedContentItemlinks[i].addEventListener('keydown', function(event) {
-            if (event.which == 13) {
-              BibblioEvents.onRecommendationClick(options, recommendationsResponse, event, callback);
-            }
-          }, false);
+            relatedContentItemlinks[i].addEventListener('auxclick', function(event) {
+              if (event.which < 4) {
+                BibblioEvents.onRecommendationClick(options, recommendationsResponse, event, callback);
+              }
+            }, false);
+
+            relatedContentItemlinks[i].addEventListener('keydown', function(event) {
+              if (event.which == 13) {
+                BibblioEvents.onRecommendationClick(options, recommendationsResponse, event, callback);
+              }
+            }, false);
+          }
         }
       }
     },
@@ -2149,7 +2197,7 @@ if (isNodeJS) {
                             <% recommendedContentItems %>\
                           </div>',
 
-    relatedContentItemTemplate: '<a href="<% linkHref %>" target="<% linkTarget %>" <% linkRel %> data="<% contentItemId %>" class="bib__link <% linkImageClass %>">\
+    relatedContentItemTemplate: '<a href="<% linkHref %>" target="<% linkTarget %>" <% linkRel %> data="<% contentItemId %>" tile-type="<% tileType %>" class="bib__link <% linkImageClass %>">\
                                     <span class="bib__image" <% linkImageStyle %> >\
                                     </span>\
                                     <span class="bib__info">\
@@ -2269,9 +2317,9 @@ if (isNodeJS) {
       var datePublishedHTML = '';
       try {
         var datePublishedField = contentItem.fields.datePublished;
-        datePublishedField = BibblioTemplates.formatDate(datePublishedField, moduleSettings.dateFormat);
+        var formattedDatePublishedField = BibblioTemplates.formatDate(datePublishedField, moduleSettings.dateFormat);
         var templateOptions = {
-          datePublished: datePublishedField
+          datePublished: formattedDatePublishedField ? formattedDatePublishedField : datePublishedField
         };
         datePublishedHTML = BibblioTemplates.getTemplate(BibblioTemplates.datePublishedTemplate, templateOptions);
       } catch (e) {
@@ -2294,7 +2342,7 @@ if (isNodeJS) {
 
     // Place holders
 
-    getRelatedContentItemHTML: function(contentItem, contentItemIndex, options, moduleSettings) {
+    getRelatedContentItemHTML: function(contentItem, tileType, options, moduleSettings) {
 
       // Create template for subtitle
       var subtitleHTML = BibblioTemplates.getSubtitleHTML(contentItem, moduleSettings);
@@ -2332,7 +2380,8 @@ if (isNodeJS) {
           linkRel: BibblioUtils.linkRelFor(contentItemUrl),
           linkImageClass: (contentItemImageUrl ? 'bib__link--image' : ''),
           linkImageStyle: (contentItemImageUrl ? 'style="background-image: url(' + "'"  + contentItemImageUrl + "'" + ')"' : ''),
-          subtitleHTML: subtitleHTML
+          subtitleHTML: subtitleHTML,
+          tileType: tileType
       };
 
       return BibblioTemplates.getTemplate(BibblioTemplates.relatedContentItemTemplate, templateOptions);
@@ -2365,8 +2414,9 @@ if (isNodeJS) {
         for(var i = 0; i < maxTiles; i++) {
           // Return html depending on tile type
           switch(tiles[i].type) {
+            case "customRecTile":
             case "recTile":
-              moduleHTML += BibblioTemplates.getRelatedContentItemHTML(tiles[i].value, i, options, moduleSettings) + "\n";
+              moduleHTML += BibblioTemplates.getRelatedContentItemHTML(tiles[i].value, tiles[i].type, options, moduleSettings) + "\n";
               break;
 
             case "emptyTile":
@@ -2374,7 +2424,7 @@ if (isNodeJS) {
               break;
 
             case "string":
-              moduleHTML += tile[i].value + "\n";
+              moduleHTML += tiles[i].value + "\n";
               break;
           }
         }
