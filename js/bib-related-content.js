@@ -404,7 +404,7 @@ if (isNodeJS) {
 
   // Bibblio module
   var Bibblio = {
-    moduleVersion: "4.22.0",
+    moduleVersion: "4.22.1",
     moduleTracking: {},
     isAmp: false,
     recommendationsLimit: 6,
@@ -619,7 +619,7 @@ if (isNodeJS) {
 
     getTemplateTiles: function(placeholders, recommendations) {
       // Create recommendation tiles
-      
+
       var tiles = (recommendations || []).map(function (rec) {
         return {
           type: "recTile",
@@ -645,11 +645,11 @@ if (isNodeJS) {
       // 'null' is also seen as typeof 'object'
       else if(typeof placeholders === "object" && placeholders !== null) {
         Object.keys(placeholders).forEach(function(key) {
-          const index = parseInt(key);
-          
+          var index = parseInt(key);
+
           // Ignore non integers
           if(index && index > 0) {
-            const value = placeholders[key];
+            var value = placeholders[key];
 
             // Handle object
             if(typeof placeholders === "object" && placeholders !== null) {
@@ -1139,6 +1139,8 @@ if (isNodeJS) {
           } else {
             return parseInt(value);
           }
+        case "truncateTitle":
+          return parseInt(value);
         default:
           break;
       }
@@ -1169,10 +1171,11 @@ if (isNodeJS) {
       var allowedKeys = BibblioUtils.allowedKeys;
 
       // Construct new objects with only the allowed keys from each node's dataset
-      var dataset = (BibblioUtils.isDOMElement(element)) ? element.dataset : element;
+      var isElementDOM = BibblioUtils.isDOMElement(element);
+      var dataset = isElementDOM ? element.dataset : element;
       var initParams = allowedKeys.reduce(function(acc, key) {
         if (dataset && dataset[key]) {
-          acc[key] = BibblioUtils.handleNodeData(key, dataset[key]);
+          acc[key] = isElementDOM ? BibblioUtils.handleNodeData(key, dataset[key]) : dataset[key];
         }
         return acc;
       }, {targetElement: element});
