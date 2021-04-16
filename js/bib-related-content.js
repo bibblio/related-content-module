@@ -404,7 +404,7 @@ if (isNodeJS) {
 
   // Bibblio module
   var Bibblio = {
-    moduleVersion: "4.22.1",
+    moduleVersion: "4.22.2",
     moduleTracking: {},
     isAmp: false,
     recommendationsLimit: 6,
@@ -1283,8 +1283,11 @@ if (isNodeJS) {
     },
 
     ingestFromScriptParam: function(options) {
-      if(options.recommendationKey && (options.autoIngestion === true)) {
+      if(options.autoIngestion === true) {
         options.urlParamIngestion = true;
+      }
+      else {
+        return;
       }
 
       if(!BibblioUtils.validateModuleOptions(options)) {
