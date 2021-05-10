@@ -17,10 +17,6 @@ The style and layout is extremely customizable. Use the following classes in the
 * _Square ratio:_ bib--square
 * _Tall ratio:_ bib--tall
 
-### Display options
-* _Text on image (not for text-only layout):_ _default_
-* _Text beneath image (not for text-only layout):_ bib--split
-
 ### Properties
 * _Show author:_ bib--author-show
 * _Show date published:_ bib--recency-show
@@ -54,20 +50,24 @@ The style and layout is extremely customizable. Use the following classes in the
 * _20px:_ bib--size-20
 * _22px:_ bib--size-22
 
-### Text alignment
+### Align text
 * _Align all tile text to the left:_ bib--text-left
 * _Align all tile text to the center:_ bib--text-center
 * _Align all tile text to the right:_ bib--text-right
 * _Justify all tile text:_ bib--text-justify
 
-### Image alignment
+### Invert text
+* _Automatically invert text color if the user's OS is set to dark mode and the website is designed to switch to this mode:_ bib--mode-dark
+* _Manually invert the text color for darker webpage designs:_ bib--invert
+
+### Image
+* _Position image above text:_ bib--split
 * _Align all images to top of tiles:_ bib--image-top
 * _Align all images to middle of tiles:_ bib--image-middle _default_
 * _Align all images to bottom of tiles:_ bib--image-bottom
-
-### Extras
 * _Hover 'shine' effect:_ bib--shine
 * _Hover 'spectrum' effect:_ bib--spectrum
-* _Invert the text color when it's beneath an image, text-only or certain Next Articles layouts, for clearer display on dark page backgrounds:_ bib--invert
+
+### Extras
 * _If a tile has a background image, this class is automatically added to the anchor 'bib__link':_ bib__link--image
 * _Hide module for testing:_ bib--hide

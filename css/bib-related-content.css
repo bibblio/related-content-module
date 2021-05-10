@@ -139,6 +139,7 @@ a.bib__link:focus {
 
 .bib__module.bib--car-6 { overflow-x: auto !important; overflow-y: hidden !important; }
 .bib__module.bib--car-6 a.bib__link { display: table-cell !important; float: none !important; width: 250px; min-width: 250px; max-width: 250px; padding-right: 10px !important; padding-bottom: 16px !important; }
+.bib__takeover .bib__module.bib--car-6 a.bib__link { width: 200px; min-width: 200px; max-width: 200px; }
 .bib__module.bib--car-6.bib--split a.bib__link .bib__info { min-height: 105px; }
 
 .bib__image {
@@ -848,4 +849,28 @@ filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#00ff3232', e
     .bib__takeover .bib__modal-sheet-tab {
         right: 220px;
     }
+}
+
+@media (prefers-color-scheme: dark) {
+  .bib--mode-dark .bib--image-only.bib--split a.bib__link .bib__info, 
+  .bib--mode-dark .bib--image-only.bib--split a.bib__link:hover .bib__info, 
+  .bib--mode-dark.bib--split a.bib__link .bib__info, 
+  .bib--mode-dark.bib--split a.bib__link.bib__link--image .bib__info, 
+  [class*=bib--txt].bib--mode-dark a.bib__link .bib__info, 
+  [class*=bib--txt].bib--mode-dark a.bib__link.bib__link--image .bib__info,
+  .bib__takeover .bib--image-only.bib--split a.bib__link .bib__info, 
+  .bib__takeover .bib--image-only.bib--split a.bib__link:hover .bib__info, 
+  .bib__takeover .bib--split a.bib__link .bib__info, 
+  .bib__takeover .bib--split a.bib__link.bib__link--image .bib__info, 
+  .bib__takeover [class*=bib--txt] a.bib__link .bib__info, 
+  .bib__takeover [class*=bib--txt] a.bib__link.bib__link--image .bib__info {
+    color: #FFFFFF;
+  }
+  .bib__takeover .bib__modal-sheet-panel {
+      background-color: #444444;
+  }
+  .bib--mode-dark.bib--split .bib__preview,
+  .bib__takeover .bib--split .bib__preview {
+      background-color: #333333;
+  }
 }
