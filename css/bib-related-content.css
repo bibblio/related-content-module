@@ -17,7 +17,6 @@
     max-height: initial;
     min-height: initial;
     width: 100%;
-    font-family: Arial, sans-serif;
     clear: both;
 }
 
@@ -236,6 +235,7 @@ a.bib__link.bib__link--image .bib__info {
 
 .bib__properties {
     display: block;
+    font-family: Arial, sans-serif;
 }
 
 .bib__author {
@@ -262,6 +262,7 @@ a.bib__link.bib__link--image .bib__info {
 
 .bib__preview {
     display: block;
+    font-family: Arial, sans-serif;
 }
 
 .bib__description {
@@ -806,7 +807,7 @@ filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#00ff3232', e
     right: 270px;
     text-align: center;
     border-radius: 25px 0 0 25px;
-    font-family: arial;
+    line-height: 1.2em;
     cursor: pointer;
     transition: background-color 1s;
 }
