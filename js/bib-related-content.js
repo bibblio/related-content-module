@@ -404,7 +404,7 @@ if (isNodeJS) {
 
   // Bibblio module
   var Bibblio = {
-    moduleVersion: "4.23.0",
+    moduleVersion: "4.24.0",
     moduleTracking: {},
     isAmp: false,
     recommendationsLimit: 6,
@@ -601,6 +601,7 @@ if (isNodeJS) {
       }
 
       Bibblio.initTracking(options, callbacks, recommendationsResponse);
+      BibblioUtils.loadModuleImages(options, recommendationsResponse);
     },
 
     initTracking: function(options, callbacks, recommendationsResponse) {
@@ -1027,6 +1028,11 @@ if (isNodeJS) {
         options.offset = parseInt(options.offset);
       }
 
+      if(options && typeof options.lazyLoad === "string") {
+        options.lazyLoad = options.lazyLoad === "false" ? false : true;
+      }
+
+
       return options;
     },
 
@@ -1058,7 +1064,8 @@ if (isNodeJS) {
       "truncateTitle",
       "userMetadata",
       "userId",
-      "callback"
+      "callback",
+      "lazyLoad"
     ],
 
     parseModuleData: function(element) {
@@ -1141,6 +1148,8 @@ if (isNodeJS) {
           }
         case "truncateTitle":
           return parseInt(value);
+        case "lazyLoad":
+          return value === "false" ? false : true;
         default:
           break;
       }
@@ -1174,7 +1183,7 @@ if (isNodeJS) {
       var isElementDOM = BibblioUtils.isDOMElement(element);
       var dataset = isElementDOM ? element.dataset : element;
       var initParams = allowedKeys.reduce(function(acc, key) {
-        if (dataset && dataset[key]) {
+        if (dataset && dataset.hasOwnProperty(key)) {
           acc[key] = isElementDOM ? BibblioUtils.handleNodeData(key, dataset[key]) : dataset[key];
         }
         return acc;
@@ -1567,6 +1576,66 @@ if (isNodeJS) {
       return urlSegments.join("#");
     },
 
+    showModuleImages: function(options) {
+      var parentElement = options.targetElement || document;
+      parentElement.querySelectorAll('.bib__image').forEach(function(imageElement) {
+        var imageUrl = imageElement.getAttribute("data-defered-image");
+        if(imageUrl && !imageElement.style.backgroundImage) {
+          imageElement.removeAttribute("data-defered-image")
+          imageElement.style.backgroundImage = "url('"  + imageUrl + "')";
+        }
+      });
+    },
+
+    loadModuleImages: function(options, recommendationsResponse) {
+      var isInt = function(intValue) {
+        return intValue === parseInt(intValue, 10);
+      }
+
+      var onScrollPoll = function() {
+        var moduleElement = options.targetElement;
+        // 'document.body.scrollTop' is for older IE browsers
+        var scrollPositionY = window.pageYOffset || document.body.scrollTop;
+        var scrollPositionX = window.pageXOffset || document.body.scrollLeft;
+
+        var shouldRenderModuleImages =
+          // or browser can't determine webpage scroll values
+          (!isInt(scrollPositionY) || !isInt(scrollPositionX)) ||
+          // or window has been scrolled
+          (scrollPositionY !== 0 || scrollPositionX !== 0) ||
+          // or rcm is already in view
+          (moduleElement.getBoundingClientRect && BibblioUtils.isRecommendationTileInView(moduleElement, moduleElement.getBoundingClientRect()));
+
+        if(shouldRenderModuleImages) {
+          BibblioUtils.showModuleImages(options);
+
+          // Exit polling
+          return;
+        }
+
+        // Continue polling
+        setTimeout(onScrollPoll, 100);
+      }
+
+      var onScrollEvent = function() {
+        BibblioUtils.showModuleImages(options);
+        document.removeEventListener('scroll', onScrollEvent, true);
+      }
+
+      if(options.lazyLoad === false) {
+        BibblioUtils.showModuleImages(options);
+      }
+      else {
+        // Catch all scroll events
+        if(document.addEventListener) {
+          document.addEventListener('scroll', onScrollEvent, true);
+        }
+
+        // Poll scroll event for older browser
+        onScrollPoll();
+      }
+    },
+
     // Tracking functions
     getActivityId: function(trackingLink) {
       trackingLink = trackingLink || "";
@@ -1641,13 +1710,16 @@ if (isNodeJS) {
 
     // Viewed event
     setOnViewedListeners: function(options, callbacks, recommendationsResponse) {
-      var callback = null;
+      var moduleViewedEvent = function(options, callbacks, recommendationsResponse) {
+        var callback = callbacks.onRecommendationViewed ? callbacks.onRecommendationViewed : null;
+
+        // Call on viewed event
+        BibblioEvents.onRecommendationViewed(options, recommendationsResponse, callback);
+      }
+
       var moduleElement = options.targetElement;
       var trackingLink = recommendationsResponse._links.tracking.href;
       var activityId = BibblioUtils.getActivityId(trackingLink);
-      if (callbacks.onRecommendationViewed) {
-        callback = callbacks.onRecommendationViewed;
-      }
 
       var visibilityTimeout = 5;
 
@@ -1669,7 +1741,7 @@ if (isNodeJS) {
             if (BibblioUtils.isRecommendationTileInView(moduleElement,
                                                         message.data.changes[0].boundingClientRect,
                                                         message.data.changes[0].intersectionRatio)) {
-              BibblioEvents.onRecommendationViewed(options, recommendationsResponse, callback);
+              moduleViewedEvent(options, callbacks, recommendationsResponse);
             }
 
 
@@ -1689,7 +1761,7 @@ if (isNodeJS) {
           // Only check for viewed if module has not been viewed
           if (!BibblioUtils.hasModuleBeenViewed(activityId)) {
             if (BibblioUtils.isRecommendationTileInView(moduleElement, moduleElement.getBoundingClientRect())) {
-              BibblioEvents.onRecommendationViewed(options, recommendationsResponse, callback);
+              moduleViewedEvent(options, callbacks, recommendationsResponse);
             }
             else {
               // If recommendation tile not in view then continue polling
@@ -2204,7 +2276,7 @@ if (isNodeJS) {
                           </div>',
 
     relatedContentItemTemplate: '<a href="<% linkHref %>" target="<% linkTarget %>" <% linkRel %> data="<% contentItemId %>" tile-type="<% tileType %>" class="bib__link <% linkImageClass %>">\
-                                    <span class="bib__image" <% linkImageStyle %> >\
+                                    <span class="bib__image" data-defered-image="<% linkImageUrl %>" >\
                                     </span>\
                                     <span class="bib__info">\
                                         <span class="bib__title">\
@@ -2363,7 +2435,7 @@ if (isNodeJS) {
       var contentItemUrl = (contentItem.fields.url ? contentItem.fields.url : '');
 
       // Choose module image
-      var contentItemImageUrl = "";
+      var contentItemImageUrl = "https://images.bibblio.org/bkgds/holders/incas-positive.png";
       if(contentItem.fields.moduleImage) {
         if(contentItem.fields.moduleImage.cdnUrl) {
           contentItemImageUrl = BibblioTemplates.filterContentItemImageUrl(contentItem.fields.moduleImage.cdnUrl);
@@ -2385,7 +2457,7 @@ if (isNodeJS) {
           linkTarget: BibblioUtils.linkTargetFor(contentItemUrl),
           linkRel: BibblioUtils.linkRelFor(contentItemUrl),
           linkImageClass: (contentItemImageUrl ? 'bib__link--image' : ''),
-          linkImageStyle: (contentItemImageUrl ? 'style="background-image: url(' + "'"  + contentItemImageUrl + "'" + ')"' : ''),
+          linkImageUrl: (contentItemImageUrl ? contentItemImageUrl : ""),
           subtitleHTML: subtitleHTML,
           tileType: tileType
       };
