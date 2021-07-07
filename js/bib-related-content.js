@@ -404,7 +404,7 @@ if (isNodeJS) {
 
   // Bibblio module
   var Bibblio = {
-    moduleVersion: "4.24.0",
+    moduleVersion: "4.24.1",
     moduleTracking: {},
     isAmp: false,
     recommendationsLimit: 6,
@@ -1617,20 +1617,10 @@ if (isNodeJS) {
         setTimeout(onScrollPoll, 100);
       }
 
-      var onScrollEvent = function() {
-        BibblioUtils.showModuleImages(options);
-        document.removeEventListener('scroll', onScrollEvent, true);
-      }
-
       if(options.lazyLoad === false) {
         BibblioUtils.showModuleImages(options);
       }
       else {
-        // Catch all scroll events
-        if(document.addEventListener) {
-          document.addEventListener('scroll', onScrollEvent, true);
-        }
-
         // Poll scroll event for older browser
         onScrollPoll();
       }
