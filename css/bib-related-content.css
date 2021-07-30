@@ -149,19 +149,7 @@ a.bib__link:focus {
     background-repeat: no-repeat;
     background-position: center center;
     padding-top: 75%;
-    background-color: #F8F8F8;
-    background-image: -moz-linear-gradient(top, #F8F8F8 0%, #888888 100%);
-    background-image: -webkit-linear-gradient(top, #F8F8F8 0%,#888888 100%);
-    background-image: linear-gradient(to bottom, #F8F8F8 0%,#888888 100%);
-    filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#F8F8F8', endColorstr='#888888',GradientType=0 );
-}
-
-[class*="bib--split"] .bib__image--ratio {
     background-color: #EEEEEE;
-    background-image: -moz-linear-gradient(top, #EEEEEE 0%, #BBBBBB 100%);
-    background-image: -webkit-linear-gradient(top, #EEEEEE 0%,#BBBBBB 100%);
-    background-image: linear-gradient(to bottom, #EEEEEE 0%,#BBBBBB 100%);
-    filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#EEEEEE', endColorstr='#BBBBBB',GradientType=0 );
 }
 
 .bib--image-top .bib__image--ratio {
