@@ -404,7 +404,7 @@ if (isNodeJS) {
 
   // Bibblio module
   var Bibblio = {
-    moduleVersion: "4.24.1",
+    moduleVersion: "4.24.2",
     moduleTracking: {},
     isAmp: false,
     recommendationsLimit: 6,
@@ -1576,14 +1576,22 @@ if (isNodeJS) {
       return urlSegments.join("#");
     },
 
+    addClass: function(element, name) {
+      var arr = element.className.split(" ");
+      if (arr.indexOf(name) == -1) {
+        element.className += " " + name;
+      }
+    },
+
     showModuleImages: function(options) {
       var parentElement = options.targetElement || document;
-      parentElement.querySelectorAll('.bib__image').forEach(function(imageElement) {
-        var imageUrl = imageElement.getAttribute("data-defered-image");
+      parentElement.querySelectorAll('.bib__image--ratio').forEach(function(imageElement) {
+        var imageUrl = imageElement.getAttribute("data-deferred-image");
         if(imageUrl && !imageElement.style.backgroundImage) {
-          imageElement.removeAttribute("data-defered-image")
+          imageElement.removeAttribute("data-deferred-image")
           imageElement.style.backgroundImage = "url('"  + imageUrl + "')";
         }
+        BibblioUtils.addClass(imageElement, 'bib__image');
       });
     },
 
@@ -2265,8 +2273,8 @@ if (isNodeJS) {
                             <% recommendedContentItems %>\
                           </div>',
 
-    relatedContentItemTemplate: '<a href="<% linkHref %>" target="<% linkTarget %>" <% linkRel %> data="<% contentItemId %>" tile-type="<% tileType %>" class="bib__link <% linkImageClass %>">\
-                                    <span class="bib__image" data-defered-image="<% linkImageUrl %>" >\
+    relatedContentItemTemplate: '<a href="<% linkHref %>" target="<% linkTarget %>" <% linkRel %> data="<% contentItemId %>" tile-type="<% tileType %>" class="bib__link bib__link--image">\
+                                    <span class="bib__image--ratio" data-deferred-image="<% linkImageUrl %>" >\
                                     </span>\
                                     <span class="bib__info">\
                                         <span class="bib__title">\
@@ -2425,7 +2433,7 @@ if (isNodeJS) {
       var contentItemUrl = (contentItem.fields.url ? contentItem.fields.url : '');
 
       // Choose module image
-      var contentItemImageUrl = "https://images.bibblio.org/bkgds/holders/incas-positive.png";
+      var contentItemImageUrl = undefined;
       if(contentItem.fields.moduleImage) {
         if(contentItem.fields.moduleImage.cdnUrl) {
           contentItemImageUrl = BibblioTemplates.filterContentItemImageUrl(contentItem.fields.moduleImage.cdnUrl);
@@ -2446,7 +2454,6 @@ if (isNodeJS) {
           linkHref: BibblioUtils.linkHrefFor(contentItemUrl, options.queryStringParams),
           linkTarget: BibblioUtils.linkTargetFor(contentItemUrl),
           linkRel: BibblioUtils.linkRelFor(contentItemUrl),
-          linkImageClass: (contentItemImageUrl ? 'bib__link--image' : ''),
           linkImageUrl: (contentItemImageUrl ? contentItemImageUrl : ""),
           subtitleHTML: subtitleHTML,
           tileType: tileType
