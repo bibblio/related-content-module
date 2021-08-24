@@ -404,7 +404,7 @@ if (isNodeJS) {
 
   // Bibblio module
   var Bibblio = {
-    moduleVersion: "4.24.3",
+    moduleVersion: "4.24.4",
     moduleTracking: {},
     isAmp: false,
     recommendationsLimit: 6,

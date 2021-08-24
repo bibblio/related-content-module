@@ -1,161 +1,554 @@
 # Bibblio Related Content Module
 
-Display content recommendations quickly and easily with [Bibblio](http://bibblio.org)'s pre-built Related Content Module. [Sign up for a plan](https://developer.bibblio.org/signup?plan_ids=2357355848804) if you haven't already. You'll need to [get started with our API](http://developer.bibblio.org/docs) to use this module.
+Display content recommendations quickly and easily with [Bibblio](http://bibblio.org)'s pre-built Related Content Module (RCM). To get started you must [set up an account](https://www.bibblio.org/plans).
 
 ## Installing the assets
 
 ### CDN (recommended)
-The easiest way to use the module is via our CDN. Simply include the assets in your page as follows:
+The easiest way to use the module is via our CDN. Simply include the assets in your webpage as follows:
 
 ```html
 <head>
-    <!-- CSS -->.
-    <link rel="stylesheet" type="text/css" href="https://cdn.bibblio.org/rcm/4.24/bib-related-content.min.css">
+
+    <!-- CSS -->
+    <link rel="preload" type="text/css" href="https://cdn.bibblio.org/rcm/4.24/bib-related-content.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'"/>
 
     <!-- JavaScript -->
-    <script src="https://cdn.bibblio.org/rcm/4.24/bib-related-content.min.js"></script>
+    <script type="application/javascript" charset="UTF-8" src="https://cdn.bibblio.org/rcm/4.24/bib-related-content.min.js" defer></script>
+
 </head>
 ```
 
-If you would like to host the assets yourself they can be installed via [Bower](https://bower.io/#install-bower) and [npm](https://www.npmjs.com/get-npm).
+If you would like to host the assets yourself they can be installed via [Bower](https://bower.io/#install-bower) and [NPM](https://www.npmjs.com/get-npm).
 
 ### Bower
 The Bower package can be installed like this:
-```
+```shell
 bower install bibblio-related-content-module
 ```
 
-And included like this:
+And included on a webpage like this:
 ```html
 <head>
+
     <!-- CSS -->
-    <link rel="stylesheet" type="text/css" href="bower_components/bibblio-related-content-module/css/bib-related-content.css">
+    <link rel="preload" type="text/css" href="bower_components/bibblio-related-content-module/css/bib-related-content.css" as="style" onload="this.onload=null;this.rel='stylesheet'"/>
 
     <!-- JavaScript -->
-    <script src="bower_components/bibblio-related-content-module/js/bib-related-content.js"></script>
+    <script type="application/javascript" charset="UTF-8" src="bower_components/bibblio-related-content-module/js/bib-related-content.js" defer></script>
+
 </head>
 ```
 
 ### NPM
 The NPM package can be installed like this:
-```
+```shell
 npm install bibblio-related-content-module
 ```
 
-And included like this:
+And included on a webpage like this:
 ```html
 <head>
+
     <!-- CSS -->
-    <link rel="stylesheet" type="text/css" href="node_modules/bibblio-related-content-module/css/bib-related-content.css">
+    <link rel="preload" type="text/css" href="node_modules/bibblio-related-content-module/css/bib-related-content.css" as="style" onload="this.onload=null;this.rel='stylesheet'"/>
 
     <!-- JavaScript -->
-    <script src="node_modules/bibblio-related-content-module/js/bib-related-content.js"></script>
+    <script type="application/javascript" charset="UTF-8" src="node_modules/bibblio-related-content-module/js/bib-related-content.js" defer></script>
+
 </head>
 ```
 
-If using NPM you may also want to require the module with NodeJS:
+If using NodeJS you may also want to require the module like this:
 ```javascript
 var Bibblio = require("bibblio-related-content-module");
 ```
 
-## Using the module
+## Importing Content
+Once the JS & CSS assets are included, content can be imported to your Bibblio account.
 
-Once the assets are included, the module can be added to a page.
+To start importing, the `import` function needs to be executed. The `import` function should execute on any page you wish to import to your Bibblio account. Under normal circumstances the `import` function should be executed upon page load. However, given that there are different implementation constraints, Bibblio does not assume when the `import` function should be executed, therefore `import` is not executed on page load by default. Additionally, only one `import` function is required per page, regardless of how many modules you plan to display.
 
-This can be done by calling the JavaScript function provided:
-```javascript
-Bibblio.initRelatedContent(
-    {
-        targetElementId: 'bib_related-content',
-        recommendationKey: 'YOUR_RECOMMENDATION_KEY',
-        contentItemId: 'YOUR_CONTENT_ITEM_ID'
-    }, 
-    {
-        // optional callbacks
-    });
-```
-
-Typically this would be done on the `pageReady` event. Alternatively, the module can be initialised entirely as a div for convenience. This method does not support callbacks, but all other properties can be supplied as data attributes on the div, provided the div has a `bib--rcm-init` class. Bibblio uses this method to generate quick start snippets but if you're comfortable with JavaScript we would recommend using the function directly. See the React snippets further down the page for examples on div-based implementations.
-
-The initialisation function accepts two JavaScript objects as input.
-
-### Module Options - Required
-
-The first parameter supplies the options required to render the module to your specifications. It is a required parameter, must be a JavaScript object, and can contain the following properties:
-
-#### `'contentItemId'` _(required, unless customUniqueIdentifier is provided instead)_
-The Bibblio `contentItemId` of the content item being displayed. Content recommendations will be based on this Bibblio content item. The `contentItemId` is provided when [creating a content item](https://bibblio.docs.apiary.io/#reference/storing-data/content-items/create-a-content-item), and is retrievable when [listing your content items](https://bibblio.docs.apiary.io/#reference/storing-data/content-items/list-content-items).
-
-**NB**: You must provide either a `contentItemId` **or** a `customUniqueIdentifier`.
-
-#### `'customUniqueIdentifier'` _(required, if no contentItemId is provided)_
-It is possible to use your own id to retrieve recommendations, thereby avoiding the need to store Bibblio's `contentItemId` in your database. To do this, make sure you provide a `customUniqueIdentifier` when [creating a content item](https://bibblio.docs.apiary.io/#reference/storing-data/content-items/create-a-content-item). You can then specify the `customUniqueIdentifier` here, when retrieving recommendations.
-
-**NB**: You must provide either a `contentItemId` **or** a `customUniqueIdentifier`. A `customUniqueIdentifier` must be supplied if `autoIngestion` is enabled.
-
-#### `'recommendationKey'` _(required)_
-Allows you to safely connect to the Bibblio API from a page visitor's browser. The recommendation key can be obtained from [our API](https://bibblio.docs.apiary.io/#reference/authorization/recommendation-keys/list-recommendation-keys) or [your management console](https://developer.bibblio.org/admin/account) (click on the _Credentials_ page and then select _Manage my keys_).
-
-#### `'targetElementId'` _(required)_
-The DOM id of an HTML element you'd like to initialise as a related content panel. For example, this parameter could be 'yourRelatedContentModuleDiv', provided the following element exists on the page:
+###### Example: Initiate a request to Bibblio’s [URL ingestion endpoint](https://bibblio.docs.apiary.io/#reference/storing-data/content-items/create-a-url-ingestion), on page load, using custom catalogue and content item ids.
 ```html
-<div id="yourRelatedContentModuleDiv"></div>
+<script type="application/javascript" charset="UTF-8">
+
+    window.addEventListener("load", function() {
+        Bibblio.import({
+            recommendationKey: "YOUR_RECOMMENDATION_KEY",
+            autoIngestionCustomCatalogueId: "YOUR_CUSTOM_CATALOGUE_ID",
+            customUniqueIdentifier: "YOUR_CUSTOM_UNIQUE_IDENTIFIER"
+        });
+    });
+
+</script>
 ```
 
-### Module Options - Optional
+### Options Fields
+The `options` object is the first and only parameter supplied to the `import` function. It is used to tailor the page ingestion to your specifications. It is a required parameter, must be a JavaScript object, and can contain the following properties:
 
-The first parameter supplies the options required to render the module to your specifications. It is a required parameter, must be a JavaScript object, and can contain the following properties:
+#### Required
 
-#### `'autoIngestion'` _(optional)_
-The Related Content Module is able to ingest content automatically. If the item does not exist and `autoIngestion` is set to `true`, the module will request that our servers retrieve the page and parse a content item from it. This saves you the trouble of integrating with Bibblio on your backend systems, at the cost of a more complex set of interations and less control when creating content items. When `autoIngestion` is enabled, a `customUniqueIdentifier` must be supplied, the item will be ingested the first time it is viewed in a browser, the domain from which it originates must be [whitelisted](https://bibblio.docs.apiary.io/#reference/related-content-module/auto-ingestion-domains), and future updates to item text will not be recognised. If you require more thorough integration with your backend systems then it would be best to [integrate with the API directly](https://bibblio.docs.apiary.io/#reference/storing-data/content-items/create-a-content-item) instead.
+#### `recommendationKey` _(required)_
+Safely connect to the Bibblio API from a page visitor's browser using a recommendation key. This can be [obtained from our API](https://bibblio.docs.apiary.io/#reference/authorization/recommendation-keys/list-recommendation-keys) or [your management console](https://developer.bibblio.org/admin/account) (click on the _Credentials_ page and then select _Manage my keys_).
 
-#### `'autoIngestionCatalogueId'` _(optional)_
-When auto-ingesting, this property allows you to specify the catalogueId that a content item should be assigned to. This will only take effect on initial ingestion. Module loads subsequent to ingestion will disregard this property. Cannot be supplied if `autoIngestionCustomCatalogueId` is present.
+###### Example: Safely connect to the Bibblio API using your recommendation key.
+```javascript
+{
+    recommendationKey: "YOUR_RECOMMENDATION_KEY"
+}
+```
 
-#### `'autoIngestionCustomCatalogueId'` _(optional)_
-This property allows you to specify your own label to identify the catalogue that a content item should be assigned to when auto-ingesting, much like `customUniqueIdentifier` above. The specified catalogue will be created if it does not exist. Thereafter it will be reused. Catalogue assignment will only take effect on initial ingestion; module loads subsequent to ingestion will disregard this property. Cannot be supplied if `autoIngestionCatalogueId` is present.
+#### Optional
 
-#### `'catalogueIds'` _(optional)_
-The [catalogues](https://bibblio.docs.apiary.io/#reference/storing-data/catalogues) that recommendations should draw from. The `catalogueId` of [any catalogues you own](https://bibblio.docs.apiary.io/#reference/storing-data/catalogues/list-catalogues) would be valid. Accepts an array of strings. Default is the same catalogue as the source content item specified. Cannot be supplied if customCatalogueIds is present.
+#### `autoIngestionCatalogueId` _(optional)_
+When auto-ingesting, this property allows you to specify the catalogueId to which a content item should be assigned. This will only take effect on initial ingestion. Imports subsequent to ingestion will disregard this property. It cannot be supplied if `autoIngestionCustomCatalogueId` is present.
 
-#### `'customCatalogueIds'` _(optional)_
-The `customCatalogueId`s that a recommendation should draw from. This allows you to retrieve recommendations for a particular [catalogue](https://bibblio.docs.apiary.io/#reference/storing-data/catalogues) without having to store a Bibblio `catalogueId` (see `autoIngestionCustomCatalogueId` above). Accepts an array of strings. Default is the same catalogue as the source content item specified. Cannot be supplied if `catalogueIds` is present.
+###### Example: Ingesting to a specific catalogue by id.
+```javascript
+{
+    autoIngestionCatalogueId: "YOUR_CATALOGUE_ID"
+}
+```
 
-#### `'hidden'` _(optional)_
-Allows you to perform a full integration without visually displaying the module. This is useful for testing and during initial auto-ingestion, before items have been indexed for the first time. Entering `Bibblio.showModules();` in the developer console will show all hidden modules on the page. Default is `false`.
+#### `autoIngestionCustomCatalogueId` _(optional)_
+Specify your own label to identify the catalogue that a content item should be assigned to when auto-ingesting. The specified catalogue will be created if it does not exist. Thereafter it will be reused. Catalogue assignment will only take effect on initial ingestion; imports subsequent to ingestion will disregard this property. It cannot be supplied if `autoIngestionCatalogueId` is present.
 
-#### `'lazyLoad'` _(optional)_
-By default, all modules will load their images the moment a user starts scrolling the page (unless the module is already visible on page load, whereupon it will load its images immediately, without listening for an interaction). This lazy loading feature can be disabled by setting this parameter to `false`.
+###### Example: Ingesting to a specific catalogue by custom id.
+```javascript
+{
+    autoIngestionCustomCatalogueId: "YOUR_CUSTOM_CATALOGUE_ID"
+}
+```
 
-#### `'offset'` _(optional)_
-Allows you to offset the recommendations list before rendering, thereby skipping a specified number of items. This is useful if you'd like to put multiple modules using the same recommendation type on the page without displaying duplicate items. Simply offset the second module by the number of items displayed in the first. The supplied value must be an integer between `1` and `14`.
+#### `autoIngestionUrl` _(optional)_
+Specify which URL should be used for page scraping, as well as determine the URL property of a content item. This can be useful if the import function is added to a page where the canonical value links to an external domain. In this case, the canonical value will still be used as a `customUniqueIdentifier`.
 
-#### `'queryStringParams'` _(optional)_
-Allows you to append additional query string params to the target url of recommended items. This is particularly useful for specifying analytics params such as _utm_source_. The value should be a JavaScript object. Each property will be added as a param to the url. e.g. `{ "utm_source" : "BibblioRCM", "utm_campaign" : "SiteFooter" }` would append `utm_source=BibblioRCM&utm_campaign=SiteFooter` to the url of all recommended items.
+###### Example: Ingesting to a specific catalogue by custom id.
+```javascript
+{
+    autoIngestionUrl: "YOUR_URL_FOR_PAGE_SCRAPING"
+}
+```
 
-#### `'recommendationType'` _(optional)_
-Allows you to specify the type of recommendations to serve. Options are 'optimised', 'related', 'popular' or 'personalised'. _Optimised_ recommendations are rooted in relevance but will also learn from user behaviour and continuously adapt to attain better engagement. _Related_ recommendations ignore user behaviour and are based purely on relatedness. _Popular_ recommendations ignore relatedness and are based purely on aggregated user behaviour. _Personalised_ recommendations are tailored to a specific user. We suggest starting with _optimised_ recommendations and adding _personalised_, _related_ or _popular_ modules elsewhere on the page to fit the site experience you desire. Default is 'optimised'.
+#### `customUniqueIdentifier` _(optional)_
+It is possible to use your own identifier when creating a content item. If not supplied, Bibblio will default to the canonical value of a page to assign a customUniqueIdentifier to a content item.
 
-#### `'styleClasses'` _(optional)_
-Allows you select pre-built CSS styles for the module. An interactive configuration wizard that generates these parameters is available in the Demos section of your Bibblio management console. If you plan to place the module on an area of your page that has a dark background color you can append 'bib--invert' to your parameters to be sure everything remains legible. If most of your content item images are portrait sized, consider appending 'bib--portrait' to your parameters to ensure the images resize nicely in the tiles.
+###### Example: Using your own identifier when creating a content item.
+```javascript
+{
+    customUniqueIdentifier: "YOUR_CUSTOM_UNIQUE_IDENTIFIER"
+}
+```
 
-#### `'subtitleField'` _(optional)_
-Allows you to specify the content item field to use as subtitles on the recommended content panel. Any [valid content item field](https://bibblio.docs.apiary.io/#reference/storing-data/content-items/retrieve-a-content-item) can be used. Providing a value of _false_ will disable the subtitle. Default is '_headline_'.
+## Displaying Recommendations
 
-#### `'truncateTitle'` _(optional)_
-Allows you to specify a character length for truncating recommended titles. If this field is omitted we will automatically truncate titles to fit the style configuration you have specified with `styleClasses`.
+Once the JS & CSS assets are included and content items have been imported, the display module can be added to your page(s).
 
-#### `'userId'` _(optional)_
-Your own, unique id for the current site visitor. This allows us to compute personalised recommendations. This can be supplied for any `recommendationType` to generate additional training data for our personalisation algorithms. Please do not provide any personally identifiable information for this field.
+To display recommendation, the `init` function needs to be executed. The `init` function accepts an array of JavaScript objects as input. When displaying recommendations the `type` field should be set to `rcm`. In this example, only one module is required, so a single Javascript object sits within the array, however it is possible to supply multiple objects to initialize more than one module.
 
-#### `'userMetadata'` _(optional)_
-Allows you to supply additional properties pertaining to the user specified by `userId`. This will be taken into account when training algorithms that produce personalised recommendations. Value should be a JSON object and can contain any keys. We would advise being sparing with this data and only including things that are specific to your user and pertinent to your domain. This could include the user's occupation or their field of interest. Cannot be supplied if `userId` is not present.
+###### Example A: Initializing one related content module.
+```html
+<div id="bib--rcm-element"></div>
 
-### Callbacks
+<script type="application/javascript" charset="UTF-8">
 
-The second parameter to the initialisation function is optional. It allows you to supply various callbacks to inject your own functionality in the render chain. If supplied, it must be a JavaScript object, must supply functions, and can contain the following properties:
+    window.addEventListener("load", function() {
+        Bibblio.init([{
+            type: "rcm",
+            options: {
+                targetElementId: "bib--rcm-element",
+                recommendationKey: "YOUR_RECOMMENDATION_KEY",
+                customUniqueIdentifier: "YOUR_CUSTOM_UNIQUE_ID",
+                customCatalogueIds: ["YOUR_CUSTOM_CATALOGUE_ID"],
+                recommendationType: "related",
+                styleClasses: "bib--box-5 bib--square bib--font-georgia bib--author-show"
+            },
+            callbacks: {
+                onRecommendationsRendered: function (recommendedItems) {
+                    console.log(recommendedItems);
+                },
+                onRecommendationViewed: function (viewedTrackingData) {
+                    console.log(viewedTrackingData);
+                }
+            }
+        }]);
+    });
 
-#### `'onRecommendationsRendered'` _(optional)_
+</script>
+```
+
+###### Example B: Initializing two related content modules.
+```html
+<div id="bib--rcm-element-one"></div>
+
+<div id="bib--rcm-element-two"></div>
+
+<script type="application/javascript" charset="UTF-8">
+
+    window.addEventListener("load", function() {
+        Bibblio.init([
+            {
+                type: "rcm",
+                options: {
+                    targetElementId: "bib--rcm-element-one",
+                    recommendationKey: "YOUR_RECOMMENDATION_KEY",
+                    recommendationType: "popular",
+                    styleClasses: "bib--row-3 bib--split bib--recency-show",
+                    subtitleField: "description",
+                    dateFormat: "DMY"
+                },
+                callbacks: {
+                    onRecommendationClick: function (clickedItem, clickEvent) {
+                        console.log(clickedItem);
+                        console.log(clickEvent);
+                    }
+                }
+            },
+            {
+                type: "rcm",
+                options: {
+                    targetElementId: "bib--rcm-element-two",
+                    recommendationKey: "YOUR_RECOMMENDATION_KEY",
+                    customUniqueIdentifier: "YOUR_CUSTOM_UNIQUE_ID",
+                    recommendationType: "personalised",
+                    customCatalogueIds: ["YOUR_CUSTOM_CATALOGUE_ID"],
+                    styleClasses: "bib--grd-6 bib--tall bib--image-only bib--shine",
+                    userId: "INSERT_USER_ID",
+                    userMetadata: {
+                        occupation: "Nurse",
+                        location: "England"
+                    },
+                    queryStringParams: {
+                        itm_source: "Bibblio",
+                        itm_medium: "sidebar_widget"
+                    }
+                }
+            }
+        ]);
+    });
+
+</script>
+```
+
+### Options Field
+The `options` field is used to tailor the module to your specifications. It is required, must be a JavaScript object, and can contain the following properties:
+
+#### Required
+
+#### `recommendationKey` _(required)_
+Safely connect to the Bibblio API from a page visitor's browser using a recommendation key. This can be [obtained from our API](https://bibblio.docs.apiary.io/#reference/authorization/recommendation-keys/list-recommendation-keys) or [your management console](https://developer.bibblio.org/admin/account) (click on the _Credentials_ page and then select _Manage my keys_).
+
+###### Example: Safely connect to the Bibblio API using your recommendation key.
+```javascript
+{
+    recommendationKey: "YOUR_RECOMMENDATION_KEY"
+}
+```
+
+#### `targetElementId` _(required)_
+The DOM id of an HTML element you'd like to initialize as a related content module. (Nb. This will delete any pre-existing content in that element, replacing it solely with the module.) For example, this parameter could have the value `bib--rcm-element`, provided the following element exists on the page:
+
+###### Example: Initialize the related content module in a div with an id of `bib-rcm-element`.
+```html
+<div id="bib--rcm-element"></div>
+```
+#### Optional
+
+#### `contentItemId` _(optional)_
+The Bibblio `contentItemId` of the content item being displayed. Content recommendations will be based on this Bibblio content item. The `contentItemId` is provided after [creating a content item](https://bibblio.docs.apiary.io/#reference/storing-data/content-items/create-a-content-item), and is retrievable when [listing your content items](https://bibblio.docs.apiary.io/#reference/storing-data/content-items/list-content-items).
+
+###### Example: Retrieve recommendations using the Bibblio content identifier.
+```javascript
+{
+    contentItemId: "THE_BIBBLIO_CONTENT_ITEM_IDENTIFIER"
+}
+```
+
+#### `customUniqueIdentifier` _(optional)_
+It is possible to use your own id to retrieve recommendations. To do this, make sure you provide a `customUniqueIdentifier` when [creating a content item](https://bibblio.docs.apiary.io/#reference/storing-data/content-items/create-a-content-item). You can then specify the `customUniqueIdentifier` here, when retrieving recommendations.
+
+**Nb**: It is advisable to provide either a `contentItemId` **or** a `customUniqueIdentifier`. If neither is provided the module will attempt to retrieve recommendations using the canonical value of the page it has loaded on. This could result in no recommendations being retrieved if the canonical is not present or altered.
+
+###### Example: Retrieve recommendations using your own content identifier.
+```javascript
+{
+    customUniqueIdentifier: "YOUR_CUSTOM_UNIQUE_IDENTIFIER"
+}
+```
+
+#### `catalogueIds` _(optional)_
+The [catalogues](https://bibblio.docs.apiary.io/#reference/storing-data/catalogues) that recommendations should be retrieved from. The `catalogueId` of [any catalogues you own](https://bibblio.docs.apiary.io/#reference/storing-data/catalogues/list-catalogues) would be valid. Accepts an array of strings. If not supplied, the default is the same catalogue as the source content item specified upon ingestion. It cannot be supplied if customCatalogueIds is present.
+
+###### Example A: Retrieve recommendations from one catalogue.
+```javascript
+{
+    catalogueIds: ["YOUR_CATALOGUE_ID"]
+}
+```
+
+###### Example B: Retrieve recommendations from two catalogues.
+```javascript
+{
+    catalogueIds: ["YOUR_CATALOGUE_ID_1", "YOUR_CATALOGUE_ID_2"]
+}
+```
+
+#### `customCatalogueIds` _(optional)_
+The `customCatalogueIds` that a recommendation should be retrieved from. This allows you to retrieve recommendations for a particular [catalogue](https://bibblio.docs.apiary.io/#reference/storing-data/catalogues) without having to store a Bibblio `catalogueId` (see `autoIngestionCustomCatalogueId` above). Accepts an array of strings. If not supplied, the default is the same catalogue as the source content item specified. It cannot be supplied if `catalogueIds` is present.
+
+###### Example A: Retrieve recommendations from one catalogue.
+```javascript
+{
+    customCatalogueIds: ["YOUR_CUSTOM_CATALOGUE_ID"]
+}
+```
+
+###### Example B: Retrieve recommendations from two catalogues.
+```javascript
+{
+    customCatalogueIds: ["YOUR_CUSTOM_CATALOGUE_ID_1", "YOUR_CUSTOM_CATALOGUE_ID_2"]
+}
+```
+
+#### `autoIngestion` _(optional)_
+The Related Content Module is able to ingest content automatically. If the item does not exist and `autoIngestion` is set to `true`, the module will request that Bibblio's servers retrieve the page and parse a content item from it. This saves you the trouble of integrating with Bibblio on your backend systems, at the cost of a more complex set of interations and less control when creating content items. When `autoIngestion` is enabled, a `customUniqueIdentifier` can be supplied, otherwise the module will assign its own custom unique identifier value to the page using the canonical value.
+
+The item will be ingested the first time it is viewed in a browser. The domain from which it originates must be [whitelisted](https://bibblio.docs.apiary.io/#reference/storing-data/content-items/whitelist-a-domain-for-url-ingestion), and future updates to the page text or image will not be recognized or auto-ingested. If you require more thorough integration with your backend systems then it would be best to [integrate with the API directly](https://bibblio.docs.apiary.io/#reference/storing-data) instead.
+
+###### Example: Have the content automatically ingested if it doesn't exist in Bibblio.
+```javascript
+{
+    autoIngestion: true
+}
+```
+
+#### `hidden` _(optional)_
+This lets you perform a full integration without visually displaying the module. This is useful for testing display on a live environment without disrupting the user experience. Entering `Bibblio.showModules();` in the developer console will show all hidden modules on the page. The default is `false`.
+
+More nuanced, device-specific show-and-hide capabilities for displaying modules are available using the Hide add-on. See the Add-ons section below for more.
+
+###### Example: Don't render the recommendations upon module load.
+```javascript
+{
+    hidden: true
+}
+```
+
+#### `offset` _(optional)_
+Offset the recommendations list before rendering, thereby skipping a specified number of items. This is useful if you'd like to put multiple modules using the same recommendation type on the page without displaying duplicate items. Simply offset the second module by the number of items displayed in the first. The supplied value must be an integer between `1` and `14`.
+
+###### Example: Skip 2 recommendations and start from the 3rd in the list.
+```javascript
+{
+    offset: 2
+}
+```
+
+#### `queryStringParams` _(optional)_
+Append additional query string parameters to the target URL of recommended items. This is particularly useful for specifying analytics parameters such as `utm_source`. The value should be a JavaScript object. Each property will be added as a parameter to the URL.
+
+###### Example: Append `utm_source=BibblioRCM&utm_campaign=SiteFooter` to the URL of all recommended items.
+```javascript
+{
+    utm_source: "BibblioRCM",
+    utm_campaign: "SiteFooter"
+}
+```
+
+#### `recommendationType` _(optional)_
+Specify the type of recommendations to serve. The types are:
+
+`related` - Recommendations ignore user behaviour and are based purely on relatedness. Requires the `contentItemId` or `customUniqueIdentifier` fields.
+
+`optimised` - Recommendations are rooted in relevance but will also learn from user behaviour and continuously adapt to attain better engagement. Requires the `contentItemId` or `customUniqueIdentifier` fields.
+
+`popular` - Recommendations ignore relatedness and are based purely on aggregated user behaviour. Doesn't require the `contentItemId` or `customUniqueIdentifier` fields.
+
+`personalised` - Recommendations are tailored to a specific user. Requires the `userId` field. Doesn't require the `contentItemId` or `customUniqueIdentifier` fields.
+
+It is best to start with `related` recommendations, then add `optimised`, `popular` or `personalised` modules elsewhere on the page to fit the site experience you desire. If `recommendationType` is not supplied, the module will default to `optimised` which will fall back to `related` if no optimised recommendations are available.
+
+###### Example A: Retrieve related recommendations.
+```javascript
+{
+    recommendationType: "related",
+    contentItemId: "YOUR_CONTENT_ITEM_ID"
+}
+```
+
+###### Example B: Retrieve optimised recommendations.
+```javascript
+{
+    recommendationType: "optimised",
+    contentItemId: "YOUR_CONTENT_ITEM_ID"
+}
+```
+
+###### Example C: Retrieve popular recommendations.
+```javascript
+{
+    recommendationType: "popular"
+}
+```
+
+###### Example D: Retrieve personalised recommendations.
+```javascript
+{
+    recommendationType: "personalised",
+    userId: "YOUR_SPECIFIC_USER_ID"
+}
+```
+
+#### `corpusType` _(optional)_
+By specifying `syndicated` as the corpusType, you could retrieve optimised recommendations across several [catalogues](https://bibblio.docs.apiary.io/#reference/storing-data/catalogues) from different Bibblio accounts. Syndication requires some setup on Bibblio's part. Please get in touch if you'd like to share traffic directly with other publishers or your own network of sites.
+
+###### Example: Retrieve syndicated recommendations (requires some setup on Bibblio's part).
+```javascript
+{
+    corpusType: "syndicated"
+}
+```
+
+#### `styleClasses` _(optional)_
+Select pre-defined CSS classes that govern the layout, features and interactivity of the Related Content Module. The classes cover everything from the module's tile arrangement, image ratio and text formatting, to the metadata display and mouse interaction effects. A full list of available classes can be found in the [CSS directory's readme](https://github.com/bibblio/related-content-module/blob/master/css/README.md).
+
+###### Example A: Simple Related Article Module. A row of three recommendation tiles, with the title beneath the featured images (each image is a 4:3 ratio by default), displaying the dates published.
+```javascript
+{
+    styleClasses: "bib--row-3 bib--split bib--recency-show"
+}
+```
+
+###### Example B: Content Showcase Module. Two rows of recommendation tiles (two above, three below), each in a square ratio (1:1), with titles overlaid in the Georgia system font, displaying the content authors.
+```javascript
+{
+    styleClasses: "bib--box-5 bib--square bib--font-georgia bib--author-show"
+}
+```
+
+###### Example C: Book Cover Display Module. A grid of six recommendation tiles (three above, three below), each in a tall (2:3) ratio, displaying the image only until a pointer hover reveals the title and a shine effect.
+```javascript
+{
+    styleClasses: "bib--grd-6 bib--tall bib--image-only bib--shine"
+}
+```
+
+#### `subtitleField` _(optional)_
+Specify the content item field you want to use to populate the description value of each recommendation item. This description will be revealed when a pointer hovers over a module tile and the class `bib__hover` has been added to `styleClasses`. Any [valid content item field](https://bibblio.docs.apiary.io/#reference/storing-data/content-items/retrieve-a-content-item) can be used. Nested fields are accessed using a period symbol. Providing a value of `false` will disable the subtitle. The default is `headline`.
+
+###### Example A: Use a top level field for the subtitle.
+```javascript
+{
+    subtitleField: "description"
+}
+```
+
+###### Example B: Use a nested field for the subtitle.
+```javascript
+{
+    subtitleField: "author.name"
+}
+```
+
+###### Example C: Disable the subtitle.
+```javascript
+{
+    subtitleField: false
+}
+```
+
+#### `truncateTitle` _(optional)_
+Set a character length for truncating the titles of recommendations. The minimum value is `1` and maximum is `100`. If this field is omitted, the titles are automatically truncated for best fit, based on the module tile arrangement and image ratio, if any, you have specified via `styleClasses`.
+
+###### Example: Truncate the recommendation titles to 20 characters.
+```javascript
+{
+    truncateTitle: 20
+}
+```
+
+#### `dateFormat` _(optional)_
+Change the format of the content items' published date when being displayed on the Related Content Module. `DMY` will display the date as `3 July 2021`, `MDY` as `July 3, 2021` and `YMD` as `2021 July 3`. The default is `DMY`.
+
+###### Example: Format the content items' published date.
+```javascript
+{
+    dateFormat: "DMY"
+}
+```
+
+#### `placeholders` _(optional)_
+Replace module tiles with empty placeholder HTML elements at predefined locations. `placeholders` accepts an array of integer values between `1` and `6` so that, for example, `[2,4]` will render two empty placeholder elements in the _second_ and _fourth_ tile positions. When rendered, these empty placeholder HTML elements have a distinct CSS class of `bib__placeholder` that can be used as a lookup when dynamically injecting ad slots or other content in-between recommendations. You can also replace module tiles with populated placeholder HTML elements at predefined locations by supplying the `placeholders` parameter with a Javascript object. This object needs one or more keys, each being integer values between `1` and `6`, which describe the placeholder positions, and each key being assigned a Javascript object with the following fields, `title`, `url`, `author`, `description`, `moduleImage`,`date`. When using the JSON version `title` and `url` are required fields.
+
+###### Example A: Provision two blank placeholder elements in the second and fourth tile positions
+```javascript
+{
+    placeholders: [2,4]
+}
+```
+
+###### Example B: Provision two populated placeholder elements in the first and third tile positions.
+```javascript
+{
+    placeholders: {
+        1: {
+                title: "Click me!",
+                url: "https://click.me/to/go/somewhere",
+                author: "F. Realz",
+                description: "You should really click this.",
+                moduleImage: "https://www.example.com/people-happily-clicking.jpg", date: "Today"
+            },
+        3:  {
+                title: "And me!",
+                url: "https://click.me/to/go/elsewhere",
+                description: "Click me too please.",
+                moduleImage: "https://www.example.com/happy-face.jpg",
+                date: "Yesterday"
+            }
+    }
+}
+```
+
+#### `userId` _(optional)_
+Your own unique id for the current site visitor. This allows Bibblio to compute personalized recommendations. This can be supplied for any `recommendationType` to generate additional training data for Bibblio's personalization algorithms. Please do not provide any personally identifiable information for this field.
+
+###### Example: Provide a user id.
+```javascript
+{
+    userId: "YOUR_SPECIFIC_USER_ID"
+}
+```
+
+#### `userMetadata` _(optional)_
+Allows you to supply additional properties pertaining to the user specified by `userId`. This will be taken into account when training algorithms that produce personalized recommendations. The value should be a Javascript object and can contain any keys. Be sparing with this data and only include things that are specific to your user and pertinent to your domain. This could include the user's occupation or their field of interest. This cannot be supplied if `userId` is not present.
+
+###### Example: Provide user specific metadata.
+```javascript
+{
+    userMetadata: {
+        occupation: "Nurse",
+        location: "England"
+    }
+}
+```
+
+#### `lazyload` _(optional)_
+By default, all modules will load their images the moment a user starts scrolling the page, unless the module is already visible on page load, whereupon it will load its images immediately, without listening for an interaction. This lazy loading feature can be disabled by setting this parameter to `false`.
+
+###### Example: Disable lazy loading.
+```javascript
+{
+    lazyLoad: false
+}
+```
+
+### Callbacks Field
+The `callbacks` field is optional. It allows you to supply your own functionality in the render chain. If supplied, it must be a JavaScript object, must specify only the following callback hooks, and each hook must be a Javascript function:
+
+#### Optional
+
+#### `onRecommendationsRendered` _(optional)_
 The supplied function will be called once the module has rendered recommendations. This can be useful for toggling any visual elements that should only be displayed when recommendations have rendered successfully. An array of recommendations returned by Bibblio's API will be passed to this function.
 ```javascript
 {
@@ -165,7 +558,7 @@ The supplied function will be called once the module has rendered recommendation
 }
 ```
 
-#### `'onRecommendationViewed'` _(optional)_
+#### `onRecommendationViewed` _(optional)_
 The supplied function will be called when the module has scrolled into view. A JavaScript object containing Bibblio's tracking data for the view event will be passed to this function.
 ```javascript
 {
@@ -175,8 +568,8 @@ The supplied function will be called when the module has scrolled into view. A J
 }
 ```
 
-#### `'onRecommendationClick'` _(optional)_
-The supplied function will be called when a specific recommendation is clicked. This function will receive two parameters. The first parameter will be the specific recommendation that was clicked, in the format it was supplied by Bibblio's API. The second parameter will be the DOM click event itself.
+#### `onRecommendationClick` _(optional)_
+The supplied function will be called when a specific recommendation is clicked. This function will receive two parameters. The first parameter will be the specific recommendation that was clicked, and the second parameter will be the DOM click event itself.
 ```javascript
 {
   onRecommendationClick: function (clickedItem, clickEvent) {
@@ -186,200 +579,150 @@ The supplied function will be called when a specific recommendation is clicked. 
 }
 ```
 
-## Tracking data
+## Add-ons
+The functionality of Bibblio's Related Content Module can be extended by using add-ons. These can include different layouts or display controls, allowing added flexibility when implementing modules. The add-ons are declared within HTML elements that wrap the RCM's element, and can contain parameters to further customize them. No additional JavaScript or CSS is required to enable an add-on.
 
-The module will automatically submit user interaction data. By default all interaction data is completely anonymous. You are, however, able to provide an optional userId when the module is initialised, which will allow us to personalize recommendations for the requested user.
+### Hide Add-on
+This add-on can stop an RCM rendering on either desktop and tablet or mobile. This is useful if you would like to show a certain module layout on desktop but use another layout on mobile that better fits the screen shape. Hiding an RCM means it does not render in your page DOM, which ensures no API calls or tracked events are made, keeping your usage and activity data clean.
 
-Here is a sample of the tracking data submitted from within the Related Content Module:
-```javascript
-{ "type": "Clicked",
-  "object": [["contentItemId", "123"]],
-  "context": [
-    ["sourceContentItemId", "012"],
-    ["sourceHref", "https://example.com/the/page/url"],
-    ["recommendations.contentItemId", "456"],
-    ["recommendations.contentItemId", "789"],
-    ["recommendations.contentItemId", "101"],
-    ["recommendations.contentItemId", "123"]],
-  "instrument": {
-    "type": "BibblioRelatedContent",
-    "version": "1.1.0",
-    "config": {'styleClasses': 'bib--row-3 bib--hover bib--recency-show'}}
-  "actor": {
-    "userId": "42"}} // optional
-```
+Wrap your module's HTML element in a new element with an id of your choosing, such as `bib--hide-element`. Within the `init` function, add a JavaScript object with the `type` field set to `hide`. The `options` field must contain a `targetElementId`, the value of which must match the id of your wrapping element. Within `options`, to hide an RCM on mobile devices so that it only displays on desktop and tablets, use `hidden: ‘mobile’`. Conversely, to hide an RCM on desktop and tablet devices so that it only displays on mobile, use `hidden: ‘web’`. To hide an RCM on all device types, omit the `hidden` key from `options` altogether.
 
-## HTML Example
-
-The following snippet shows the initialisation of a related content module. You will need to replace `YOUR_RECOMMENDATION_KEY`, and `YOUR_CONTENT_ITEM_ID` with [a recommendation key](https://bibblio.docs.apiary.io/#reference/authorization/recommendation-keys/list-recommendation-keys) and the `contentItemId` returned when [creating a content item](https://bibblio.docs.apiary.io/#reference/storing-data/content-items/create-a-content-item) or [listing your content items](https://bibblio.docs.apiary.io/#reference/storing-data/content-items/list-content-items). If a `customUniqueIdentifier` has been stored then this can be supplied instead of `contentItemId`.
-
+###### Example: Hiding the related content module on mobile browsers.
 ```html
-<head>
-    <meta charset="utf-8">
-    <title>Bibblio Related Content Example</title>
-    <meta name="description" content="Bibblio Related Content Example">
-    <meta name="Bibblio" content="SitePoint">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link rel="canonical" href="http://example.com/bibblio/sample-content-item" />
-    <!-- * Related Content Styles -->
-    <link rel="stylesheet" type="text/css" href="https://cdn.bibblio.org/rcm/4.24/bib-related-content.min.css">
-</head>
+<div id="bib--hide-element">
+  <div id="bib--rcm-element"></div>
+</div>
 
-<!-- * Related Content HTML -->
-<!-- Provide an enclosing element with an id. Position and size it as you wish. -->
-<div id="bib_related-content"></div>
+<script type="application/javascript" charset="UTF-8">
 
-<!-- * Related Content Javascript -->
-<script src="https://cdn.bibblio.org/rcm/4.24/bib-related-content.min.js"></script>
-<script>
-    // Initialise the related content plugin.
     window.addEventListener("load", function() {
-        Bibblio.initRelatedContent({
-            targetElementId: 'bib_related-content',
-            contentItemId: 'YOUR_CONTENT_ITEM_ID',
-            // customUniqueIdentifier: `YOUR_CUSTOM_UNIQUE_IDENTIFIER`,
-            recommendationKey: 'YOUR_RECOMMENDATION_KEY'
-        }, 
-        {
-            onRecommendationsRendered: function (recommendedItems) {
-                console.log(recommendedItems);
+        Bibblio.init([
+            {
+                type: "rcm",
+                options: {
+                    targetElementId: "bib--rcm-element",
+                    recommendationKey: "YOUR_RECOMMENDATION_KEY"
+                }
             },
-            onRecommendationViewed: function (viewedTrackingData) {
-                console.log(viewedTrackingData); 
-            },
-            onRecommendationClick: function (clickedItem, clickEvent) {
-                console.log(clickedItem);
-                console.log(clickEvent); 
+            {
+                type: "hide",
+                options: {
+                    targetElementId: "bib--hide-element",
+                    hidden: "mobile"
+                }
             }
-        });
+        ]);
     });
+
 </script>
 ```
 
-## React Example
+### Takeover Add-on
+Related Content Modules can be rendered within a takeover panel. This panel slides into view when a tab, attached to the side of the viewport, is tapped. One or more modules can be revealed inside the panel. A takeover panel is helpful when displaying recommendations on a page with limited available space, or for rendering on smaller screen sizes.
 
-The following snippets illustrate various ways of implementing the Related Content Module in React. First, include the assets in your project's `index.html` file.
+Wrap your module's HTML element in a new element with an id of your choosing, such as `bib--takeover-element`. Within the `init` function, add a JavaScript object with the `type` field set to `takeover`. The `options` field must contain a `targetElementId`, the value of which must match the id of your wrapping element. The tab's label can be changed using `tabText` within `options`. The default label reads "Related articles".
 
+###### Example: Placing the related content module within a takeover panel.
 ```html
-<head>
-    <!-- CSS -->.
-    <link rel="stylesheet" type="text/css" href="https://cdn.bibblio.org/rcm/4.24/bib-related-content.min.css">
+<div id="bib--takeover-element">
+  <div id="bib--rcm-element"></div>
+</div>
 
-    <!-- JavaScript -->
-    <script src="https://cdn.bibblio.org/rcm/4.24/bib-related-content.min.js"></script>
-</head>
-```
+<script type="application/javascript" charset="UTF-8">
 
-You then have several strategies for registering the module with React...
-
-#### 1) React component as a function
-
-```javascript
-import React from 'react';
-
-function RelatedContentModule(props) {
-  return (
-    <div className="bib--rcm-init"
-      data-recommendation-key="YOUR_RECOMMENDATION_KEY"
-      // data-content-item-id={props.contentItemId}
-      data-custom-unique-identifier={props.contentItemId}
-      data-recommendation-type="related"
-      data-style-classes="bib--hover bib--col-3">
-    </div>
-  )
-}
-
-export default RelatedContentModule;
-```
-
-#### 2) React component as a class
-
-```javascript
-import React from 'react';
-
-class RelatedContentModule extends React.Component {
-  render() {
-    return (
-      <div className="bib--rcm-init"
-        data-recommendation-key="YOUR_RECOMMENDATION_KEY"
-        // data-content-item-id={props.contentItemId}
-        data-custom-unique-identifier={this.props.contentItemId}
-        data-recommendation-type="related"
-        data-style-classes="bib--hover bib--col-3">
-      </div>
-    )
-  }
-}
-
-export default RelatedContentModule;
-```
-
-#### 3) React component using bibblio initRelatedContent
-
-```javascript
-import React from 'react';
-
-class RelatedContentModule extends React.Component {
-  componentDidMount() {
-    window.Bibblio.initRelatedContent({
-      targetElementId: "bibblio-related-module",
-      recommendationKey: "YOUR_RECOMMENDATION_KEY",
-      customUniqueIdentifier: this.props.contentItemId,
-      styleClasses: "bib--hover bib--col-3"
+    window.addEventListener("load", function() {
+        Bibblio.init([
+            {
+                type: "rcm",
+                options: {
+                    targetElementId: "bib--rcm-element",
+                    recommendationKey: "YOUR_RECOMMENDATION_KEY",
+                    styleClasses: "bib--col-3 bib--4by3 bib--font-inherit bib--size-18 bib--image-middle"
+                }
+            },
+            {
+                type: "takeover",
+                options: {
+                    targetElementId: "bib--takeover-element",
+                    tabText: "Related articles"
+                }
+            }
+        ]);
     });
-  }
 
-  render() {
-    return (
-      <div id="bibblio-related-module"></div>
-    )
-  }
-}
+</script>
 ```
 
-#### Using the related content module component
-Once registered, the related content module component can be initialised as follows.
+### Combining the Add-ons
 
+A takeover add-on can be inserted within a hide add-on. This is useful if you would like a takeover panel to appear only on mobile. Simply nest your three HTML elements so that the hide add-on element wraps the takeover element which in turn wraps the RCM element.
+
+###### Example: Placing the related content module within a takover panel that is only visible on mobile browsers.
 ```html
-<RelatedContentModule 
-  contentItemId="YOUR_CONTENT_ITEM_ID" />
+<div id="bib--hide-element">
+  <div id="bib--takeover-element">
+    <div id="bib--rcm-element"></div>
+  </div>
+</div>
+
+<script type="application/javascript" charset="UTF-8">
+
+    window.addEventListener("load", function() {
+        Bibblio.init([
+            {
+                type: "rcm",
+                options: {
+                    targetElementId: "bib--rcm-element",
+                    recommendationKey: 'YOUR_RECOMMENDATION_KEY',
+                    styleClasses: 'bib--col-3 bib--4by3 bib--font-inherit bib--size-18 bib--image-middle'
+                }
+            },
+            {
+                type: "takeover",
+                options: {
+                    targetElementId: "bib--takeover-element",
+                    tabText: 'Related articles'
+                }
+            },
+            {
+                type: "hide",
+                options: {
+                    targetElementId: "bib--hide-element",
+                    hidden: 'web'
+                }
+            }
+        ]);
+    });
+
+</script>
 ```
 
-## Google AMP (Accelerated Mobile Pages) Example
+### Google AMP (Accelerated Mobile Pages)
+Bibblio's Related Content Module can be implemented on Google AMP using an amp-iframe. The HTML page that will render inside the iframe is hosted on Bibblio's servers.
 
-Bibblio's Related Content Module can be implemented on Google AMP using an `amp-iframe`. The html page that will render inside the iframe is hosted on our servers. All you need to do is place the following snippet in your AMP template:
-
+######  Example: Using the related content module with Google AMP.
 ```html
-<amp-iframe width="1" height="1" layout="responsive" resizable sandbox="allow-scripts allow-top-navigation allow-same-origin" src="https://cdn.bibblio.org/rcm/4.24/amp.html?recommendationKey=YOUR_RECOMMENDATION_KEY&contentItemId=YOUR_CONTENT_ITEM_ID">
+<amp-iframe width="1" height="1" layout="responsive" resizable sandbox="allow-scripts allow-top-navigation allow-same-origin" src="https://cdn.bibblio.org/rcm/4.24/amp.html?recommendationKey=YOUR_RECOMMENDATION_KEY&customUniqueIdentifier=YOUR_CUSTOM_UNIQUE_IDENTIFIER">
     <div overflow tabindex=0 role=button aria-label="See more">See more!</div>
     <amp-img layout="fill" src="data:image/gif;base64,R0lGODlhAQABAIAAAP///wAAACH5BAEAAAAALAAAAAABAAEAAAICRAEAOw==" placeholder></amp-img>
 </amp-iframe>
 ```
 
-All the usual parameters are supported and can be passed in as querystring parameters to the amp-iframe `src` as above. The format of some parameters will vary due to the constraint of passing data through an iframe url. These variances are described below.
+All parameters are supported and can be passed in as querystring parameters to the amp-iframe `src` as above. The format of some parameters will vary due to the constraint of passing data through an iframe URL. These variances are described below.
 
 Some things to note:
 
 * Providing an `<amp-img layout="fill" src="..." placeholder></amp-img>` within the amp-iframe tag is necessary [to avoid restrictions on module placement](https://www.ampproject.org/docs/reference/components/amp-iframe#iframe-with-placeholder).
 * Providing a `<div overflow ...>` child element is necessary to [allow resizing](https://www.ampproject.org/docs/reference/components/amp-iframe#iframe-resizing).
-* `width` and `height` properties are required by AMP. It's safe to use placeholder values of `1` as long as `layout="responsive" resizable` is also included since the iframe will then scale to the module once rendered.
-* `sandbox="allow-scripts allow-top-navigation allow-same-origin"` is required. This enables Bibblio's JavaScript within the iframe, allows recommendation clicks to open, and let's the iframe update its size in the parent window.
+* `width` and `height` properties are required by AMP. It's safe to use placeholder values of `1` so long as `layout="responsive" resizable` is also included ,since the iframe will then scale to the module once rendered.
+* `sandbox="allow-scripts allow-top-navigation allow-same-origin"` is required. This enables Bibblio's JavaScript within the iframe, allows recommendation clicks to open, and lets the iframe update its size in the parent window.
 * `styleClasses` are comma-separated when supplied to the iframe.
 * `queryStringParams` take a different format when supplied to the iframe. They can be supplied directly in the `src` property without an enclosing `queryStringParams=__` container.
 
-The following example includes all format variances. It will add `utm_source=Bibblio` and `utm_campaign=related` to your recommendation links and include the `bib--row-3` and `bib--hover` styleClasses.
-
+###### Example: Appending `utm_source=Bibblio` and `utm_campaign=related` to your recommendation links and using the `bib--row-3` and `bib--hover` styleClasses.
 ```html
 <amp-iframe width="1" height="1" layout="responsive" resizable sandbox="allow-scripts allow-top-navigation allow-same-origin" src="https://cdn.bibblio.org/rcm/4.24/amp.html?recommendationKey=YOUR_RECOMMENDATION_KEY&contentItemId=YOUR_CONTENT_ITEM_ID&utm_source=Bibblio&utm_campaign=related&styleClasses=bib--row-3,bib--hover">
     <div overflow tabindex=0 role=button aria-label="See more">See more!</div>
     <amp-img layout="fill" src="data:image/gif;base64,R0lGODlhAQABAIAAAP///wAAACH5BAEAAAAALAAAAAABAAEAAAICRAEAOw==" placeholder></amp-img>
 </amp-iframe>
-```
-
-## Trying it out locally
-
-The [example.html](example.html) file provided shows a working demo that gets its parameters from the query string. It loads assets from this project with relative paths so you'll need to clone the repo to try it. You can open it in your browser in the following format:
-
-```
-example.html?recommendationKey=YOUR_RECOMMENDATION_KEY&contentItemId=YOUR_CONTENT_ITEM_ID
 ```
