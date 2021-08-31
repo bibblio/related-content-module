@@ -404,7 +404,7 @@ if (isNodeJS) {
 
   // Bibblio module
   var Bibblio = {
-    moduleVersion: "4.24.4",
+    moduleVersion: "4.25.0",
     moduleTracking: {},
     isAmp: false,
     recommendationsLimit: 6,
@@ -1316,7 +1316,7 @@ if (isNodeJS) {
 
     // Get recommendations functions
     getRecommendationFields: function(subtitleField) {
-      var fields = ["name", "url", "moduleImage", "datePublished", "author"];
+      var fields = ["name", "url", "moduleImage", "datePublished", "author", "customFields"];
       if(subtitleField)
         fields.push(BibblioUtils.getRootProperty(subtitleField));
       return fields;
@@ -2281,6 +2281,7 @@ if (isNodeJS) {
                                           <span class="bib__name"><% name %></span>\
                                         </span>\
                                         <span class="bib__properties">\
+                                          <% customFieldsHTML %>\
                                           <% authorHTML %>\
                                           <% datePublishedHTML %>\
                                           <% siteHTML %>\
@@ -2300,6 +2301,11 @@ if (isNodeJS) {
     siteTemplate: '<span class="bib__site"><% domain %></span>',
 
     datePublishedTemplate: '<span class="bib__recency"><% datePublished %></span>',
+
+    customFieldsTemplate: '<span class="bib__custom-item bib__custom<% index %>"> \
+                            <span class="bib__custom-name bib__custom<% index %>--name"><% name %></span> \
+                            <span class="bib__custom-value bib__custom<% index %>--value"><% value %></span> \
+                          </span>',
 
     getTemplate: function(template, options) {
       Object.keys(options).forEach(function(key) {
@@ -2362,6 +2368,30 @@ if (isNodeJS) {
       }
 
       return siteHTML;
+    },
+
+    getCustomFieldsHTML: function(contentItem) {
+      try {
+        var maxFieldsCount = 5;
+        var customFields = contentItem.fields.customFields || {};
+        var customFieldsKeys = Object.keys(customFields).slice(0, maxFieldsCount);
+        var html = "";
+
+        customFieldsKeys.forEach(function(key, index) {
+          var value = customFields[key];
+
+          html += BibblioTemplates.getTemplate(BibblioTemplates.customFieldsTemplate, {
+            index: index + 1,
+            name: key,
+            value: value
+          })
+        })
+
+        return html;
+      }
+      catch(ex) {
+        return "";
+      }
     },
 
     formatDate: function(value, formatting) {
@@ -2428,6 +2458,8 @@ if (isNodeJS) {
       var datePublishedHTML = BibblioTemplates.getDatePublishedHTML(contentItem, moduleSettings);
       // Create template for site domain
       var siteHTML = BibblioTemplates.getSiteHTML(contentItem);
+      // Create template for custom fields
+      var customFieldsHTML = BibblioTemplates.getCustomFieldsHTML(contentItem);
 
       // Create template for related content item
       var contentItemUrl = (contentItem.fields.url ? contentItem.fields.url : '');
@@ -2450,6 +2482,7 @@ if (isNodeJS) {
           name: BibblioUtils.truncateTitle((contentItem.fields.name ? contentItem.fields.name   : ''), classes, moduleSettings.truncateTitle),
           authorHTML: authorHTML,
           siteHTML: siteHTML,
+          customFieldsHTML: customFieldsHTML,
           datePublishedHTML: datePublishedHTML,
           linkHref: BibblioUtils.linkHrefFor(contentItemUrl, options.queryStringParams),
           linkTarget: BibblioUtils.linkTargetFor(contentItemUrl),

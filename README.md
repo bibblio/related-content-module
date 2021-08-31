@@ -11,10 +11,10 @@ The easiest way to use the module is via our CDN. Simply include the assets in y
 <head>
 
     <!-- CSS -->
-    <link rel="preload" type="text/css" href="https://cdn.bibblio.org/rcm/4.24/bib-related-content.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'"/>
+    <link rel="preload" type="text/css" href="https://cdn.bibblio.org/rcm/4.25/bib-related-content.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'"/>
 
     <!-- JavaScript -->
-    <script type="application/javascript" charset="UTF-8" src="https://cdn.bibblio.org/rcm/4.24/bib-related-content.min.js" defer></script>
+    <script type="application/javascript" charset="UTF-8" src="https://cdn.bibblio.org/rcm/4.25/bib-related-content.min.js" defer></script>
 
 </head>
 ```
@@ -323,6 +323,16 @@ The item will be ingested the first time it is viewed in a browser. The domain f
 }
 ```
 
+#### `dateFormat` _(optional)_
+Change the format of the content items' published date when being displayed on the Related Content Module. `DMY` will display the date as `3 July 2021`, `MDY` as `July 3, 2021` and `YMD` as `2021 July 3`. The default is `DMY`.
+
+###### Example: Format the content items' published date.
+```javascript
+{
+    dateFormat: "DMY"
+}
+```
+
 #### `hidden` _(optional)_
 This lets you perform a full integration without visually displaying the module. This is useful for testing display on a live environment without disrupting the user experience. Entering `Bibblio.showModules();` in the developer console will show all hidden modules on the page. The default is `false`.
 
@@ -335,6 +345,16 @@ More nuanced, device-specific show-and-hide capabilities for displaying modules 
 }
 ```
 
+#### `lazyload` _(optional)_
+By default, all modules will load their images the moment a user starts scrolling the page, unless the module is already visible on page load, whereupon it will load its images immediately, without listening for an interaction. This lazy loading feature can be disabled by setting this parameter to `false`.
+
+###### Example: Disable lazy loading.
+```javascript
+{
+    lazyLoad: false
+}
+```
+
 #### `offset` _(optional)_
 Offset the recommendations list before rendering, thereby skipping a specified number of items. This is useful if you'd like to put multiple modules using the same recommendation type on the page without displaying duplicate items. Simply offset the second module by the number of items displayed in the first. The supplied value must be an integer between `1` and `14`.
 
@@ -342,6 +362,38 @@ Offset the recommendations list before rendering, thereby skipping a specified n
 ```javascript
 {
     offset: 2
+}
+```
+
+#### `placeholders` _(optional)_
+Replace module tiles with empty placeholder HTML elements at predefined locations. `placeholders` accepts an array of integer values between `1` and `6` so that, for example, `[2,4]` will render two empty placeholder elements in the _second_ and _fourth_ tile positions. When rendered, these empty placeholder HTML elements have a distinct CSS class of `bib__placeholder` that can be used as a lookup when dynamically injecting ad slots or other content in-between recommendations. You can also replace module tiles with populated placeholder HTML elements at predefined locations by supplying the `placeholders` parameter with a Javascript object. This object needs one or more keys, each being integer values between `1` and `6`, which describe the placeholder positions, and each key being assigned a Javascript object with the following fields, `title`, `url`, `author`, `description`, `moduleImage`,`date`. When using the JSON version `title` and `url` are required fields.
+
+###### Example A: Provision two blank placeholder elements in the second and fourth tile positions
+```javascript
+{
+    placeholders: [2,4]
+}
+```
+
+###### Example B: Provision two populated placeholder elements in the first and third tile positions.
+```javascript
+{
+    placeholders: {
+        1: {
+                title: "Click me!",
+                url: "https://click.me/to/go/somewhere",
+                author: "F. Realz",
+                description: "You should really click this.",
+                moduleImage: "https://www.example.com/people-happily-clicking.jpg", date: "Today"
+            },
+        3:  {
+                title: "And me!",
+                url: "https://click.me/to/go/elsewhere",
+                description: "Click me too please.",
+                moduleImage: "https://www.example.com/happy-face.jpg",
+                date: "Yesterday"
+            }
+    }
 }
 ```
 
@@ -468,48 +520,6 @@ Set a character length for truncating the titles of recommendations. The minimum
 }
 ```
 
-#### `dateFormat` _(optional)_
-Change the format of the content items' published date when being displayed on the Related Content Module. `DMY` will display the date as `3 July 2021`, `MDY` as `July 3, 2021` and `YMD` as `2021 July 3`. The default is `DMY`.
-
-###### Example: Format the content items' published date.
-```javascript
-{
-    dateFormat: "DMY"
-}
-```
-
-#### `placeholders` _(optional)_
-Replace module tiles with empty placeholder HTML elements at predefined locations. `placeholders` accepts an array of integer values between `1` and `6` so that, for example, `[2,4]` will render two empty placeholder elements in the _second_ and _fourth_ tile positions. When rendered, these empty placeholder HTML elements have a distinct CSS class of `bib__placeholder` that can be used as a lookup when dynamically injecting ad slots or other content in-between recommendations. You can also replace module tiles with populated placeholder HTML elements at predefined locations by supplying the `placeholders` parameter with a Javascript object. This object needs one or more keys, each being integer values between `1` and `6`, which describe the placeholder positions, and each key being assigned a Javascript object with the following fields, `title`, `url`, `author`, `description`, `moduleImage`,`date`. When using the JSON version `title` and `url` are required fields.
-
-###### Example A: Provision two blank placeholder elements in the second and fourth tile positions
-```javascript
-{
-    placeholders: [2,4]
-}
-```
-
-###### Example B: Provision two populated placeholder elements in the first and third tile positions.
-```javascript
-{
-    placeholders: {
-        1: {
-                title: "Click me!",
-                url: "https://click.me/to/go/somewhere",
-                author: "F. Realz",
-                description: "You should really click this.",
-                moduleImage: "https://www.example.com/people-happily-clicking.jpg", date: "Today"
-            },
-        3:  {
-                title: "And me!",
-                url: "https://click.me/to/go/elsewhere",
-                description: "Click me too please.",
-                moduleImage: "https://www.example.com/happy-face.jpg",
-                date: "Yesterday"
-            }
-    }
-}
-```
-
 #### `userId` _(optional)_
 Your own unique id for the current site visitor. This allows Bibblio to compute personalized recommendations. This can be supplied for any `recommendationType` to generate additional training data for Bibblio's personalization algorithms. Please do not provide any personally identifiable information for this field.
 
@@ -530,16 +540,6 @@ Allows you to supply additional properties pertaining to the user specified by `
         occupation: "Nurse",
         location: "England"
     }
-}
-```
-
-#### `lazyload` _(optional)_
-By default, all modules will load their images the moment a user starts scrolling the page, unless the module is already visible on page load, whereupon it will load its images immediately, without listening for an interaction. This lazy loading feature can be disabled by setting this parameter to `false`.
-
-###### Example: Disable lazy loading.
-```javascript
-{
-    lazyLoad: false
 }
 ```
 
@@ -637,7 +637,7 @@ Wrap your module's HTML element in a new element with an id of your choosing, su
                 options: {
                     targetElementId: "bib--rcm-element",
                     recommendationKey: "YOUR_RECOMMENDATION_KEY",
-                    styleClasses: "bib--col-3 bib--4by3 bib--font-inherit bib--size-18 bib--image-middle"
+                    styleClasses: "bib--col-3"
                 }
             },
             {
@@ -674,7 +674,7 @@ A takeover add-on can be inserted within a hide add-on. This is useful if you wo
                 options: {
                     targetElementId: "bib--rcm-element",
                     recommendationKey: 'YOUR_RECOMMENDATION_KEY',
-                    styleClasses: 'bib--col-3 bib--4by3 bib--font-inherit bib--size-18 bib--image-middle'
+                    styleClasses: 'bib--col-3'
                 }
             },
             {
@@ -702,7 +702,7 @@ Bibblio's Related Content Module can be implemented on Google AMP using an amp-i
 
 ######  Example: Using the related content module with Google AMP.
 ```html
-<amp-iframe width="1" height="1" layout="responsive" resizable sandbox="allow-scripts allow-top-navigation allow-same-origin" src="https://cdn.bibblio.org/rcm/4.24/amp.html?recommendationKey=YOUR_RECOMMENDATION_KEY&customUniqueIdentifier=YOUR_CUSTOM_UNIQUE_IDENTIFIER">
+<amp-iframe width="1" height="1" layout="responsive" resizable sandbox="allow-scripts allow-top-navigation allow-same-origin" src="https://cdn.bibblio.org/rcm/4.25/amp.html?recommendationKey=YOUR_RECOMMENDATION_KEY&customUniqueIdentifier=YOUR_CUSTOM_UNIQUE_IDENTIFIER">
     <div overflow tabindex=0 role=button aria-label="See more">See more!</div>
     <amp-img layout="fill" src="data:image/gif;base64,R0lGODlhAQABAIAAAP///wAAACH5BAEAAAAALAAAAAABAAEAAAICRAEAOw==" placeholder></amp-img>
 </amp-iframe>
@@ -721,7 +721,7 @@ Some things to note:
 
 ###### Example: Appending `utm_source=Bibblio` and `utm_campaign=related` to your recommendation links and using the `bib--row-3` and `bib--hover` styleClasses.
 ```html
-<amp-iframe width="1" height="1" layout="responsive" resizable sandbox="allow-scripts allow-top-navigation allow-same-origin" src="https://cdn.bibblio.org/rcm/4.24/amp.html?recommendationKey=YOUR_RECOMMENDATION_KEY&contentItemId=YOUR_CONTENT_ITEM_ID&utm_source=Bibblio&utm_campaign=related&styleClasses=bib--row-3,bib--hover">
+<amp-iframe width="1" height="1" layout="responsive" resizable sandbox="allow-scripts allow-top-navigation allow-same-origin" src="https://cdn.bibblio.org/rcm/4.25/amp.html?recommendationKey=YOUR_RECOMMENDATION_KEY&contentItemId=YOUR_CONTENT_ITEM_ID&utm_source=Bibblio&utm_campaign=related&styleClasses=bib--row-3,bib--hover">
     <div overflow tabindex=0 role=button aria-label="See more">See more!</div>
     <amp-img layout="fill" src="data:image/gif;base64,R0lGODlhAQABAIAAAP///wAAACH5BAEAAAAALAAAAAABAAEAAAICRAEAOw==" placeholder></amp-img>
 </amp-iframe>

@@ -1,73 +1,135 @@
-## CSS
+# CSS
 
-The style and layout is extremely customizable. Use the following classes in the CSS class string to determine the layout you require.
+The style and layout is extremely customizable. Use the following classes in the CSS class string to determine the layout you require. Default styles do not need to be declared, but are listed here for reference.
 
-### Layouts
-* _Row layout:_ bib--row-1, bib--row-2, bib--row-3, bib--row-4
-* _Carousel layout:_ bib--car-6
-* _Column layout:_ bib--col-2, bib--col-3, bib--col-4, bib--col-5, bib--col-6
-* _Showcased Box layout:_ bib--box-3, bib--box-5, bib--box-6
-* _Grid layout:_ bib--grd-4, bib--grd-6, bib--grd-6v
-* _Text-only layout:_ bib--txt-1, bib--txt-3, bib--txt-6
-* _Next Article layout:_ bib--nxt-title, bib--nxt-thumb, bib--nxt-overlay, bib--nxt-label, bib--nxt-side
+## Required
 
-### Ratios
-* _Standard ratio:_ _default_
-* _Widescreen ratio:_ bib--wide
-* _Square ratio:_ bib--square
-* _Tall ratio:_ bib--tall
+### Layouts (Required)
 
-### Properties
-* _Show author:_ bib--author-show
-* _Show date published:_ bib--recency-show
-* _Show domain name:_ bib--site-show
+A layout is an arrangement of recommendations in a module. Where applicable, the suffixed number indicates the quantity of recommendations that will be displayed. Choose one layout only.
 
-### Hover combinations (not for text-only or Next Article layouts)
-* _Show title and properties:_ _default_
-* _Show image only, hover for title:_ bib--image-only
-* _Show image only, hover for title and properties:_ bib--image-only bib--title-only
-* _Show image only, hover for title, properties and preview:_ bib--image-only bib--hover
-* _Show title, hover for properties:_ bib--title-only
-* _Show title, hover for properties and preview:_ bib--title-only bib--hover
-* _Show title and properties, hover for preview:_ bib--hover
+* _Row:_ `bib--row-1`, `bib--row-2`, `bib--row-3`, `bib--row-4`
+* _Carousel:_ `bib--car-6`
+* _Column:_ `bib--col-2`, `bib--col-3`, `bib--col-4`, `bib--col-5`, `bib--col-6`
+* _Showcased Box:_ `bib--box-3`, `bib--box-5`, `bib--box-6`
+* _Grid:_ `bib--grd-4`, `bib--grd-6`, `bib--grd-6v`
+* _Text-only:_ `bib--txt-1`, `bib--txt-3`, `bib--txt-6`
+* _Next Article:_ `bib--nxt-title`, `bib--nxt-thumb`, `bib--nxt-overlay`, `bib--nxt-label`, `bib--nxt-side`
+
+## Optional
 
 ### Headline font family
-* _Arial:_ bib--font-arial _(default)_
-* _Arial Black:_ bib--font-arialblack
-* _Comic Sans:_ bib--font-comic
-* _Courier New:_ bib--font-courier
-* _Georgia:_ bib--font-georgia
-* _Palatino Linotype:_ bib--font-palatino
-* _Tahoma:_ bib--font-tahoma
-* _Times New Roman:_ bib--font-times
-* _Trebuchet MS:_ bib--font-trebuchet
-* _Verdana:_ bib--font-verdana
+
+Choose one font family to change the headline font of all recommendations in a module. By default, the module uses the font assigned to the containing element in your page. If you have a particular font that is neither assigned to the containing element within which you've placed the module or is one of the common system fonts listed below, you can declare it in your own CSS. For legibility, all other text in the recommendation is set to Arial. This can also be overridden within your own CSS.
+
+* _Inherit page's own font:_ `bib--font-inherit` _(default)_
+* _Arial:_ `bib--font-arial`
+* _Arial Black:_ `bib--font-arialblack`
+* _Comic Sans:_ `bib--font-comic`
+* _Courier New:_ `bib--font-courier`
+* _Georgia:_ `bib--font-georgia`
+* _Palatino Linotype:_ `bib--font-palatino`
+* _Tahoma:_ `bib--font-tahoma`
+* _Times New Roman:_ `bib--font-times`
+* _Trebuchet MS:_ `bib--font-trebuchet`
+* _Verdana:_ `bib--font-verdana`
 
 ### Headline text size
-* _14px:_ bib--size-14
-* _16px:_ bib--size-16
-* _18px:_ bib--size-18 _(default)_
-* _20px:_ bib--size-20
-* _22px:_ bib--size-22
 
-### Align text
-* _Align all tile text to the left:_ bib--text-left
-* _Align all tile text to the center:_ bib--text-center
-* _Align all tile text to the right:_ bib--text-right
-* _Justify all tile text:_ bib--text-justify
+Choose one headline text size only.
+
+* _14px:_ `bib--size-14`
+* _16px:_ `bib--size-16`
+* _18px:_ `bib--size-18` _(default)_
+* _20px:_ `bib--size-20`
+* _22px:_ `bib--size-22`
+
+### Hide
+
+You can hide a module from view for testing purposes. Be aware that despite the module not being visible, it will still call the Bibblio API, which could impact your recommendation call allowance and metrics. To avoid this you can use the [Hide Add-on](https://github.com/bibblio/related-content-module-source/blob/master/public/README.md#add-ons) instead.
+
+* _Hide module:_ `bib--hide`
+
+### Hover combinations
+
+Choose a combination of these classes to display and reveal information when a pointer hovers over a recommendation. (These do not apply to Text-only or Next Article layouts.)
+
+* _Show title and properties_ _(default)_
+* _Show image only, hover for title:_ `bib--image-only`
+* _Show image only, hover for title and properties:_ `bib--image-only bib--title-only`
+* _Show image only, hover for title, properties and preview:_ `bib--image-only bib--hover`
+* _Show title, hover for properties:_ `bib--title-only`
+* _Show title, hover for properties and preview:_ `bib--title-only bib--hover`
+* _Show title and properties, hover for preview:_ `bib--hover`
+
+### Image alignment
+
+By default, images are cropped to their center to fit within a chosen tile ratio. All images can be set so that they are cropped to their top or bottom instead.
+
+* _Align to top:_ `bib--image-top`
+* _Align to middle:_ `bib--image-middle` _(default)_
+* _Align to bottom:_ `bib--image-bottom`
+
+### Image hovers
+
+Set an effect if a pointer hovers over a tile image. Choose one effect only. 
+
+* _Shine effect:_ `bib--shine`
+* _Spectrum effect:_ `bib--spectrum`
 
 ### Invert text
-* _Automatically invert text color if the user's OS is set to dark mode and the website is designed to switch to this mode:_ bib--mode-dark
-* _Manually invert the text color for darker webpage designs:_ bib--invert
 
-### Image
-* _Position image above text:_ bib--split
-* _Align all images to top of tiles:_ bib--image-top
-* _Align all images to middle of tiles:_ bib--image-middle _default_
-* _Align all images to bottom of tiles:_ bib--image-bottom
-* _Hover 'shine' effect:_ bib--shine
-* _Hover 'spectrum' effect:_ bib--spectrum
+Choose one invert text setting only.
 
-### Extras
-* _If a tile has a background image, this class is automatically added to the anchor 'bib__link':_ bib__link--image
-* _Hide module for testing:_ bib--hide
+* _Automatically invert the text color if the user's OS is set to dark mode and the website is designed to switch to this mode:_ `bib--mode-dark`
+* _Manually invert the text color for darker webpage designs:_ `bib--invert`
+
+### Properties
+
+Choose one or more these content recommendation properties to display.
+
+* _Show author:_ `bib--author-show`
+* _Show date published:_ `bib--recency-show`
+* _Show domain name:_ `bib--site-show`
+
+### Properties - custom
+
+You can display up to five custom properties on your recommendations. (These custom properties are defined using the `customFields` property when importing your content items via the [Bibblio API](https://developer.bibblio.org/docs).) 
+
+Each custom property's name and value can be displayed separately. E.g. A content item's custom property 1 has the name "Genre" and the value "Drama". When both `bib--custom1-name-show` and `bib--custom1-value-show` style classes are used, "_Genre:_ Drama" is displayed when that item is recommended. When only the `bib--custom1-value-show` style class is used, only "Drama" is displayed.
+
+* _Show custom property 1 - name:_ `bib--custom1-name-show`
+* _Show custom property 1 - value:_ `bib--custom1-value-show`
+* _Show custom property 2 - name:_ `bib--custom2-name-show`
+* _Show custom property 2 - value:_ `bib--custom2-value-show`
+* _Show custom property 3 - name:_ `bib--custom3-name-show`
+* _Show custom property 3 - value:_ `bib--custom3-value-show`
+* _Show custom property 4 - name:_ `bib--custom4-name-show`
+* _Show custom property 4 - value:_ `bib--custom4-value-show`
+* _Show custom property 5 - name:_ `bib--custom5-name-show`
+* _Show custom property 5 - value:_ `bib--custom5-value-show`
+
+### Ratios
+
+The majority of layouts use a tile arrangement, wherein each tile contains a recommendation. The ratio of all tiles in a module can be set with the following. If a tile has an image, this image will be cropped within the `bib__image` HTML element to the desired ratio. Choose one ratio only.
+
+* _Standard:_ `bib--4by3` _(default)_
+* _Widescreen:_ `bib--wide`
+* _Square:_ `bib--square`
+* _Tall:_ `bib--tall`
+
+### Text alignment
+
+Aligns all tile text accordingly. Choose one alignment only.
+
+* _Left:_ `bib--text-left` _(default)_
+* _Center:_ `bib--text-center`
+* _Right:_ `bib--text-right`
+* _Justify:_ `bib--text-justify`
+
+### Tile arrangement
+
+By default, all tiled layouts display the text on top of a background image (or fallback gray background). Alternatively, the text can appear beneath the image.
+
+* _Position text beneath the image:_ `bib--split`
+

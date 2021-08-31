@@ -224,6 +224,34 @@ a.bib__link.bib__link--image .bib__info {
 .bib--text-right .bib__author { margin-right: 0; }
 .bib--text-right .bib__recency { margin-left: 5px; }
 
+.bib__custom-item {
+    display: block;
+    margin-bottom: 3px;
+}
+
+.bib__custom-name,
+.bib__custom-value {
+    display: none;
+}
+
+.bib__custom-name {
+    font-style: italic;
+    opacity: 0.8;
+}
+
+.bib--custom1-name-show  .bib__custom1 .bib__custom-name,
+.bib--custom1-value-show .bib__custom1 .bib__custom-value,
+.bib--custom2-name-show  .bib__custom2 .bib__custom-name,
+.bib--custom2-value-show .bib__custom2 .bib__custom-value,
+.bib--custom3-name-show  .bib__custom3 .bib__custom-name,
+.bib--custom3-value-show .bib__custom3 .bib__custom-value,
+.bib--custom4-name-show  .bib__custom4 .bib__custom-name,
+.bib--custom4-value-show .bib__custom4 .bib__custom-value,
+.bib--custom5-name-show  .bib__custom5 .bib__custom-name,
+.bib--custom5-value-show .bib__custom5 .bib__custom-value {
+    display: inline-block;
+}
+
 /* Tile Metadata */
 
 .bib__title {
