@@ -11,10 +11,10 @@ The easiest way to use the module is via our CDN. Simply include the assets in y
 <head>
 
     <!-- CSS -->
-    <link rel="preload" type="text/css" href="https://cdn.bibblio.org/rcm/4.25/bib-related-content.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'"/>
+    <link rel="preload" type="text/css" href="https://cdn.bibblio.org/rcm/4.26/bib-related-content.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'"/>
 
     <!-- JavaScript -->
-    <script type="application/javascript" charset="UTF-8" src="https://cdn.bibblio.org/rcm/4.25/bib-related-content.min.js" defer></script>
+    <script type="application/javascript" charset="UTF-8" src="https://cdn.bibblio.org/rcm/4.26/bib-related-content.min.js" defer></script>
 
 </head>
 ```
@@ -702,7 +702,7 @@ Bibblio's Related Content Module can be implemented on Google AMP using an amp-i
 
 ######  Example: Using the related content module with Google AMP.
 ```html
-<amp-iframe width="1" height="1" layout="responsive" resizable sandbox="allow-scripts allow-top-navigation allow-same-origin" src="https://cdn.bibblio.org/rcm/4.25/amp.html?recommendationKey=YOUR_RECOMMENDATION_KEY&customUniqueIdentifier=YOUR_CUSTOM_UNIQUE_IDENTIFIER">
+<amp-iframe width="1" height="1" layout="responsive" resizable sandbox="allow-scripts allow-top-navigation allow-same-origin" src="https://cdn.bibblio.org/rcm/4.26/amp.html?recommendationKey=YOUR_RECOMMENDATION_KEY&customUniqueIdentifier=YOUR_CUSTOM_UNIQUE_IDENTIFIER">
     <div overflow tabindex=0 role=button aria-label="See more">See more!</div>
     <amp-img layout="fill" src="data:image/gif;base64,R0lGODlhAQABAIAAAP///wAAACH5BAEAAAAALAAAAAABAAEAAAICRAEAOw==" placeholder></amp-img>
 </amp-iframe>
@@ -721,7 +721,7 @@ Some things to note:
 
 ###### Example: Appending `utm_source=Bibblio` and `utm_campaign=related` to your recommendation links and using the `bib--row-3` and `bib--hover` styleClasses.
 ```html
-<amp-iframe width="1" height="1" layout="responsive" resizable sandbox="allow-scripts allow-top-navigation allow-same-origin" src="https://cdn.bibblio.org/rcm/4.25/amp.html?recommendationKey=YOUR_RECOMMENDATION_KEY&contentItemId=YOUR_CONTENT_ITEM_ID&utm_source=Bibblio&utm_campaign=related&styleClasses=bib--row-3,bib--hover">
+<amp-iframe width="1" height="1" layout="responsive" resizable sandbox="allow-scripts allow-top-navigation allow-same-origin" src="https://cdn.bibblio.org/rcm/4.26/amp.html?recommendationKey=YOUR_RECOMMENDATION_KEY&contentItemId=YOUR_CONTENT_ITEM_ID&utm_source=Bibblio&utm_campaign=related&styleClasses=bib--row-3,bib--hover">
     <div overflow tabindex=0 role=button aria-label="See more">See more!</div>
     <amp-img layout="fill" src="data:image/gif;base64,R0lGODlhAQABAIAAAP///wAAACH5BAEAAAAALAAAAAABAAEAAAICRAEAOw==" placeholder></amp-img>
 </amp-iframe>

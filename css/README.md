@@ -64,11 +64,11 @@ Choose a combination of these classes to display and reveal information when a p
 
 ### Image alignment
 
-By default, images are cropped to their center to fit within a chosen tile ratio. All images can be set so that they are cropped to their top or bottom instead.
+By default, images are cropped to their center to fit within a chosen tile ratio. All images can be set so that they are cropped to their top or bottom instead. (Nb. The image file itself is not cropped and resaved - it is only its appearance within the tile that gives the effect of being cropped.)
 
-* _Align to top:_ `bib--image-top`
-* _Align to middle:_ `bib--image-middle` _(default)_
-* _Align to bottom:_ `bib--image-bottom`
+* _Crop from the top:_ `bib--image-top`
+* _Crop to the middle:_ `bib--image-middle` _(default)_
+* _Crop from the bottom:_ `bib--image-bottom`
 
 ### Image hovers
 
@@ -96,7 +96,7 @@ Choose one or more these content recommendation properties to display.
 
 You can display up to five custom properties on your recommendations. (These custom properties are defined using the `customFields` property when importing your content items via the [Bibblio API](https://developer.bibblio.org/docs).) 
 
-Each custom property's name and value can be displayed separately. E.g. A content item's custom property 1 has the name "Genre" and the value "Drama". When both `bib--custom1-name-show` and `bib--custom1-value-show` style classes are used, "_Genre:_ Drama" is displayed when that item is recommended. When only the `bib--custom1-value-show` style class is used, only "Drama" is displayed.
+Each custom property's name and value can be displayed separately. E.g. A content item's custom property 1 has the name "Genre" and the value "Drama". When both `bib--custom1-name-show` and `bib--custom1-value-show` style classes are used, "_Genre_ Drama" is displayed when that item is recommended. When only the `bib--custom1-value-show` style class is used, only "Drama" is displayed.
 
 * _Show custom property 1 - name:_ `bib--custom1-name-show`
 * _Show custom property 1 - value:_ `bib--custom1-value-show`
@@ -113,23 +113,31 @@ Each custom property's name and value can be displayed separately. E.g. A conten
 
 The majority of layouts use a tile arrangement, wherein each tile contains a recommendation. The ratio of all tiles in a module can be set with the following. If a tile has an image, this image will be cropped within the `bib__image` HTML element to the desired ratio. Choose one ratio only.
 
-* _Standard:_ `bib--4by3` _(default)_
-* _Widescreen:_ `bib--wide`
-* _Square:_ `bib--square`
-* _Tall:_ `bib--tall`
+* _Standard (4:3):_ `bib--4by3` _(default)_
+* _Widescreen (16:9):_ `bib--wide`
+* _Square (1:1):_ `bib--square`
+* _Tall (2:3):_ `bib--tall`
 
 ### Text alignment
 
-Aligns all tile text accordingly. Choose one alignment only.
+The following classes align all tile text horizontally. Choose one horizontal alignment only.
 
 * _Left:_ `bib--text-left` _(default)_
 * _Center:_ `bib--text-center`
 * _Right:_ `bib--text-right`
 * _Justify:_ `bib--text-justify`
 
+When using a tile arrangement where the image is displayed to the left or right side of the text, use the following classes to align all tile text vertically in relation to the image. Choose one vertical alignment only.
+
+* _Top:_ `bib--text-top` _(default)_
+* _Middle:_ `bib--text-middle`
+* _Bottom:_ `bib--text-bottom`
+
 ### Tile arrangement
 
-By default, all tiled layouts display the text on top of a background image (or fallback gray background). Alternatively, the text can appear beneath the image.
+By default, all tiled layouts display the recommendation text overlaid upon a background image (or fallback gray background). Alternatively, the image can be separated from the text overlay, and displayed above or to the side of its corresponding information.
 
-* _Position text beneath the image:_ `bib--split`
+* _Image above:_ `bib--split`
+* _Image to the left:_ `bib--split-left`
+* _Image to the right:_ `bib--split-right`
 

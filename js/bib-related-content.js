@@ -404,7 +404,7 @@ if (isNodeJS) {
 
   // Bibblio module
   var Bibblio = {
-    moduleVersion: "4.25.0",
+    moduleVersion: "4.26.0",
     moduleTracking: {},
     isAmp: false,
     recommendationsLimit: 6,
@@ -1583,15 +1583,19 @@ if (isNodeJS) {
       }
     },
 
+    showModuleImage: function(imageElement) {
+      var imageUrl = imageElement.getAttribute("data-deferred-image");
+      if(imageUrl && !imageElement.style.backgroundImage) {
+        imageElement.removeAttribute("data-deferred-image")
+        imageElement.style.backgroundImage = "url('"  + imageUrl + "')";
+      }
+      BibblioUtils.addClass(imageElement, 'bib__image');
+    },
+
     showModuleImages: function(options) {
       var parentElement = options.targetElement || document;
       parentElement.querySelectorAll('.bib__image--ratio').forEach(function(imageElement) {
-        var imageUrl = imageElement.getAttribute("data-deferred-image");
-        if(imageUrl && !imageElement.style.backgroundImage) {
-          imageElement.removeAttribute("data-deferred-image")
-          imageElement.style.backgroundImage = "url('"  + imageUrl + "')";
-        }
-        BibblioUtils.addClass(imageElement, 'bib__image');
+        BibblioUtils.showModuleImage(imageElement);
       });
     },
 
@@ -1600,8 +1604,61 @@ if (isNodeJS) {
         return intValue === parseInt(intValue, 10);
       }
 
-      var onScrollPoll = function() {
-        var moduleElement = options.targetElement;
+      var isInView = function(element) {
+        var requiredInViewPercentage = 0.05; // 5% of the tile width or height
+
+        var rect = element.getBoundingClientRect();
+        var windowHeight = (window.innerHeight || document.documentElement.clientHeight);
+        var windowWidth = (window.innerWidth || document.documentElement.clientWidth);
+
+        // Amount of pixels in view from each side of the tile
+        var pixelsInView = {
+          top: windowHeight - rect.top,
+          bottom: rect.bottom,
+          left: windowWidth - rect.left,
+          right: rect.right
+        }
+
+        // Minimum horizontal and vertical pixels required in view
+        var hMinPixels = rect.width * requiredInViewPercentage;
+        var vMinPixels = rect.height * requiredInViewPercentage;
+
+        return (pixelsInView.left >= hMinPixels && pixelsInView.right >= hMinPixels) && // Is horizontally in view
+               (pixelsInView.top >= vMinPixels && pixelsInView.bottom >= vMinPixels)    // and is vertically in view
+      }
+
+      var loadInViewTiles = function(options) {
+        var parentElement = options.targetElement || document;
+        var tiles = parentElement.querySelectorAll(".bib__link");
+        var filteredTiles = Array.from(tiles)
+          // Filter hidden tiles
+          .filter(function(element) {
+            var elementStyle = window.getComputedStyle(element);
+            // For very old browsers make sure 'getComputedStyle' exists
+            if(typeof window.getComputedStyle === 'function') {
+              return element && elementStyle.display !== 'none';
+            }
+
+            return element;
+          })
+          // filter tiles that already has background image set
+          .filter(function(element) {
+            var imageElement = element.querySelector(".bib__image--ratio");
+            return imageElement && !imageElement.style.backgroundImage;
+          });
+
+        filteredTiles.forEach(function(element) {
+          var imageElement = element.querySelector(".bib__image--ratio");
+          if(isInView(imageElement)) {
+            BibblioUtils.showModuleImage(imageElement);
+          }
+        });
+
+        // Return if all tiles' images have been loaded
+        return filteredTiles.length === 0;
+      }
+
+      var loadImagesOnScroll = function(options, startScrollPositionX, startScrollPositionY) {
         // 'document.body.scrollTop' is for older IE browsers
         var scrollPositionY = window.pageYOffset || document.body.scrollTop;
         var scrollPositionX = window.pageXOffset || document.body.scrollLeft;
@@ -1610,14 +1667,44 @@ if (isNodeJS) {
           // or browser can't determine webpage scroll values
           (!isInt(scrollPositionY) || !isInt(scrollPositionX)) ||
           // or window has been scrolled
-          (scrollPositionY !== 0 || scrollPositionX !== 0) ||
-          // or rcm is already in view
-          (moduleElement.getBoundingClientRect && BibblioUtils.isRecommendationTileInView(moduleElement, moduleElement.getBoundingClientRect()));
+          (scrollPositionY !== startScrollPositionY || scrollPositionX !== startScrollPositionX);
 
         if(shouldRenderModuleImages) {
           BibblioUtils.showModuleImages(options);
+          return true;
+        }
 
-          // Exit polling
+        // Also check scroll position of all takeover modules
+        var hasLoadedModules = false;
+        var takeoverScrollContainers = document.querySelectorAll(".bib__modal-sheet-panel");
+        takeoverScrollContainers.forEach(function(element) {
+          if(!hasLoadedModules) {
+            var takeOverScrollPosition = element.scrollTop;
+
+            if(takeOverScrollPosition !== 0) {
+              BibblioUtils.showModuleImages(options);
+              hasLoadedModules = true;
+              return;
+            }
+          }
+        })
+
+        return hasLoadedModules;
+      }
+
+      var startScrollPositionX = window.pageXOffset || document.body.scrollTop;
+      var startScrollPositionY = window.pageYOffset || document.body.scrollLeft;
+
+      var onScrollPoll = function() {
+        // Load images on scroll
+        if(loadImagesOnScroll(options, startScrollPositionX, startScrollPositionY)) {
+          // Stop polling when images has loaded
+          return;
+        }
+
+        // Individually load in view recommendations tile
+        if(loadInViewTiles(options)) {
+          // Stop polling when all tiles has loaded images
           return;
         }
 
@@ -1629,7 +1716,6 @@ if (isNodeJS) {
         BibblioUtils.showModuleImages(options);
       }
       else {
-        // Poll scroll event for older browser
         onScrollPoll();
       }
     },
@@ -2273,7 +2359,7 @@ if (isNodeJS) {
                             <% recommendedContentItems %>\
                           </div>',
 
-    relatedContentItemTemplate: '<a href="<% linkHref %>" target="<% linkTarget %>" <% linkRel %> data="<% contentItemId %>" tile-type="<% tileType %>" class="bib__link bib__link--image">\
+    relatedContentItemTemplate: '<a href="<% linkHref %>" target="<% linkTarget %>" <% linkRel %> data="<% contentItemId %>" tile-type="<% tileType %>" class="bib__link">\
                                     <span class="bib__image--ratio" data-deferred-image="<% linkImageUrl %>" >\
                                     </span>\
                                     <span class="bib__info">\
