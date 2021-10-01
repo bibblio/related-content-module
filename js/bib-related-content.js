@@ -404,7 +404,7 @@ if (isNodeJS) {
 
   // Bibblio module
   var Bibblio = {
-    moduleVersion: "4.26.0",
+    moduleVersion: "4.26.1",
     moduleTracking: {},
     isAmp: false,
     recommendationsLimit: 6,
@@ -2363,11 +2363,11 @@ if (isNodeJS) {
                                     <span class="bib__image--ratio" data-deferred-image="<% linkImageUrl %>" >\
                                     </span>\
                                     <span class="bib__info">\
+                                        <% customFieldsHTML %>\
                                         <span class="bib__title">\
                                           <span class="bib__name"><% name %></span>\
                                         </span>\
                                         <span class="bib__properties">\
-                                          <% customFieldsHTML %>\
                                           <% authorHTML %>\
                                           <% datePublishedHTML %>\
                                           <% siteHTML %>\
@@ -2388,7 +2388,8 @@ if (isNodeJS) {
 
     datePublishedTemplate: '<span class="bib__recency"><% datePublished %></span>',
 
-    customFieldsTemplate: '<span class="bib__custom-item bib__custom<% index %>"> \
+    customFieldsTemplate: '<span class="bib__custom-item bib__custom<% index %> <% hasNameClass %> <% hasValueClass %>" \
+                                 data-name="<% name %>" data-value="<% value %>" > \
                             <span class="bib__custom-name bib__custom<% index %>--name"><% name %></span> \
                             <span class="bib__custom-value bib__custom<% index %>--value"><% value %></span> \
                           </span>',
@@ -2463,13 +2464,19 @@ if (isNodeJS) {
         var customFieldsKeys = Object.keys(customFields).slice(0, maxFieldsCount);
         var html = "";
 
+        var isValidValue = function(val) {
+          // Check for empty strings and strings with only spaces
+          return val && val.replace(/\s/g, "") !== "";
+        }
+
         customFieldsKeys.forEach(function(key, index) {
           var value = customFields[key];
-
           html += BibblioTemplates.getTemplate(BibblioTemplates.customFieldsTemplate, {
             index: index + 1,
             name: key,
-            value: value
+            value: value,
+            hasNameClass: isValidValue(key) ? "bib--has-name" : "",
+            hasValueClass: isValidValue(value) ? "bib--has-value" : ""
           })
         })
 

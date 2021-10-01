@@ -238,7 +238,6 @@ a.bib__link:hover .bib__image--ratio:after {
 
 .bib__custom-item {
     display: block;
-    margin-bottom: 3px;
 }
 
 .bib__custom-name,
@@ -251,17 +250,18 @@ a.bib__link:hover .bib__image--ratio:after {
     opacity: 0.8;
 }
 
-.bib--custom1-name-show  .bib__custom1 .bib__custom-name,
-.bib--custom1-value-show .bib__custom1 .bib__custom-value,
-.bib--custom2-name-show  .bib__custom2 .bib__custom-name,
-.bib--custom2-value-show .bib__custom2 .bib__custom-value,
-.bib--custom3-name-show  .bib__custom3 .bib__custom-name,
-.bib--custom3-value-show .bib__custom3 .bib__custom-value,
-.bib--custom4-name-show  .bib__custom4 .bib__custom-name,
-.bib--custom4-value-show .bib__custom4 .bib__custom-value,
-.bib--custom5-name-show  .bib__custom5 .bib__custom-name,
-.bib--custom5-value-show .bib__custom5 .bib__custom-value {
+.bib--custom1-name-show  .bib__custom1.bib--has-name .bib__custom-name,
+.bib--custom1-value-show .bib__custom1.bib--has-value .bib__custom-value,
+.bib--custom2-name-show  .bib__custom2.bib--has-name .bib__custom-name,
+.bib--custom2-value-show .bib__custom2.bib--has-value .bib__custom-value,
+.bib--custom3-name-show  .bib__custom3.bib--has-name .bib__custom-name,
+.bib--custom3-value-show .bib__custom3.bib--has-value .bib__custom-value,
+.bib--custom4-name-show  .bib__custom4.bib--has-name .bib__custom-name,
+.bib--custom4-value-show .bib__custom4.bib--has-value .bib__custom-value,
+.bib--custom5-name-show  .bib__custom5.bib--has-name .bib__custom-name,
+.bib--custom5-value-show .bib__custom5.bib--has-value .bib__custom-value {
     display: inline-block;
+    margin-top: 5px;
 }
 
 /* Tile Metadata */
