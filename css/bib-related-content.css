@@ -39,7 +39,7 @@ a.bib__link {
     margin-top: 0 !important;
     margin-left: 0 !important;
     margin-right: 0;
-    margin-bottom: 2% !important;
+    margin-bottom: 15px !important;
     border: 0 !important;
     outline: 0 !important;
     padding: 0 !important;
@@ -159,6 +159,10 @@ a.bib__link:focus {
 .bib__module.bib--car-6[class*="bib--split-"] a.bib__link {width: 270px; min-width: 270px; max-width: 270px; padding-right: 30px !important;}
 .bib__module.bib--car-6[class*="bib--split"] a.bib__link:nth-of-type(6) {padding-right: 0 !important;}
 .bib__module.bib--car-6[class*="bib--split"] a.bib__link .bib__info { min-height: 115px; }
+
+.bib--box-3 a.bib__link, .bib--box-5 a.bib__link, .bib--box-6 a.bib__link {
+    margin-bottom: 2% !important;
+}
 
 .bib__image--ratio {
     position: relative;
@@ -573,11 +577,6 @@ a.bib__link:hover .bib__image--ratio:after {
     transition: all 0.5s linear;
 }
 
-[class*="bib--split-"] .bib__description {
-    margin: 0;
-    padding: 0;
-}
-
 [class*="bib--split"].bib--invert a.bib__link .bib__info {
     color: #FFFFFF;
 }
@@ -602,18 +601,6 @@ a.bib__link:hover .bib__image--ratio:after {
     transition: all 0.5s linear;
 }
 
-.bib--split-left .bib__preview,
-.bib--split-left.bib--hover a.bib__link:hover .bib__preview  {
-    margin: 0 0 0 15px;
-    padding: 0 0 0 0;
-}
-
-.bib--split-right .bib__preview,
-.bib--split-right.bib--hover a.bib__link:hover .bib__preview {
-    margin: 0 0 0 0;
-    padding: 0 15px 0 0;
-}
-
 [class*="bib--split"].bib--hover a.bib__link:hover .bib__preview .bib__description {
     padding-bottom: 10px;
 }
@@ -623,7 +610,6 @@ a.bib__link:hover .bib__image--ratio:after {
 }
 
 [class*="bib--split"].bib--text-bottom.bib--hover a.bib__link:hover .bib__preview {
-    padding-top: 10px;
     border-top: 1px solid rgba(0,0,0,0.1);
     border-bottom: 0;
 }
@@ -701,6 +687,7 @@ filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#00ff3232', e
 @media (max-width: 1024px) {
     .bib--hover a.bib__link:hover .bib__preview {
         max-height: 0em !important;
+        border: 0 !important;
     }
     a.bib__link:hover .bib__image--ratio:after {
         opacity: 0;

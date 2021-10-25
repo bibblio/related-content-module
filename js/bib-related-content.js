@@ -404,7 +404,7 @@ if (isNodeJS) {
 
   // Bibblio module
   var Bibblio = {
-    moduleVersion: "4.26.1",
+    moduleVersion: "4.27.0",
     moduleTracking: {},
     isAmp: false,
     recommendationsLimit: 6,
@@ -1430,6 +1430,8 @@ if (isNodeJS) {
       switch (recommendationType) {
           case "related" :
               return baseUrl + "/recommendations/related?" + querystringArgs.join("&");
+          case "latest" :
+            return baseUrl + "/recommendations/latest?" + querystringArgs.join("&");
           case "popular" :
               return baseUrl + "/recommendations/popular?" + querystringArgs.join("&");
           case "personalised" :

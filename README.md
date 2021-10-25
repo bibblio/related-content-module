@@ -11,10 +11,10 @@ The easiest way to use the module is via our CDN. Simply include the assets in y
 <head>
 
     <!-- CSS -->
-    <link rel="preload" type="text/css" href="https://cdn.bibblio.org/rcm/4.26/bib-related-content.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'"/>
+    <link rel="preload" type="text/css" href="https://cdn.bibblio.org/rcm/4.27/bib-related-content.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'"/>
 
     <!-- JavaScript -->
-    <script type="application/javascript" charset="UTF-8" src="https://cdn.bibblio.org/rcm/4.26/bib-related-content.min.js" defer></script>
+    <script type="application/javascript" charset="UTF-8" src="https://cdn.bibblio.org/rcm/4.27/bib-related-content.min.js" defer></script>
 
 </head>
 ```
@@ -411,15 +411,17 @@ Append additional query string parameters to the target URL of recommended items
 #### `recommendationType` _(optional)_
 Specify the type of recommendations to serve. The types are:
 
-`related` - Recommendations ignore user behaviour and are based purely on relatedness. Requires the `contentItemId` or `customUniqueIdentifier` fields.
+`related` - Recommendations ignore user behavior and are based purely on relatedness. Requires the `contentItemId` or `customUniqueIdentifier` fields.
 
-`optimised` - Recommendations are rooted in relevance but will also learn from user behaviour and continuously adapt to attain better engagement. Requires the `contentItemId` or `customUniqueIdentifier` fields.
+`optimised` - Recommendations are rooted in relevance but will also learn from user behavior and continuously adapt to attain better engagement. Requires the `contentItemId` or `customUniqueIdentifier` fields.
+
+`latest` - Recommendations ignore relatedness and are based purely on the `datePublished` field set, returning those most recently published. Doesn't require the `contentItemId` or `customUniqueIdentifier` fields.
 
 `popular` - Recommendations ignore relatedness and are based purely on aggregated user behaviour. Doesn't require the `contentItemId` or `customUniqueIdentifier` fields.
 
 `personalised` - Recommendations are tailored to a specific user. Requires the `userId` field. Doesn't require the `contentItemId` or `customUniqueIdentifier` fields.
 
-It is best to start with `related` recommendations, then add `optimised`, `popular` or `personalised` modules elsewhere on the page to fit the site experience you desire. If `recommendationType` is not supplied, the module will default to `optimised` which will fall back to `related` if no optimised recommendations are available.
+It is best to start with `related` recommendations, then add `optimised`, `popular` or `personalised` modules elsewhere on the page to fit the site experience you desire. If `recommendationType` is not supplied, the module will default to `optimised`. If no optimised recommendations are available, it will fall back to `related`, and if no related recommendations are available, it will fall back to `latest`.
 
 ###### Example A: Retrieve related recommendations.
 ```javascript
@@ -437,14 +439,21 @@ It is best to start with `related` recommendations, then add `optimised`, `popul
 }
 ```
 
-###### Example C: Retrieve popular recommendations.
+###### Example C: Retrieve latest recommendations.
+```javascript
+{
+    recommendationType: "latest"
+}
+```
+
+###### Example D: Retrieve popular recommendations.
 ```javascript
 {
     recommendationType: "popular"
 }
 ```
 
-###### Example D: Retrieve personalised recommendations.
+###### Example E: Retrieve personalised recommendations.
 ```javascript
 {
     recommendationType: "personalised",
@@ -702,7 +711,7 @@ Bibblio's Related Content Module can be implemented on Google AMP using an amp-i
 
 ######  Example: Using the related content module with Google AMP.
 ```html
-<amp-iframe width="1" height="1" layout="responsive" resizable sandbox="allow-scripts allow-top-navigation allow-same-origin" src="https://cdn.bibblio.org/rcm/4.26/amp.html?recommendationKey=YOUR_RECOMMENDATION_KEY&customUniqueIdentifier=YOUR_CUSTOM_UNIQUE_IDENTIFIER">
+<amp-iframe width="1" height="1" layout="responsive" resizable sandbox="allow-scripts allow-top-navigation allow-same-origin" src="https://cdn.bibblio.org/rcm/4.27/amp.html?recommendationKey=YOUR_RECOMMENDATION_KEY&customUniqueIdentifier=YOUR_CUSTOM_UNIQUE_IDENTIFIER">
     <div overflow tabindex=0 role=button aria-label="See more">See more!</div>
     <amp-img layout="fill" src="data:image/gif;base64,R0lGODlhAQABAIAAAP///wAAACH5BAEAAAAALAAAAAABAAEAAAICRAEAOw==" placeholder></amp-img>
 </amp-iframe>
@@ -721,7 +730,7 @@ Some things to note:
 
 ###### Example: Appending `utm_source=Bibblio` and `utm_campaign=related` to your recommendation links and using the `bib--row-3` and `bib--hover` styleClasses.
 ```html
-<amp-iframe width="1" height="1" layout="responsive" resizable sandbox="allow-scripts allow-top-navigation allow-same-origin" src="https://cdn.bibblio.org/rcm/4.26/amp.html?recommendationKey=YOUR_RECOMMENDATION_KEY&contentItemId=YOUR_CONTENT_ITEM_ID&utm_source=Bibblio&utm_campaign=related&styleClasses=bib--row-3,bib--hover">
+<amp-iframe width="1" height="1" layout="responsive" resizable sandbox="allow-scripts allow-top-navigation allow-same-origin" src="https://cdn.bibblio.org/rcm/4.27/amp.html?recommendationKey=YOUR_RECOMMENDATION_KEY&contentItemId=YOUR_CONTENT_ITEM_ID&utm_source=Bibblio&utm_campaign=related&styleClasses=bib--row-3,bib--hover">
     <div overflow tabindex=0 role=button aria-label="See more">See more!</div>
     <amp-img layout="fill" src="data:image/gif;base64,R0lGODlhAQABAIAAAP///wAAACH5BAEAAAAALAAAAAABAAEAAAICRAEAOw==" placeholder></amp-img>
 </amp-iframe>
