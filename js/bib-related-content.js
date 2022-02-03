@@ -404,7 +404,7 @@ if (isNodeJS) {
 
   // Bibblio module
   var Bibblio = {
-    moduleVersion: "4.27.0",
+    moduleVersion: "4.28.0",
     moduleTracking: {},
     isAmp: false,
     recommendationsLimit: 6,
@@ -2361,13 +2361,13 @@ if (isNodeJS) {
                             <% recommendedContentItems %>\
                           </div>',
 
-    relatedContentItemTemplate: '<a href="<% linkHref %>" target="<% linkTarget %>" <% linkRel %> data="<% contentItemId %>" tile-type="<% tileType %>" class="bib__link">\
+    relatedContentItemTemplate: '<a href="<% linkHref %>" target="<% linkTarget %>" <% linkRel %> data="<% contentItemId %>" tile-type="<% tileType %>" class="bib__link" aria-labelledby="name--<% contentItemId %>">\
                                     <span class="bib__image--ratio" data-deferred-image="<% linkImageUrl %>" >\
                                     </span>\
                                     <span class="bib__info">\
                                         <% customFieldsHTML %>\
                                         <span class="bib__title">\
-                                          <span class="bib__name"><% name %></span>\
+                                          <span class="bib__name" id="name--<% contentItemId %>"><% name %></span>\
                                         </span>\
                                         <span class="bib__properties">\
                                           <% authorHTML %>\
