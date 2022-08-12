@@ -404,10 +404,11 @@ if (isNodeJS) {
 
   // Bibblio module
   var Bibblio = {
-    moduleVersion: "4.28.0",
+    moduleVersion: "4.29.0",
     moduleTracking: {},
     isAmp: false,
     recommendationsLimit: 6,
+    autoIngestionUpdateKeyCharacterLimit: 100,
 
     autoInit: function() {
       BibblioUtils.delayExecution(function() {
@@ -563,6 +564,14 @@ if (isNodeJS) {
         scrapeRequest.customCatalogueId = options.autoIngestionCustomCatalogueId;
       }
 
+      if (options.autoIngestionUpdateKeyXPath) {
+        var updateKey = BibblioUtils.getXPathValue(options.autoIngestionUpdateKeyXPath);
+        if(updateKey === null)
+          console.error("Bibblio: Invalid xpath ('" + options.autoIngestionUpdateKeyXPath + "') for auto ingestion update key.");
+        else
+          scrapeRequest.updateKey = BibblioUtils.formatAutoIngestionUpdateKey(updateKey);
+      }
+
       var url = "https://api.bibblio.org/v1/content-item-url-ingestions/";
 
       BibblioUtils.bibblioHttpPostRequest(url, accessToken, scrapeRequest, true, function(response, status) {
@@ -617,6 +626,50 @@ if (isNodeJS) {
 
   // Bibblio utility module
   var BibblioUtils = {
+
+    getXPathValue(xpath) {
+      try {
+        var result = document.evaluate(xpath, document, null, window.XPathResult.ANY_TYPE, null);
+
+        switch(result.resultType) {
+          // Primitive types
+          case window.XPathResult.STRING_TYPE: return result.stringValue || null;
+          case window.XPathResult.NUMBER_TYPE: return result.numberValue && result.numberValue.toString() || null;
+          case window.XPathResult.BOOLEAN_TYPE: return (result.booleanValue || false).toString();
+          // List types
+          case window.XPathResult.UNORDERED_NODE_ITERATOR_TYPE:
+          case window.XPathResult.ORDERED_NODE_ITERATOR_TYPE:
+            // Evaluate again for incase the page has invalidated
+            var value = result.invalidIteratorState ?
+                          document.evaluate(xpath, document, null, window.XPathResult.ANY_TYPE, null).iterateNext() :
+                          result.iterateNext();
+            return value && value.textContent || null;
+          // Snapshots types
+          case window.XPathResult.ORDERED_NODE_SNAPSHOT_TYPE:
+          case window.XPathResult.UNORDERED_NODE_SNAPSHOT_TYPE:
+            return result.snapshotItem(0) && result.snapshotItem(0).textContent;
+          // First node types
+          case window.XPathResult.ANY_UNORDERED_NODE_TYPE:
+          case window.XPathResult.FIRST_ORDERED_NODE_TYPE:
+            return result.singleNodeValue && result.singleNodeValue.textContent;
+        }
+      }
+      catch(ex) {
+        if(ex instanceof DOMException) {
+          return null;
+        }
+      }
+
+      return null;
+    },
+
+    formatAutoIngestionUpdateKey(updateKey) {
+      if(!updateKey) return null;
+
+      var trimmed = updateKey.replace(/\s/g,''); // Removes whitespace
+      var truncated = trimmed.substring(0, Bibblio.autoIngestionUpdateKeyCharacterLimit);
+      return BibblioUtils.base64Encode(truncated);
+    },
 
     getTemplateTiles: function(placeholders, recommendations) {
       // Create recommendation tiles
@@ -1043,6 +1096,7 @@ if (isNodeJS) {
       "autoIngestionUrl",
       "autoIngestionCatalogueId",
       "autoIngestionCustomCatalogueId",
+      "autoIngestionUpdateKeyXPath",
       "urlParamIngestion",
       "catalogueIds",
       "customCatalogueIds",
