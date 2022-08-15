@@ -404,7 +404,7 @@ if (isNodeJS) {
 
   // Bibblio module
   var Bibblio = {
-    moduleVersion: "4.29.0",
+    moduleVersion: "4.29.1",
     moduleTracking: {},
     isAmp: false,
     recommendationsLimit: 6,
@@ -627,7 +627,7 @@ if (isNodeJS) {
   // Bibblio utility module
   var BibblioUtils = {
 
-    getXPathValue(xpath) {
+    getXPathValue: function(xpath) {
       try {
         var result = document.evaluate(xpath, document, null, window.XPathResult.ANY_TYPE, null);
 
@@ -663,7 +663,7 @@ if (isNodeJS) {
       return null;
     },
 
-    formatAutoIngestionUpdateKey(updateKey) {
+    formatAutoIngestionUpdateKey: function(updateKey) {
       if(!updateKey) return null;
 
       var trimmed = updateKey.replace(/\s/g,''); // Removes whitespace
